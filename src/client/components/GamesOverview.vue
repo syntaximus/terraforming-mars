@@ -4,11 +4,11 @@
             <p>The following games are available on this server:</p>
             <ul>
                 <li v-for="game in games" :key="game.id">
-                    <a v-bind:href="'/game?id='+game.id">{{game.id}}</a>
+                    <a v-bind:href="'terraforming/game?id='+game.id">{{game.id}}</a>
                     with {{game.players.length}} player(s) :
                     <span class="player_home_block nofloat" >
                         <span v-for="player in game.players" class="player_name" :class="'player_bg_color_'+ player.color" :key="player.color">
-                            <a :href="'/player?id=' + player.id">{{player.name}}</a>
+                            <a :href="'terraforming/player?id=' + player.id">{{player.name}}</a>
                         </span>
                         <span v-if="isGameRunning(game.phase)">is running</span><span v-else>has ended</span>
                     </span>
@@ -40,7 +40,7 @@ export default Vue.extend({
     getGames() {
       const vueApp = this;
       const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/games?serverId='+this.serverId);
+      xhr.open('GET', '/terraforming/api/games?serverId='+this.serverId);
       xhr.onerror = function() {
         alert('Error getting games data');
       };
@@ -64,7 +64,7 @@ export default Vue.extend({
     getGame(gameId: string) {
       const vueApp = this;
       const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/game?id='+gameId);
+      xhr.open('GET', '/terraforming/api/game?id='+gameId);
       xhr.onerror = function() {
         alert('Error getting game data');
       };

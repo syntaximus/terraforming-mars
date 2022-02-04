@@ -36,32 +36,33 @@ const route = new Route();
 
 const handlers: Map<string, IHandler> = new Map(
   [
-    ['/', ServeApp.INSTANCE],
-    ['/api/clonablegames', ApiCloneableGames.INSTANCE],
-    ['/api/cloneablegames', ApiCloneableGames.INSTANCE],
-    ['/api/game', ApiGame.INSTANCE],
-    ['/api/game/logs', ApiGameLogs.INSTANCE],
-    ['/api/games', ApiGames.INSTANCE],
-    ['/api/player', ApiPlayer.INSTANCE],
-    ['/api/spectator', ApiSpectator.INSTANCE],
-    ['/api/waitingfor', ApiWaitingFor.INSTANCE],
-    ['/cards', ServeApp.INSTANCE],
+    ['/terraforming/', ServeApp.INSTANCE],
+    ['/terraforming/api/clonablegames', ApiCloneableGames.INSTANCE],
+    ['/terraforming/api/cloneablegames', ApiCloneableGames.INSTANCE],
+    ['/terraforming/api/game', ApiGame.INSTANCE],
+    ['/terraforming/api/game/logs', ApiGameLogs.INSTANCE],
+    ['/terraforming/api/games', ApiGames.INSTANCE],
+    ['/terraforming/api/player', ApiPlayer.INSTANCE],
+    ['/terraforming/api/spectator', ApiSpectator.INSTANCE],
+    ['/terraforming/api/waitingfor', ApiWaitingFor.INSTANCE],
+    ['/terraforming/cards', ServeApp.INSTANCE],
+    ['/terraforming/favicon.ico', ServeAsset.INSTANCE],
     ['/favicon.ico', ServeAsset.INSTANCE],
-    ['/game', GameHandler.INSTANCE],
-    ['/games-overview', GamesOverview.INSTANCE],
-    ['/help', ServeApp.INSTANCE],
-    ['/load', Load.INSTANCE],
-    ['/load_game', LoadGame.INSTANCE],
-    ['/main.js', ServeAsset.INSTANCE],
-    ['/main.js.map', ServeAsset.INSTANCE],
-    ['/new-game', ServeApp.INSTANCE],
-    ['/player', ServeApp.INSTANCE],
-    ['/player/input', PlayerInput.INSTANCE],
-    ['/solo', ServeApp.INSTANCE],
-    ['/spectator', ServeApp.INSTANCE],
-    ['/styles.css', ServeAsset.INSTANCE],
-    ['/sw.js', ServeAsset.INSTANCE],
-    ['/the-end', ServeApp.INSTANCE],
+    ['/terraforming/game', GameHandler.INSTANCE],
+    ['/terraforming/games-overview', GamesOverview.INSTANCE],
+    ['/terraforming/help', ServeApp.INSTANCE],
+    ['/terraforming/load', Load.INSTANCE],
+    ['/terraforming/load_game', LoadGame.INSTANCE],
+    ['/terraforming/main.js', ServeAsset.INSTANCE],
+    ['/terraforming/main.js.map', ServeAsset.INSTANCE],
+    ['/terraforming/new-game', ServeApp.INSTANCE],
+    ['/terraforming/player', ServeApp.INSTANCE],
+    ['/terraforming/player/input', PlayerInput.INSTANCE],
+    ['/terraforming/solo', ServeApp.INSTANCE],
+    ['/terraforming/spectator', ServeApp.INSTANCE],
+    ['/terraforming/styles.css', ServeAsset.INSTANCE],
+    ['/terraforming/sw.js', ServeAsset.INSTANCE],
+    ['/terraforming/the-end', ServeApp.INSTANCE],
   ],
 );
 
@@ -81,7 +82,7 @@ function processRequest(req: http.IncomingMessage, res: http.ServerResponse): vo
 
   if (handler !== undefined) {
     handler.processRequest(req, res, ctx);
-  } else if (req.method === 'GET' && url.pathname.startsWith('/assets/')) {
+  } else if (req.method === 'GET' && url.pathname.startsWith('/terraforming/assets/')) {
     ServeAsset.INSTANCE.get(req, res, ctx);
   } else {
     route.notFound(req, res);

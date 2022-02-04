@@ -604,7 +604,7 @@ export default Vue.extend({
     CorporationsFilter,
   },
   mounted() {
-    if (window.location.pathname === '/solo') {
+    if (window.location.pathname === '/terraforming/solo') {
       this.isSoloModePage = true;
     }
 
@@ -612,7 +612,7 @@ export default Vue.extend({
       this.$data.cloneGameData = response;
     };
 
-    fetch('/api/clonablegames')
+    fetch('/terraforming/api/clonablegames')
       .then((response) => response.json())
       .then(onSucces)
       .catch((_) => alert('Unexpected server response'));
@@ -965,16 +965,16 @@ export default Vue.extend({
       if (dataToSend === undefined) return;
       const onSucces = (response: any) => {
         if (response.players.length === 1) {
-          window.location.href = '/player?id=' + response.players[0].id;
+          window.location.href = 'player?id=' + response.players[0].id;
           return;
         } else {
-          window.history.replaceState(response, `${constants.APP_NAME} - Game`, '/game?id=' + response.id);
+          window.history.replaceState(response, `${constants.APP_NAME} - Game`, 'game?id=' + response.id);
           (this as any).$root.$data.game = response;
           (this as any).$root.$data.screen = 'game-home';
         }
       };
 
-      fetch('/game', {'method': 'PUT', 'body': dataToSend, 'headers': {'Content-Type': 'application/json'}})
+      fetch('game', {'method': 'PUT', 'body': dataToSend, 'headers': {'Content-Type': 'application/json'}})
         .then((response) => response.json())
         .then(onSucces)
         .catch((_) => alert('Unexpected server response'));

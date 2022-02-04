@@ -26,7 +26,7 @@ describe('ApiPlayer', function() {
   });
 
   it('fails game not found', () => {
-    req.url = '/api/player?id=googoo';
+    req.url = 'terraforming/api/player?id=googoo';
     ctx.url = new URL('http://boo.com' + req.url);
     ApiPlayer.INSTANCE.get(req, res.hide(), ctx);
     expect(res.content).eq('Not found');
@@ -34,7 +34,7 @@ describe('ApiPlayer', function() {
 
   it('pulls player', () => {
     const player = TestPlayers.BLACK.newPlayer();
-    req.url = '/api/player?id=' + player.id;
+    req.url = 'terraforming/api/player?id=' + player.id;
     ctx.url = new URL('http://boo.com' + req.url);
     const game = Game.newInstance('game-id', [player], player);
     ctx.gameLoader.add(game);

@@ -7,7 +7,7 @@
                         <div class="game_end_success">
                             <h2 v-i18n>You win!</h2>
                             <div class="game_end_solo_img">
-                                <img src="/assets/solo_win.png" />
+                                <img src="terraforming/assets/solo_win.png" />
                             </div>
                             <div class="game_end_notice" v-i18n>
                                 But it isn't the reason to stop making Mars better.
@@ -69,7 +69,7 @@
                         <tbody>
                             <tr v-for="p in getSortedPlayers()" :key="p.color" :class="getEndGamePlayerRowColorClass(p.color)">
                                 <td>
-                                  <a :href="'/player?id='+p.id+'&noredirect'">{{ p.name }}</a>
+                                  <a :href="'terraforming/player?id='+p.id+'&noredirect'">{{ p.name }}</a>
                                   <div class="column-corporation">{{ p.corporationCard === undefined ? "" : p.corporationCard.name }}</div>
                                 </td>
                                 <td>{{ p.victoryPointsBreakdown.terraformRating }}</td>
@@ -98,7 +98,7 @@
                     <div class="game-end-flexrow">
                         <div v-for="p in getSortedPlayers()" :key="p.color" class="game-end-column">
                             <div class="game-end-winer-scorebreak-player-title">
-                                <div :class="'game-end-player ' + getEndGamePlayerRowColorClass(p.color)"><a :href="'/player?id='+p.id+'&noredirect'">{{p.name}}</a></div>
+                                <div :class="'game-end-player ' + getEndGamePlayerRowColorClass(p.color)"><a :href="'terraforming/player?id='+p.id+'&noredirect'">{{p.name}}</a></div>
                             </div>
                             <div v-for="v in p.victoryPointsBreakdown.detailsCards" :key="v.cardName">
                               <div class="game-end-column-row">

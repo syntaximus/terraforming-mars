@@ -150,7 +150,7 @@ describe('ServeAsset', () => {
 
   it('sw.js', () => {
     instance = new ServeAsset(undefined, false, fileApi);
-    setRequest('/sw.js', [['accept-encoding', '']]);
+    setRequest('terraforming/sw.js', [['accept-encoding', '']]);
     instance.get(req, res.hide(), ctx);
     expect(res.content).eq('data: build/src/client/sw.js');
     expect(fileApi.counts).deep.eq({

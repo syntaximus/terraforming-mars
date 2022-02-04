@@ -95,12 +95,12 @@ export default Vue.extend({
     },
     getHref(playerId: PlayerId | SpectatorId): string {
       if (playerId === this.game.spectatorId) {
-        return `/spectator?id=${playerId}`;
+        return `spectator?id=${playerId}`;
       }
-      return `/player?id=${playerId}`;
+      return `player?id=${playerId}`;
     },
     copyUrl(playerId: PlayerId | SpectatorId): void {
-      copyToClipboard(window.location.origin + this.getHref(playerId));
+      copyToClipboard(window.location.origin + '/terraforming/' + this.getHref(playerId));
       this.urlCopiedPlayerId = playerId;
     },
     isPlayerUrlCopied(playerId: string): boolean {

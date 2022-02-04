@@ -114,12 +114,12 @@ export const mainAppSettings = {
     getVisibilityState(targetVar: string): boolean {
       return (this as unknown as typeof mainAppSettings.data).componentsVisibility[targetVar] ? true : false;
     },
-    update(path: '/player' | '/spectator'): void {
+    update(path: '/terraforming/player' | '/terraforming/spectator'): void {
       const currentPathname: string = window.location.pathname;
       const xhr = new XMLHttpRequest();
       const app = this as unknown as typeof mainAppSettings.data;
 
-      const url = '/api' + path + window.location.search.replace('&noredirect', '');
+      const url = '/terraforming/api' + path.replace('terraforming/', '') + window.location.search.replace('&noredirect', '');
       xhr.open('GET', url);
       xhr.onerror = function() {
         alert('Error getting game data');
@@ -128,9 +128,9 @@ export const mainAppSettings = {
         try {
           if (xhr.status === 200) {
             const model = xhr.response as ViewModel;
-            if (path === '/player') {
+            if (path === '/terraforming/player') {
               app.playerView = model as PlayerViewModel;
-            } else if (path === '/spectator') {
+            } else if (path === '/terraforming/spectator') {
               app.spectator = model as SpectatorModel;
             }
             app.playerkey++;
@@ -139,17 +139,17 @@ export const mainAppSettings = {
               window.location.search.includes('&noredirect') === false
             ) {
               app.screen = 'the-end';
-              if (currentPathname !== '/the-end') {
+              if (currentPathname !== '/terraforming/the-end') {
                 window.history.replaceState(
                   xhr.response,
                   `${constants.APP_NAME} - Player`,
-                  '/the-end?id=' + model.id,
+                  '/terraforming/the-end?id=' + model.id,
                 );
               }
             } else {
-              if (path === '/player') {
+              if (path === '/terraforming/player') {
                 app.screen = 'player-home';
-              } else if (path === '/spectator') {
+              } else if (path === '/terraforming/spectator') {
                 app.screen = 'spectator-home';
               }
               if (currentPathname !== path) {
@@ -171,16 +171,16 @@ export const mainAppSettings = {
       xhr.send();
     },
     updatePlayer() {
-      this.update('/player');
+      this.update('/terraforming/player');
     },
     updateSpectator: function() {
-      this.update('/spectator');
+      this.update('/terraforming/spectator');
     },
   },
   mounted() {
     document.title = constants.APP_NAME;
     if (!windowHasHTMLDialogElement()) dialogPolyfill.default.registerDialog(document.getElementById('alert-dialog'));
-    const currentPathname: string = window.location.pathname;
+    const currentPathname: string = window.location.pathname.replace('terraforming/', '');
     const app = this as unknown as (typeof mainAppSettings.data) & (typeof mainAppSettings.methods);
     if (currentPathname === '/player') {
       app.updatePlayer();
@@ -197,7 +197,7 @@ export const mainAppSettings = {
     } else if (currentPathname === '/game') {
       app.screen = 'game-home';
       const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/game' + window.location.search);
+      xhr.open('GET', '/terraforming/api/game' + window.location.search);
       xhr.onerror = function() {
         alert('Error getting game data');
       };
@@ -206,7 +206,7 @@ export const mainAppSettings = {
           window.history.replaceState(
             xhr.response,
             `${constants.APP_NAME} - Game`,
-            '/game?id=' + xhr.response.id,
+            'terraforming/game?id=' + xhr.response.id,
           );
           app.game = xhr.response as SimpleGameModel;
         } else {

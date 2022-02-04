@@ -25,7 +25,7 @@ describe('ApiWaitingFor', function() {
   });
 
   it('fails when game not found', () => {
-    req.url = '/api/waitingfor?id=p-some-player-id&gameAge=123&undoCount=0';
+    req.url = 'terraforming/api/waitingfor?id=p-some-player-id&gameAge=123&undoCount=0';
     ctx.url = new URL('http://boo.com' + req.url);
     ApiWaitingFor.INSTANCE.get(req, res.hide(), ctx);
     expect(res.statusCode).eq(404);
@@ -40,7 +40,7 @@ describe('ApiWaitingFor', function() {
       throw new Error('player does not exist');
     };
 
-    req.url = '/api/waitingfor?id=' + player.id + '&gameAge=50&undoCount=0';
+    req.url = 'terraforming/api/waitingfor?id=' + player.id + '&gameAge=50&undoCount=0';
     ctx.url = new URL('http://boo.com' + req.url);
     ApiWaitingFor.INSTANCE.get(req, res.hide(), ctx);
     expect(res.statusCode).eq(404);
@@ -52,7 +52,7 @@ describe('ApiWaitingFor', function() {
     const game = Game.newInstance('game-id', [player], player);
     ctx.gameLoader.add(game);
 
-    req.url = '/api/waitingfor?id=' + player.id + '&gameAge=50&undoCount=0';
+    req.url = 'terraforming/api/waitingfor?id=' + player.id + '&gameAge=50&undoCount=0';
     ctx.url = new URL('http://boo.com' + req.url);
     ApiWaitingFor.INSTANCE.get(req, res.hide(), ctx);
     expect(res.statusCode).eq(200);
@@ -68,7 +68,7 @@ describe('ApiWaitingFor', function() {
       throw new Error('spectator does not exist');
     };
 
-    req.url = '/api/waitingfor?id=' + game.spectatorId + '-invalid' + '&gameAge=50&undoCount=0';
+    req.url = 'terraforming/api/waitingfor?id=' + game.spectatorId + '-invalid' + '&gameAge=50&undoCount=0';
     ctx.url = new URL('http://boo.com' + req.url);
     ApiWaitingFor.INSTANCE.get(req, res.hide(), ctx);
     expect(res.statusCode).eq(404);
@@ -81,7 +81,7 @@ describe('ApiWaitingFor', function() {
     const game = Game.newInstance('game-id', [player, player2], player, undefined, undefined, 's-spectatorid');
     ctx.gameLoader.add(game);
 
-    req.url = '/api/waitingfor?id=' + game.spectatorId + '&gameAge=50&undoCount=0';
+    req.url = 'terraforming/api/waitingfor?id=' + game.spectatorId + '&gameAge=50&undoCount=0';
     ctx.url = new URL('http://boo.com' + req.url);
     ApiWaitingFor.INSTANCE.get(req, res.hide(), ctx);
     expect(res.statusCode).eq(200);

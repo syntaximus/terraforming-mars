@@ -70,7 +70,7 @@ export default Vue.extend({
       }
 
       root.isServerSideRequestInProgress = true;
-      xhr.open('POST', '/player/input?id=' + this.playerView.id);
+      xhr.open('POST', 'player/input?id=' + this.playerView.id);
       xhr.responseType = 'json';
       xhr.onload = () => {
         if (xhr.status === 200) {
@@ -78,7 +78,7 @@ export default Vue.extend({
           root.playerView = xhr.response;
           root.playerkey++;
           root.screen = 'player-home';
-          if (this.playerView.game.phase === 'end' && window.location.pathname !== '/the-end') {
+          if (this.playerView.game.phase === 'end' && window.location.pathname !== 'terraforming/the-end') {
             (window).location = (window).location;
           }
         } else if (xhr.status === 400 && xhr.responseType === 'json') {
@@ -99,7 +99,7 @@ export default Vue.extend({
       clearTimeout(ui_update_timeout_id);
       const askForUpdate = () => {
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', '/api/waitingfor' + window.location.search + '&gameAge=' + this.playerView.game.gameAge + '&undoCount=' + this.playerView.game.undoCount);
+        xhr.open('GET', '/terraforming/api/waitingfor' + window.location.search + '&gameAge=' + this.playerView.game.gameAge + '&undoCount=' + this.playerView.game.undoCount);
         xhr.onerror = function() {
           root.showAlert('Unable to reach the server. The server may be restarting or down for maintenance.', () => vueApp.waitForUpdate());
         };
@@ -118,7 +118,7 @@ export default Vue.extend({
                   // on browsers where this constructor isn't supported
                   // the error will be ignored instead of going uncaught
                   new Notification(constants.APP_NAME, {
-                    icon: '/favicon.ico',
+                    icon: '/terraforming/favicon.ico',
                     body: 'It\'s your turn!',
                   });
                 } catch (e) {

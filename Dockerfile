@@ -1,5 +1,5 @@
 # Intermediate image - base for building and installing dependencies
-FROM node:16.13.2-alpine3.15 AS install
+FROM arm64v8/node:16.13.2-alpine3.14 AS install
 
 # Install required tools
 RUN apk add --no-cache --virtual .gyp git python3 make g++ \
@@ -11,7 +11,9 @@ WORKDIR /usr/src/app
 COPY ["package.json", "package-lock.json", "./"]
 
 # Install dependencies
-RUN npm ci
+RUN npm ci \
+  && npm uninstall sqlite3 \
+  && npm install --save sqlite3
 
 
 # Create image for application building
@@ -31,7 +33,7 @@ RUN npm ci --production --prefer-offline
 
 
 # Target image
-FROM node:16.13.2-alpine3.15
+FROM arm64v8/node:16.13.2-alpine3.14
 
 WORKDIR /usr/src/app
 

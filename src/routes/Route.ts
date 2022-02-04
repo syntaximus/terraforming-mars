@@ -14,10 +14,10 @@ export class Route {
   }
   public notFound(req: http.IncomingMessage, res: http.ServerResponse, err?: string): void {
     if (!process.argv.includes('hide-not-found-warnings')) {
-      console.warn('Not found', req.method, req.url);
+      console.warn('Not found r', req.method, req.url);
     }
     res.writeHead(404);
-    res.write('Not found');
+    res.write('Not found r');
     if (err) {
       res.write(': ');
       res.write(err);

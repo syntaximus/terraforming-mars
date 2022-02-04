@@ -25,7 +25,7 @@ describe('ApiGames', function() {
   });
 
   it('validates server id', () => {
-    req.url = '/api/games';
+    req.url = '/terraforming/api/games';
     ctx.url = new URL('http://boo.com' + req.url);
     ApiGames.INSTANCE.processRequest(req, res.hide(), ctx);
     expect(res.content).eq('Not authorized');

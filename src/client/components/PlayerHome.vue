@@ -5,7 +5,7 @@
       <div v-if="game.phase === 'end'">
           <div class="player_home_block">
               <DynamicTitle title="This game is over!" :color="thisPlayer.color"/>
-              <a :href="'/the-end?id='+ playerView.id" v-i18n>Go to game results</a>
+              <a :href="'/terraforming/the-end?id='+ playerView.id" v-i18n>Go to game results</a>
           </div>
       </div>
 
@@ -235,7 +235,7 @@
       </div>
       <PlanetaryTracks v-if="game.gameOptions.pathfindersExpansion" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
       <div v-if="game.spectatorId">
-        <a :href="'/spectator?id=' +game.spectatorId" target="_blank" rel="noopener noreferrer">Spectator link</a>
+        <a :href="'/terraforming/spectator?id=' +game.spectatorId" target="_blank" rel="noopener noreferrer">Spectator link</a>
       </div>
   </div>
 </template>

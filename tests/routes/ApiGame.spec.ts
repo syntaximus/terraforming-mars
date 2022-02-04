@@ -31,7 +31,7 @@ describe('ApiGame', () => {
   });
 
   it('no parameter', () => {
-    setRequest('/api/game');
+    setRequest('/terraforming/api/game');
     ApiGame.INSTANCE.get(req, res.hide(), ctx);
     expect(res.statusCode).eq(404);
     expect(res.content).eq('Not found: id parameter missing');
@@ -40,7 +40,7 @@ describe('ApiGame', () => {
   it('invalid id', () => {
     const player = TestPlayers.BLACK.newPlayer();
     ctx.gameLoader.add(Game.newInstance('validId', [player], player));
-    setRequest('/api/game?id=invalidId');
+    setRequest('/terraforming/api/game?id=invalidId');
     ApiGame.INSTANCE.get(req, res.hide(), ctx);
     expect(res.statusCode).eq(404);
     expect(res.content).eq('Not found: game not found');
@@ -49,7 +49,7 @@ describe('ApiGame', () => {
   it('valid id', () => {
     const player = TestPlayers.BLACK.newPlayer();
     ctx.gameLoader.add(Game.newInstance('validId', [player], player));
-    setRequest('/api/game?id=validId');
+    setRequest('/terraforming/api/game?id=validId');
     ApiGame.INSTANCE.get(req, res.hide(), ctx);
     // This test is probably brittle.
     expect(JSON.parse(res.content)).deep.eq(

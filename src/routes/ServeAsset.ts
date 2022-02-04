@@ -130,6 +130,7 @@ export class ServeAsset extends Handler {
   }
 
   private toFile(urlPath: string, encodings: Set<Encoding>): { file?: string, encoding?: Encoding } {
+    urlPath = urlPath.replace('terraforming/', '');
     switch (urlPath) {
     case 'assets/index.html':
     case 'assets/Prototype.ttf':
