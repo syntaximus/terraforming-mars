@@ -1631,6 +1631,7 @@
     <TypeScriptCompile Include="src\database\IDatabase.ts" />
     <TypeScriptCompile Include="src\database\IGameLoader.ts" />
     <TypeScriptCompile Include="src\database\LocalFilesystem.ts" />
+    <TypeScriptCompile Include="src\database\MsSQL.ts" />
     <TypeScriptCompile Include="src\database\PostgreSQL.ts" />
     <TypeScriptCompile Include="src\database\SQLite.ts" />
     <TypeScriptCompile Include="src\Dealer.ts" />

@@ -11,9 +11,7 @@ WORKDIR /usr/src/app
 COPY ["package.json", "package-lock.json", "./"]
 
 # Install dependencies
-RUN npm ci \
-  && npm uninstall sqlite3 \
-  && npm install --save sqlite3
+RUN npm ci
 
 
 # Create image for application building
