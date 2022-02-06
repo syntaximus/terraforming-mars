@@ -17,5 +17,11 @@ pid
 tsconfig.tsbuildinfo
 assets/locales
 
+bin/
+Bin/
+obj/
+Obj/
+
 # Local Packages
 node_modules/
+

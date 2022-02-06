@@ -206,7 +206,7 @@ export const mainAppSettings = {
           window.history.replaceState(
             xhr.response,
             `${constants.APP_NAME} - Game`,
-            'terraforming/game?id=' + xhr.response.id,
+            '/terraforming/game?id=' + xhr.response.id,
           );
           app.game = xhr.response as SimpleGameModel;
         } else {

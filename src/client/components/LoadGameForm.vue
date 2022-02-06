@@ -35,7 +35,7 @@ export default Vue.extend({
             window.location.href = 'terraforming/player?id=' + response.players[0].id;
             return;
           } else {
-            window.history.replaceState(response, `${constants.APP_NAME} - Game`, 'terraforming/game?id=' + response.id);
+            window.history.replaceState(response, `${constants.APP_NAME} - Game`, '/terraforming/game?id=' + response.id);
             (this.$root.$data as unknown as typeof mainAppSettings.data).game = response;
             (this.$root.$data as unknown as typeof mainAppSettings.data).screen = 'game-home';
           }
