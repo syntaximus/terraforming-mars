@@ -1,11 +1,7 @@
 import {Game, GameOptions, Score} from '../Game';
 import {GameId} from '../common/Types';
 import {SerializedGame} from '../SerializedGame';
-
-export interface IGameData {
-    gameId: GameId;
-    playerCount: number;
-}
+import {IGameData} from '../common/game/IGameData';
 
 /**
  * A game store. Load, save, you know the drill.
@@ -92,6 +88,20 @@ export interface IDatabase {
      * to cloneable games.
      */
     getClonableGames(cb:(err: Error | undefined, allGames:Array<IGameData>)=> void) : void;
+
+    /**
+     * Load reference to game that can be cloned. Every game is cloneable,
+     * this just returns the original save of the game. However, if a game's
+     * original save is pruned, say, due to {@link deleteGameNbrSaves}, it won't
+     * exist.
+     *
+     * Cloneable games are those with a save_id 0.
+     *
+     * @param game_id the game id to search for
+     * @param cb a callback either returning either an error or a reference to a cloneable game.
+     * if the game is not found then undefined.
+     */
+    getClonableGameByGameId(game_id: GameId, cb: (err: Error | undefined, gameData: IGameData | undefined) => void): void;
 
     /**
      * Saves the current state of the game. at a supplied save point. Used for

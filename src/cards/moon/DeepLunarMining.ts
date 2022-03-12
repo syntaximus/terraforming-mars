@@ -1,6 +1,6 @@
-import {CardName} from '../../CardName';
+import {CardName} from '../../common/cards/CardName';
 import {Player} from '../../Player';
-import {CardType} from '../CardType';
+import {CardType} from '../../common/cards/CardType';
 import {Tags} from '../../common/cards/Tags';
 import {MoonExpansion} from '../../moon/MoonExpansion';
 import {CardRenderer} from '../render/CardRenderer';
@@ -29,7 +29,7 @@ export class DeepLunarMining extends MoonCard {
         }),
       },
     });
-  };
+  }
 
   public override play(player: Player) {
     super.play(player);

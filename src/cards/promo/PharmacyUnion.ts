@@ -1,20 +1,20 @@
 import {Tags} from '../../common/cards/Tags';
 import {Player} from '../../Player';
-import {CorporationCard} from '../corporation/CorporationCard';
+import {ICorporationCard} from '../corporation/ICorporationCard';
 import {Card} from '../Card';
-import {CardName} from '../../CardName';
+import {CardName} from '../../common/cards/CardName';
 import {ResourceType} from '../../common/ResourceType';
 import {SelectOption} from '../../inputs/SelectOption';
 import {OrOptions} from '../../inputs/OrOptions';
 import {IProjectCard} from '../IProjectCard';
-import {CardType} from '../CardType';
+import {CardType} from '../../common/cards/CardType';
 import {DeferredAction} from '../../deferredActions/DeferredAction';
 import {CardRenderer} from '../render/CardRenderer';
-import {Size} from '../render/Size';
+import {Size} from '../../common/cards/render/Size';
 import {Resources} from '../../common/Resources';
 import {all, digit, played} from '../Options';
 
-export class PharmacyUnion extends Card implements CorporationCard {
+export class PharmacyUnion extends Card implements ICorporationCard {
   constructor() {
     super({
       cardType: CardType.CORPORATION,
@@ -64,16 +64,16 @@ export class PharmacyUnion extends Card implements CorporationCard {
     this._onCardPlayed(player, card);
   }
 
-  public onCorpCardPlayed(player: Player, card: CorporationCard) {
+  public onCorpCardPlayed(player: Player, card: ICorporationCard) {
     return this._onCardPlayed(player, card);
   }
 
-  private _onCardPlayed(player: Player, card: IProjectCard | CorporationCard): void {
+  private _onCardPlayed(player: Player, card: IProjectCard | ICorporationCard): void {
     if (this.isDisabled) return undefined;
 
     const game = player.game;
 
-    const hasScienceTag = card.tags.includes(Tags.SCIENCE);
+    const hasScienceTag = player.cardHasTag(card, Tags.SCIENCE);
     const hasMicrobesTag = card.tags.includes(Tags.MICROBE);
     const isPharmacyUnion = player.isCorporation(CardName.PHARMACY_UNION);
 
@@ -112,7 +112,7 @@ export class PharmacyUnion extends Card implements CorporationCard {
 
 
     if (isPharmacyUnion && hasScienceTag) {
-      const scienceTags = card.tags.filter((tag) => tag === Tags.SCIENCE).length;
+      const scienceTags = player.cardTagCount(card, Tags.SCIENCE);
       for (let i = 0; i < scienceTags; i++) {
         game.defer(new DeferredAction(
           player,

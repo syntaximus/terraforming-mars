@@ -1,11 +1,10 @@
 import {Colony} from './Colony';
-import {ColonyName} from './ColonyName';
+import {ColonyName} from '../common/colonies/ColonyName';
 import {ColonyBenefit} from './ColonyBenefit';
 import {Resources} from '../common/Resources';
 
 export class Io extends Colony {
   public name = ColonyName.IO;
-  public description = 'Heat';
   public buildType = ColonyBenefit.GAIN_PRODUCTION;
   public override buildResource = Resources.HEAT;
   public tradeType = ColonyBenefit.GAIN_RESOURCES;

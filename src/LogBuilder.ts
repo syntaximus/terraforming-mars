@@ -2,18 +2,18 @@ import {LogMessageData} from './common/logs/LogMessageData';
 import {LogMessageDataType} from './common/logs/LogMessageDataType';
 import {LogMessageType} from './common/logs/LogMessageType';
 import {Player} from './Player';
-import {CardName} from './CardName';
+import {CardName} from './common/cards/CardName';
 import {ICard} from './cards/ICard';
 import {IAward} from './awards/IAward';
 import {IMilestone} from './milestones/IMilestone';
-import {Colony} from './colonies/Colony';
 import {IParty} from './turmoil/parties/IParty';
 import {LogMessage} from './common/logs/LogMessage';
 import {TileType} from './common/TileType';
 import {SpaceBonus} from './common/boards/SpaceBonus';
 import {IGlobalEvent} from './turmoil/globalEvents/IGlobalEvent';
-import {GlobalEventName} from './turmoil/globalEvents/GlobalEventName';
-import {PartyName} from './turmoil/parties/PartyName';
+import {GlobalEventName} from './common/turmoil/globalEvents/GlobalEventName';
+import {PartyName} from './common/turmoil/PartyName';
+import {IColony} from './colonies/IColony';
 
 export class LogBuilder {
   private message: string;
@@ -74,7 +74,7 @@ export class LogBuilder {
     return this;
   }
 
-  public colony(value: Colony): LogBuilder {
+  public colony(value: IColony): LogBuilder {
     this.parameters.push(new LogMessageData(LogMessageDataType.COLONY, value.name));
     return this;
   }

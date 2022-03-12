@@ -1,7 +1,7 @@
 import { DbLoadCallback, IDatabase } from './IDatabase';
 import { Game, GameOptions, Score } from '../Game';
 import { GameId } from '../common/Types';
-import { IGameData } from './IDatabase';
+import { IGameData } from '../common/game/IGameData';
 import { SerializedGame } from '../SerializedGame';
 import { ConnectionPool, config } from 'mssql';
 
@@ -124,6 +124,27 @@ export class MsSQL implements IDatabase {
                 allGames.push(gameData);
             }
             cb(undefined, allGames);
+        });
+    }
+
+    getClonableGameByGameId(game_id: GameId, cb: (err: Error | undefined, gameData: IGameData | undefined) => void) {
+        this.client
+            .request()
+            .input('game_id', game_id)
+            .query<any>('SELECT TOP 1 players FROM games WHERE save_id = 0 AND game_id = @game_id', (err, res) => {
+            if (err) {
+                console.error('MsSQL:getClonableGameByGameId', err);
+                cb(err, undefined);
+                return;
+            }
+                if (res?.recordsets[0].length === 0) {
+                cb(undefined, undefined);
+                return;
+            }
+            cb(undefined, {
+                gameId: res?.recordsets[0][0].game_id,
+                playerCount: res?.recordsets[0][0].players,
+            });
         });
     }
 

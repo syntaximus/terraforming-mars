@@ -1,6 +1,6 @@
-import {CardName} from '../../CardName';
+import {CardName} from '../../common/cards/CardName';
 import {Player} from '../../Player';
-import {CardType} from '../CardType';
+import {CardType} from '../../common/cards/CardType';
 import {IProjectCard} from '../IProjectCard';
 import {Tags} from '../../common/cards/Tags';
 import {ResourceType} from '../../common/ResourceType';
@@ -45,7 +45,7 @@ export class DarksideIncubationPlant extends MoonCard implements IActionCard, IP
         }),
       },
     });
-  };
+  }
   public override resourceCount = 0;
 
   public override play(player: Player) {

@@ -1,11 +1,10 @@
 import {Colony} from './Colony';
 import {Resources} from '../common/Resources';
-import {ColonyName} from './ColonyName';
+import {ColonyName} from '../common/colonies/ColonyName';
 import {ColonyBenefit} from './ColonyBenefit';
 
 export class Callisto extends Colony {
   public name = ColonyName.CALLISTO;
-  public description = 'Energy';
   public buildType = ColonyBenefit.GAIN_PRODUCTION;
   public override buildResource = Resources.ENERGY;
   public tradeType = ColonyBenefit.GAIN_RESOURCES;

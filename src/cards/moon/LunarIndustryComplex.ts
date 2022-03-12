@@ -1,6 +1,6 @@
-import {CardName} from '../../CardName';
+import {CardName} from '../../common/cards/CardName';
 import {Player} from '../../Player';
-import {CardType} from '../CardType';
+import {CardType} from '../../common/cards/CardType';
 import {IProjectCard} from '../IProjectCard';
 import {Tags} from '../../common/cards/Tags';
 import {Resources} from '../../common/Resources';
@@ -33,7 +33,7 @@ export class LunarIndustryComplex extends MoonCard implements IProjectCard {
     }, {
       tilesBuilt: [TileType.MOON_MINE],
     });
-  };
+  }
 
   public override play(player: Player) {
     player.deductUnits(this.reserveUnits);

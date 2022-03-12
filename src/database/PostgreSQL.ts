@@ -1,7 +1,7 @@
 import {DbLoadCallback, IDatabase} from './IDatabase';
 import {Game, GameOptions, Score} from '../Game';
 import {GameId} from '../common/Types';
-import {IGameData} from './IDatabase';
+import {IGameData} from '../common/game/IGameData';
 import {SerializedGame} from '../SerializedGame';
 
 import {Pool, ClientConfig, QueryResult} from 'pg';
@@ -67,6 +67,26 @@ export class PostgreSQL implements IDatabase {
         allGames.push(gameData);
       }
       cb(undefined, allGames);
+    });
+  }
+
+  getClonableGameByGameId(game_id: GameId, cb: (err: Error | undefined, gameData: IGameData | undefined) => void) {
+    const sql = 'SELECT players FROM games WHERE save_id = 0 AND game_id = $1 LIMIT 1';
+
+    this.client.query(sql, [game_id], (err, res) => {
+      if (err) {
+        console.error('PostgreSQL:getClonableGameByGameId', err);
+        cb(err, undefined);
+        return;
+      }
+      if (res.rows.length === 0) {
+        cb(undefined, undefined);
+        return;
+      }
+      cb(undefined, {
+        gameId: res.rows[0].game_id,
+        playerCount: res.rows[0].players,
+      });
     });
   }
 

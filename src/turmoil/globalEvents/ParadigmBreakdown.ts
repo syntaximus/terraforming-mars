@@ -1,6 +1,6 @@
 import {IGlobalEvent, GlobalEvent} from './IGlobalEvent';
-import {GlobalEventName} from './GlobalEventName';
-import {PartyName} from '../parties/PartyName';
+import {GlobalEventName} from '../../common/turmoil/globalEvents/GlobalEventName';
+import {PartyName} from '../../common/turmoil/PartyName';
 import {Game} from '../../Game';
 import {Resources} from '../../common/Resources';
 import {Turmoil} from '../Turmoil';
@@ -22,7 +22,7 @@ export class ParadigmBreakdown extends GlobalEvent implements IGlobalEvent {
     });
   }
   public resolve(game: Game, turmoil: Turmoil) {
-    game.getPlayers().forEach((player) => {
+    game.getPlayersInGenerationOrder().forEach((player) => {
       if (player.cardsInHand.length >= 2) {
         game.defer(new DiscardCards(player, 2, 'Global Event - Select 2 cards to discard'));
       } else if (player.cardsInHand.length === 1) {

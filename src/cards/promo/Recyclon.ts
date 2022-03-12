@@ -1,4 +1,4 @@
-import {CorporationCard} from '../corporation/CorporationCard';
+import {ICorporationCard} from '../corporation/ICorporationCard';
 import {Player} from '../../Player';
 import {Tags} from '../../common/cards/Tags';
 import {Resources} from '../../common/Resources';
@@ -7,14 +7,14 @@ import {IProjectCard} from '../IProjectCard';
 import {SelectOption} from '../../inputs/SelectOption';
 import {OrOptions} from '../../inputs/OrOptions';
 import {Card} from '../Card';
-import {CardName} from '../../CardName';
+import {CardName} from '../../common/cards/CardName';
 import {IResourceCard} from '../ICard';
-import {CardType} from '../CardType';
+import {CardType} from '../../common/cards/CardType';
 import {CardRenderer} from '../render/CardRenderer';
 import {Units} from '../../common/Units';
 import {digit, played} from '../Options';
 
-export class Recyclon extends Card implements CorporationCard, IResourceCard {
+export class Recyclon extends Card implements ICorporationCard, IResourceCard {
   constructor() {
     super({
       cardType: CardType.CORPORATION,

@@ -1,17 +1,17 @@
-import {CorporationCard} from '../corporation/CorporationCard';
+import {ICorporationCard} from '../corporation/ICorporationCard';
 import {Player} from '../../Player';
 import {Tags} from '../../common/cards/Tags';
 import {Game} from '../../Game';
 import {IProjectCard} from '../IProjectCard';
 import {Resources} from '../../common/Resources';
-import {CardType} from '../CardType';
-import {CardName} from '../../CardName';
-import {Colony} from '../../colonies/Colony';
+import {CardType} from '../../common/cards/CardType';
+import {CardName} from '../../common/cards/CardName';
+import {IColony} from '../../colonies/IColony';
 import {SelectColony} from '../../inputs/SelectColony';
 import {Card} from '../Card';
 import {CardRenderer} from '../render/CardRenderer';
 
-export class Aridor extends Card implements CorporationCard {
+export class Aridor extends Card implements ICorporationCard {
   constructor() {
     super({
       name: CardName.ARIDOR,
@@ -39,10 +39,10 @@ export class Aridor extends Card implements CorporationCard {
     const game = player.game;
     if (game.colonyDealer === undefined || !game.gameOptions.coloniesExtension) return undefined;
 
-    const availableColonies: Colony[] = game.colonyDealer.discardedColonies;
+    const availableColonies: IColony[] = game.colonyDealer.discardedColonies;
     if (availableColonies.length === 0) return undefined;
 
-    const selectColony = new SelectColony('Aridor first action - Select colony tile to add', 'Add colony tile', availableColonies, (colony: Colony) => {
+    const selectColony = new SelectColony('Aridor first action - Select colony tile to add', 'Add colony tile', availableColonies, (colony: IColony) => {
       if (availableColonies.includes(colony)) {
         game.colonies.push(colony);
         game.colonies.sort((a, b) => (a.name > b.name) ? 1 : -1);
@@ -56,15 +56,15 @@ export class Aridor extends Card implements CorporationCard {
     return selectColony;
   }
 
-  private checkActivation(colony: Colony, game: Game): void {
+  private checkActivation(colony: IColony, game: Game): void {
     if (colony.resourceType === undefined) return;
     game.getPlayers().forEach((player) => {
       if (player.corporationCard !== undefined && player.corporationCard.resourceType === colony.resourceType) {
         colony.isActive = true;
         return;
       }
-      const resourceCard = player.playedCards.find((card) => card.resourceType === colony.resourceType);
-      if (resourceCard !== undefined) {
+      const resourceCard = player.playedCards.some((card) => card.resourceType === colony.resourceType);
+      if (resourceCard) {
         colony.isActive = true;
         return;
       }

@@ -5,7 +5,7 @@ module.exports = {
   },
   'extends': [
     'google',
-    'plugin:vue/essential'
+    'plugin:vue/essential',
   ],
   'parserOptions': {
     'ecmaVersion': 2018,
@@ -26,8 +26,30 @@ module.exports = {
     'prefer-const': 'error',
     'indent': ['error', 2],
     'require-jsdoc': 'off',
-    // Should turn this back on, but for now, turn it off.
+    'no-throw-literal': 'error',
+    'no-extra-semi': 'error',
+    // Old modules prior to the linting rule being enabled
+    // Avoid adding tags to this list
+    // Help remove tags from this list
     // https://eslint.vuejs.org/rules/multi-word-component-names.html
-    'vue/multi-word-component-names': 'warn',
+    'vue/multi-word-component-names': ['error', {
+      'ignores': [
+        "Award",
+        "Awards",
+        "agenda",
+        "board",
+        "bonus",
+        "colony",
+        "Milestone",
+        "party",
+        "Party",
+        "sidebar",
+        "Tag",
+        "turmoil",
+        "Card",
+        "Button",
+        "Help"
+      ]
+    }],
   },
 };

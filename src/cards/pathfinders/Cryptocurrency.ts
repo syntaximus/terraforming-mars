@@ -1,8 +1,8 @@
 import {IProjectCard} from '../IProjectCard';
 import {Player} from '../../Player';
 import {Card} from '../Card';
-import {CardType} from '../CardType';
-import {CardName} from '../../CardName';
+import {CardType} from '../../common/cards/CardType';
+import {CardName} from '../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {IActionCard} from '../ICard';
 import {Resources} from '../../common/Resources';
@@ -45,7 +45,7 @@ export class Cryptocurrency extends Card implements IProjectCard, IActionCard {
       'Spend 1 energy to add 1 data to this card.',
       'Spend energy',
       () => {
-        player.addResource(Resources.ENERGY, -1);
+        player.deductResource(Resources.ENERGY, 1);
         player.addResourceTo(this, {qty: 1, log: true});
         return undefined;
       });

@@ -1,13 +1,13 @@
-import {CardName} from '../../CardName';
+import {CardName} from '../../common/cards/CardName';
 import {Player} from '../../Player';
-import {CardType} from '../CardType';
+import {CardType} from '../../common/cards/CardType';
 import {IProjectCard} from '../IProjectCard';
 import {Tags} from '../../common/cards/Tags';
 import {CardRenderer} from '../render/CardRenderer';
 import {MoonExpansion} from '../../moon/MoonExpansion';
 import {Card} from '../Card';
 import {CardRequirements} from '../CardRequirements';
-import {Size} from '../render/Size';
+import {Size} from '../../common/cards/render/Size';
 
 export class LunaProjectOffice extends Card implements IProjectCard {
   constructor() {
@@ -26,7 +26,7 @@ export class LunaProjectOffice extends Card implements IProjectCard {
         }),
       },
     });
-  };
+  }
 
   public play(player: Player) {
     MoonExpansion.moonData(player.game).lunaProjectOfficeLastGeneration = player.game.generation + 2;

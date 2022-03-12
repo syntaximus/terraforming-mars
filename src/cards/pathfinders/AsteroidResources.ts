@@ -1,8 +1,8 @@
 import {IProjectCard} from '../IProjectCard';
 import {Player} from '../../Player';
 import {Card} from '../Card';
-import {CardType} from '../CardType';
-import {CardName} from '../../CardName';
+import {CardType} from '../../common/cards/CardType';
+import {CardName} from '../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {Tags} from '../../common/cards/Tags';
 import {Resources} from '../../common/Resources';
@@ -10,7 +10,7 @@ import {Units} from '../../common/Units';
 import {OrOptions} from '../../inputs/OrOptions';
 import {SelectOption} from '../../inputs/SelectOption';
 import {PlaceOceanTile} from '../../deferredActions/PlaceOceanTile';
-import {Size} from '../render/Size';
+import {Size} from '../../common/cards/render/Size';
 import {digit} from '../Options';
 
 export class AsteroidResources extends Card implements IProjectCard {

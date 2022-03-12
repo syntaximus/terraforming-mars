@@ -1,11 +1,10 @@
 import {Colony} from './Colony';
-import {ColonyName} from './ColonyName';
+import {ColonyName} from '../common/colonies/ColonyName';
 import {ColonyBenefit} from './ColonyBenefit';
 import {Resources} from '../common/Resources';
 
 export class Triton extends Colony {
   public name = ColonyName.TRITON;
-  public description = 'Titanium';
   public buildType = ColonyBenefit.GAIN_RESOURCES;
   public override buildQuantity = [3, 3, 3];
   public override buildResource = Resources.TITANIUM;

@@ -1,6 +1,6 @@
 import {AddResourcesToCard} from '../deferredActions/AddResourcesToCard';
-import {CardName} from '../CardName';
-import {CardType} from '../cards/CardType';
+import {CardName} from '../common/cards/CardName';
+import {CardType} from '../common/cards/CardType';
 import {Game, GameOptions} from '../Game';
 import {GrantResourceDeferred} from './GrantResourceDeferred';
 import {ICard} from '../cards/ICard';
@@ -10,18 +10,18 @@ import {PlaceGreeneryTile} from '../deferredActions/PlaceGreeneryTile';
 import {PlaceMoonMineTile} from '../moon/PlaceMoonMineTile';
 import {PlaceMoonRoadTile} from '../moon/PlaceMoonRoadTile';
 import {PlaceOceanTile} from '../deferredActions/PlaceOceanTile';
-import {PlanetaryTrack} from './PlanetaryTrack';
-import {PlanetaryTracks} from './PlanetaryTracks';
+import {PlanetaryTrack} from '../common/pathfinders/PlanetaryTrack';
+import {PlanetaryTracks} from '../common/pathfinders/PlanetaryTracks';
 import {Player} from '../Player';
 import {Resources} from '../common/Resources';
 import {ResourceType} from '../common/ResourceType';
-import {Reward} from './Reward';
+import {Reward} from '../common/pathfinders/Reward';
 import {SelectResourcesDeferred} from '../deferredActions/SelectResourcesDeferred';
 import {SendDelegateToArea} from '../deferredActions/SendDelegateToArea';
 import {Tags} from '../common/cards/Tags';
 import {Turmoil} from '../turmoil/Turmoil';
 import {VictoryPointsBreakdown} from '../VictoryPointsBreakdown';
-import {GlobalEventName} from '../turmoil/globalEvents/GlobalEventName';
+import {GlobalEventName} from '../common/turmoil/globalEvents/GlobalEventName';
 
 export const PLANETARY_TAGS = [Tags.VENUS, Tags.EARTH, Tags.MARS, Tags.JOVIAN, Tags.MOON];
 const TRACKS = PlanetaryTracks.initialize();
@@ -54,16 +54,13 @@ export class PathfindersExpansion {
 
     // Communication Center hook
     if (card.cardType === CardType.EVENT) {
-      let done = false;
       for (const p of player.game.getPlayers()) {
         for (const c of p.playedCards) {
           if (c.name === CardName.COMMUNICATION_CENTER) {
-            player.addResourceTo(c, {qty: 1, log: true});
-            done = true;
-            break;
+            p.addResourceTo(c, {qty: 1, log: true});
+            return;
           }
         }
-        if (done) break;
       }
     }
   }
@@ -138,7 +135,7 @@ export class PathfindersExpansion {
         if (rewards.mostTags.length > 0) {
           const players = PathfindersExpansion.playersWithMostTags(
             tag,
-            game.getPlayers(),
+            game.getPlayers().slice(),
             (from instanceof Player) ? from : undefined);
           rewards.mostTags.forEach((reward) => {
             players.forEach((p) => {
@@ -271,16 +268,5 @@ export class PathfindersExpansion {
     data.vps
       .filter((vp) => vp.id === player.id)
       .forEach((vp) => victoryPointsBreakdown.setVictoryPoints('planetary tracks', vp.points, vp.tag));
-  }
-
-  public static communicationCenterHook(card: ICard, game: Game) {
-    const owner = game.getCardPlayer(card.name);
-    while (card.resourceCount >= 3) {
-      card.resourceCount -= 3;
-      owner.drawCard(1);
-      owner.game.log('${0} automatically removed 3 data from ${1} to draw a card.', (b) => {
-        b.player(owner).card(card);
-      });
-    }
   }
 }

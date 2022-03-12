@@ -79,8 +79,8 @@
 <script lang="ts">
 
 import Vue from 'vue';
-import {PartyName} from '@/turmoil/parties/PartyName';
-import {TurmoilModel} from '@/models/TurmoilModel';
+import {PartyName} from '@/common/turmoil/PartyName';
+import {TurmoilModel} from '@/common/models/TurmoilModel';
 import GlobalEvent from '@/client/components/GlobalEvent.vue';
 import Agendas from '@/client/components/turmoil/Agendas.vue';
 

@@ -1,8 +1,8 @@
 import {IProjectCard} from '../IProjectCard';
 import {Player} from '../../Player';
 import {Card} from '../Card';
-import {CardType} from '../CardType';
-import {CardName} from '../../CardName';
+import {CardType} from '../../common/cards/CardType';
+import {CardName} from '../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {Tags} from '../../common/cards/Tags';
 import {LogHelper} from '../../LogHelper';
@@ -30,7 +30,7 @@ export class CharityDonation extends Card implements IProjectCard {
 
   public play(player: Player) {
     const game = player.game;
-    const players = game.getPlayers();
+    const players = game.getPlayersInGenerationOrder();
     const thisIdx = players.findIndex((p) => p === player);
     const cards = game.dealer.drawProjectCardsByCondition(game, players.length + 1, () => true);
     // TODO(kberg): log the drawn cards after raising the planetary track.

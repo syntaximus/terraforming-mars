@@ -8,7 +8,7 @@ import * as https from 'https';
 import * as http from 'http';
 import * as fs from 'fs';
 
-import {ApiCloneableGames} from './routes/ApiCloneableGames';
+import {ApiCloneableGame} from './routes/ApiCloneableGame';
 import {ApiGameLogs} from './routes/ApiGameLogs';
 import {ApiGames} from './routes/ApiGames';
 import {ApiGame} from './routes/ApiGame';
@@ -37,8 +37,7 @@ const route = new Route();
 const handlers: Map<string, IHandler> = new Map(
   [
     ['/terraforming/', ServeApp.INSTANCE],
-    ['/terraforming/api/clonablegames', ApiCloneableGames.INSTANCE],
-    ['/terraforming/api/cloneablegames', ApiCloneableGames.INSTANCE],
+    ['/terraforming/api/cloneablegame', ApiCloneableGame.INSTANCE],
     ['/terraforming/api/game', ApiGame.INSTANCE],
     ['/terraforming/api/game/logs', ApiGameLogs.INSTANCE],
     ['/terraforming/api/games', ApiGames.INSTANCE],
@@ -46,7 +45,6 @@ const handlers: Map<string, IHandler> = new Map(
     ['/terraforming/api/spectator', ApiSpectator.INSTANCE],
     ['/terraforming/api/waitingfor', ApiWaitingFor.INSTANCE],
     ['/terraforming/cards', ServeApp.INSTANCE],
-    ['/terraforming/favicon.ico', ServeAsset.INSTANCE],
     ['/favicon.ico', ServeAsset.INSTANCE],
     ['/terraforming/game', GameHandler.INSTANCE],
     ['/terraforming/games-overview', GamesOverview.INSTANCE],
@@ -130,10 +128,11 @@ Database.getInstance().initialize()
   .then(() => {
     Database.getInstance().purgeUnfinishedGames();
 
-    console.log('Starting server on port ' + (process.env.PORT || 8080));
+    const port = process.env.PORT || 8080;
+    console.log('Starting server on port ' + port);
     console.log('version 0.X');
 
-    server.listen(process.env.PORT || 8080);
+    server.listen(port);
 
     console.log();
     console.log(

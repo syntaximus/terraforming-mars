@@ -1,18 +1,17 @@
-import {CorporationCard} from './cards/corporation/CorporationCard';
+import {ICorporationCard} from './cards/corporation/ICorporationCard';
 import {IProjectCard} from './cards/IProjectCard';
-import {ISerializable} from './ISerializable';
 import {SerializedDealer} from './SerializedDealer';
 import {CardFinder} from './CardFinder';
 import {CardLoader} from './CardLoader';
-import {CardName} from './CardName';
+import {CardName} from './common/cards/CardName';
 import {LogHelper} from './LogHelper';
 import {Game} from './Game';
 
-export class Dealer implements ISerializable<SerializedDealer> {
+export class Dealer {
   public deck: Array<IProjectCard> = [];
   public preludeDeck: Array<IProjectCard> = [];
   public discarded: Array<IProjectCard> = [];
-  public corporationCards: Array<CorporationCard> = [];
+  public corporationCards: Array<ICorporationCard> = [];
 
   private constructor() { }
 
@@ -45,7 +44,7 @@ export class Dealer implements ISerializable<SerializedDealer> {
     }
 
     if (result === undefined) {
-      throw 'Unexpected empty deck';
+      throw new Error('Unexpected empty deck');
     }
 
     if (this.deck.length === 0) {
@@ -85,7 +84,7 @@ export class Dealer implements ISerializable<SerializedDealer> {
   public dealPreludeCard(): IProjectCard {
     const result: IProjectCard | undefined = this.preludeDeck.pop();
     if (result === undefined) {
-      throw 'Unexpected empty prelude deck';
+      throw new Error('Unexpected empty prelude deck');
     }
     // All Prelude cards are expected to subclass IProjectCard
     return result;

@@ -1,8 +1,8 @@
 
 import {Message} from '../common/logs/Message';
 import {PlayerInput} from '../PlayerInput';
-import {PlayerInputTypes} from '../PlayerInputTypes';
-import {HowToPay} from './HowToPay';
+import {PlayerInputTypes} from '../common/input/PlayerInputTypes';
+import {HowToPay} from '../common/inputs/HowToPay';
 import {SelectSpace} from './SelectSpace';
 import {OrOptions} from './OrOptions';
 import {SelectOption} from './SelectOption';

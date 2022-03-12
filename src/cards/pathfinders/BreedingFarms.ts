@@ -1,8 +1,8 @@
 import {IProjectCard} from '../IProjectCard';
 import {Player} from '../../Player';
 import {Card} from '../Card';
-import {CardType} from '../CardType';
-import {CardName} from '../../CardName';
+import {CardType} from '../../common/cards/CardType';
+import {CardName} from '../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {IActionCard} from '../ICard';
 import {ResourceType} from '../../common/ResourceType';
@@ -45,7 +45,7 @@ export class BreedingFarms extends Card implements IProjectCard, IActionCard {
       'Spend 1 plant',
       player.getResourceCards(ResourceType.ANIMAL),
       (cards) => {
-        player.addResource(Resources.PLANTS, -1);
+        player.deductResource(Resources.PLANTS, 1);
         player.addResourceTo(cards[0], {log: true});
         return undefined;
       });

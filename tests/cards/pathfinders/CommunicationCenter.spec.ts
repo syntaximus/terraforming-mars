@@ -5,7 +5,7 @@ import {TestPlayer} from '../../TestPlayer';
 import {TestingUtils} from '../../TestingUtils';
 import {getTestPlayer, newTestGame} from '../../TestGame';
 import {Resources} from '../../../src/common/Resources';
-import {CardType} from '../../../src/cards/CardType';
+import {CardType} from '../../../src/common/cards/CardType';
 
 describe('CommunicationCenter', function() {
   let card: CommunicationCenter;
@@ -42,6 +42,7 @@ describe('CommunicationCenter', function() {
   });
 
   it('onCardPlayed', () => {
+    player.playedCards = [card];
     expect(card.resourceCount).eq(0);
 
     player.onCardPlayed(TestingUtils.fakeCard({cardType: CardType.ACTIVE}));
@@ -70,6 +71,7 @@ describe('CommunicationCenter', function() {
   });
 
   it('card.addResourceTo', () => {
+    player.playedCards = [card];
     card.resourceCount = 2;
     expect(player.cardsInHand).is.length(0);
     player.addResourceTo(card, 8);

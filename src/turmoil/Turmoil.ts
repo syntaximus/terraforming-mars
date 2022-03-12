@@ -1,4 +1,4 @@
-import {PartyName} from './parties/PartyName';
+import {PartyName} from '../common/turmoil/PartyName';
 import {IParty} from './parties/IParty';
 import {MarsFirst} from './parties/MarsFirst';
 import {Scientists} from './parties/Scientists';
@@ -11,11 +11,11 @@ import {PlayerId} from '../common/Types';
 import {Game} from '../Game';
 import {GlobalEventDealer, getGlobalEventByName} from './globalEvents/GlobalEventDealer';
 import {IGlobalEvent} from './globalEvents/IGlobalEvent';
-import {ISerializable} from '../ISerializable';
 import {SerializedTurmoil} from './SerializedTurmoil';
-import {PLAYER_DELEGATES_COUNT} from '../constants';
-import {AgendaStyle, PoliticalAgendasData, PoliticalAgendas} from './PoliticalAgendas';
-import {CardName} from '../CardName';
+import {PLAYER_DELEGATES_COUNT} from '../common/constants';
+import {PoliticalAgendasData, PoliticalAgendas} from './PoliticalAgendas';
+import {AgendaStyle} from '../common/turmoil/Types';
+import {CardName} from '../common/cards/CardName';
 import {DeferredAction} from '../deferredActions/DeferredAction';
 
 export type NeutralPlayer = 'NEUTRAL';
@@ -39,7 +39,7 @@ const UNINITIALIZED_POLITICAL_AGENDAS_DATA: PoliticalAgendasData = {
   agendaStyle: AgendaStyle.CHAIRMAN,
 };
 
-export class Turmoil implements ISerializable<SerializedTurmoil> {
+export class Turmoil {
   public chairman: undefined | PlayerId | NeutralPlayer = undefined;
   public rulingParty: IParty;
   public dominantParty: IParty;
@@ -76,7 +76,7 @@ export class Turmoil implements ISerializable<SerializedTurmoil> {
     // Init parties
     turmoil.parties = ALL_PARTIES.map((cf) => new cf.Factory());
 
-    game.getPlayers().forEach((player) => {
+    game.getPlayersInGenerationOrder().forEach((player) => {
       // Begin with one delegate in the lobby
       turmoil.lobby.add(player.id);
       // Begin with six delegates in the delegate reserve
@@ -270,7 +270,7 @@ export class Turmoil implements ISerializable<SerializedTurmoil> {
     });
     this.lobby = new Set<string>();
 
-    game.getPlayers().forEach((player) => {
+    game.getPlayersInGenerationOrder().forEach((player) => {
       if (this.hasDelegatesInReserve(player.id)) {
         const index = this.delegateReserve.indexOf(player.id);
         if (index > -1) {
