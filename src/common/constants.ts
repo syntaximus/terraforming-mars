@@ -44,6 +44,7 @@ export const MAXIMUM_LOGISTICS_RATE = 8;
 
 // Pathfinders
 export const SEED_VALUE = 5;
+export const DATA_VALUE = 3;
 
 // Escape Velocity
 export const BONUS_SECONDS_PER_ACTION = 2;
@@ -61,6 +62,7 @@ export const LANGUAGES = [
   {'id': 'es', 'title': 'Spanish'},
   {'id': 'br', 'title': 'Português Brasileiro'},
   {'id': 'it', 'title': 'Italian'},
+  {'id': 'ko', 'title': '한국어 (Korean)'},
 ];
 
 export const APP_NAME = 'Terraforming Mars';

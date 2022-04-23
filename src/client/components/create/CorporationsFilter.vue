@@ -21,7 +21,7 @@
               <div v-for="corporation in entry[1]" v-bind:key="corporation">
                   <label class="form-checkbox">
                       <input type="checkbox" v-model="selectedCorporations" :value="corporation"/>
-                      <i class="form-icon"></i>{{ corporation }}
+                      <i class="form-icon"></i><span v-i18n>{{ corporation }}</span>
                   </label>
               </div>
           </div>
@@ -44,6 +44,8 @@ function corpCardNames(module: GameModule): Array<CardName> {
     .map(toName)
     .filter((name) => name !== CardName.BEGINNER_CORPORATION);
 }
+
+type Group = GameModule | 'All';
 
 export default Vue.extend({
   name: 'CorporationsFilter',
@@ -78,9 +80,9 @@ export default Vue.extend({
   },
   data() {
     const cardsByModule: MultiMap<GameModule, CardName> = new MultiMap();
-    getCards(byType(CardType.CORPORATION)).forEach((cam) => {
-      if (cam.card.name !== CardName.BEGINNER_CORPORATION) {
-        cardsByModule.set(cam.module, cam.card.name);
+    getCards(byType(CardType.CORPORATION)).forEach((card) => {
+      if (card.name !== CardName.BEGINNER_CORPORATION) {
+        cardsByModule.set(card.module, card.name);
       }
     });
 
@@ -89,31 +91,24 @@ export default Vue.extend({
       customCorporationsList: false,
       selectedCorporations: [
         // A bit sloppy since map is just above, but it will do.
-        ...corpCardNames(GameModule.Base)!,
-        ...this.corporateEra ? corpCardNames(GameModule.CorpEra) : [],
-        ...this.prelude ? corpCardNames(GameModule.Prelude) : [],
-        ...this.venusNext ? corpCardNames(GameModule.Venus) : [],
-        ...this.colonies ? corpCardNames(GameModule.Colonies) : [],
-        ...this.turmoil ? corpCardNames(GameModule.Turmoil) : [],
-        ...this.promoCardsOption ? corpCardNames(GameModule.Promo) : [],
-        ...this.communityCardsOption ? corpCardNames(GameModule.Community) : [],
-        ...this.moonExpansion ? corpCardNames(GameModule.Moon) : [],
-        ...this.pathfindersExpansion ? corpCardNames(GameModule.Pathfinders) : [],
+        ...corpCardNames('base')!,
+        ...this.corporateEra ? corpCardNames('corpera') : [],
+        ...this.prelude ? corpCardNames('prelude') : [],
+        ...this.venusNext ? corpCardNames('venus') : [],
+        ...this.colonies ? corpCardNames('colonies') : [],
+        ...this.turmoil ? corpCardNames('turmoil') : [],
+        ...this.promoCardsOption ? corpCardNames('promo') : [],
+        ...this.communityCardsOption ? corpCardNames('community') : [],
+        ...this.moonExpansion ? corpCardNames('moon') : [],
+        ...this.pathfindersExpansion ? corpCardNames('pathfinders') : [],
       ],
     };
   },
   methods: {
-    getSelected(): Array<CardName> {
-      if (Array.isArray(this.selectedCorporations)) {
-        return this.selectedCorporations;
-      }
-      console.warn('unexpectedly got boolean for selectedCorporations');
-      return [];
-    },
-    getItemsByGroup(group: string): Array<CardName> {
+    getItemsByGroup(group: Group): Array<CardName> {
       if (group === 'All') return Array.from(this.cardsByModule.values());
 
-      const corps = this.cardsByModule.get(group as GameModule);
+      const corps = this.cardsByModule.get(group);
       if (corps === undefined) {
         console.log('module %s not found', group);
         return [];
@@ -121,36 +116,39 @@ export default Vue.extend({
         return corps.slice();
       }
     },
-    selectAll(group: string) {
+    selectAll(group: Group) {
       const items = this.getItemsByGroup(group);
       for (const item of items) {
-        if (this.getSelected().includes(item) === false) {
-          this.getSelected().push(item);
+        if (this.selectedCorporations.includes(item) === false) {
+          this.selectedCorporations.push(item);
         }
       }
     },
     removeFromSelection(cardName: CardName) {
-      const itemIdx = this.getSelected().indexOf(cardName);
+      const itemIdx = this.selectedCorporations.indexOf(cardName);
       if (itemIdx !== -1) {
-        this.getSelected().splice(itemIdx, 1);
+        this.selectedCorporations.splice(itemIdx, 1);
       }
     },
-    selectNone(group: string) {
+    selectNone(group: Group) {
       const items = this.getItemsByGroup(group);
       for (const item of items) {
         this.removeFromSelection(item);
       }
     },
-    invertSelection(group: string) {
+    invertSelection(group: Group) {
       const items = this.getItemsByGroup(group);
 
       for (const idx in items) {
-        if (this.getSelected().includes(items[idx])) {
+        if (this.selectedCorporations.includes(items[idx])) {
           this.removeFromSelection(items[idx]);
         } else {
-          this.getSelected().push(items[idx]);
+          this.selectedCorporations.push(items[idx]);
         }
       }
+    },
+    watchSelect(module: GameModule, enabled: boolean) {
+      enabled ? this.selectAll(module) : this.selectNone(module);
     },
   },
   watch: {
@@ -158,28 +156,31 @@ export default Vue.extend({
       this.$emit('corporation-list-changed', value);
     },
     corporateEra(enabled) {
-      enabled ? this.selectAll(GameModule.CorpEra) : this.selectNone(GameModule.CorpEra);
+      this.watchSelect('corpera', enabled);
     },
     prelude(enabled) {
-      enabled ? this.selectAll(GameModule.Prelude) : this.selectNone(GameModule.Prelude);
+      this.watchSelect('prelude', enabled);
     },
     venusNext(enabled) {
-      enabled ? this.selectAll(GameModule.Venus) : this.selectNone(GameModule.Venus);
+      this.watchSelect('venus', enabled);
     },
     colonies(enabled) {
-      enabled ? this.selectAll(GameModule.Colonies) : this.selectNone(GameModule.Colonies);
+      this.watchSelect('colonies', enabled);
     },
     turmoil(enabled) {
-      enabled ? this.selectAll(GameModule.Turmoil) : this.selectNone(GameModule.Turmoil);
+      this.watchSelect('turmoil', enabled);
     },
     promoCardsOption(enabled) {
-      enabled ? this.selectAll(GameModule.Promo) : this.selectNone(GameModule.Promo);
+      this.watchSelect('promo', enabled);
     },
     communityCardsOption(enabled) {
-      enabled ? this.selectAll(GameModule.Community) : this.selectNone(GameModule.Community);
+      this.watchSelect('community', enabled);
     },
     moonExpansion(enabled) {
-      enabled ? this.selectAll(GameModule.Moon) : this.selectNone(GameModule.Moon);
+      this.watchSelect('moon', enabled);
+    },
+    pathfindersExpansion(enabled) {
+      this.watchSelect('pathfinders', enabled);
     },
   },
 });

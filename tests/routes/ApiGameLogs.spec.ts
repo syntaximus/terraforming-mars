@@ -25,23 +25,20 @@ describe('ApiGameLogs', function() {
   });
 
   it('fails when id not provided', () => {
-    req.url = '/terraforming/api/game/logs';
-    ctx.url = new URL('http://boo.com' + req.url);
-    ApiGameLogs.INSTANCE.get(req, res.hide(), ctx);
+    scaffolding.url = '/terraforming/api/game/logs';
+    scaffolding.get(ApiGameLogs.INSTANCE, res);
     expect(res.content).eq('Bad request: must provide player id as the id parameter');
   });
 
   it('fails when game not found', () => {
-    req.url = '/terraforming/api/game/logs?id=game-id';
-    ctx.url = new URL('http://boo.com' + req.url);
-    ApiGameLogs.INSTANCE.get(req, res.hide(), ctx);
+    scaffolding.url = '/terraforming/api/game/logs?id=game-id';
+    scaffolding.get(ApiGameLogs.INSTANCE, res);
     expect(res.content).eq('Not found: game not found');
   });
 
   it('pulls logs when no generation provided', () => {
     const player = TestPlayers.BLACK.newPlayer();
-    req.url = '/terraforming/api/game/logs?id=' + player.id;
-    ctx.url = new URL('http://boo.com' + req.url);
+    scaffolding.url = '/terraforming/api/game/logs?id=' + player.id;
     const game = Game.newInstance('game-id', [player], player);
     ctx.gameLoader.add(game);
     game.log('Generation ${0}', (b) => b.forNewGeneration().number(50));
@@ -54,8 +51,7 @@ describe('ApiGameLogs', function() {
 
   it('pulls logs for most recent generation', () => {
     const player = TestPlayers.BLACK.newPlayer();
-    req.url = '/terraforming/api/game/logs?id=' + player.id + '&generation=50';
-    ctx.url = new URL('http://boo.com' + req.url);
+    scaffolding.url = '/terraforming/api/game/logs?id=' + player.id + '&generation=50';
     const game = Game.newInstance('game-id', [player], player);
     ctx.gameLoader.add(game);
     game.log('Generation ${0}', (b) => b.forNewGeneration().number(50));
@@ -68,8 +64,7 @@ describe('ApiGameLogs', function() {
 
   it('pulls logs for first generation', () => {
     const player = TestPlayers.BLACK.newPlayer();
-    req.url = '/terraforming/api/game/logs?id=' + player.id;
-    ctx.url = new URL('http://boo.com' + req.url);
+    scaffolding.url = '/terraforming/api/game/logs?id=' + player.id;
     const game = Game.newInstance('game-id', [player], player);
     ctx.gameLoader.add(game);
     ApiGameLogs.INSTANCE.get(req, res.hide(), ctx);
@@ -81,8 +76,7 @@ describe('ApiGameLogs', function() {
 
   it('pulls logs for missing generation', () => {
     const player = TestPlayers.BLACK.newPlayer();
-    req.url = '/terraforming/api/game/logs?id=' + player.id + '&generation=2';
-    ctx.url = new URL('http://boo.com' + req.url);
+    scaffolding.url = '/terraforming/api/game/logs?id=' + player.id + '&generation=2';
     const game = Game.newInstance('game-id', [player], player);
     ctx.gameLoader.add(game);
     ApiGameLogs.INSTANCE.get(req, res.hide(), ctx);
@@ -109,9 +103,8 @@ describe('ApiGameLogs', function() {
       game.log('Orange player sees this.', (_b) => {}, {reservedFor: orangePlayer});
       game.log('Blue player sees this.', (_b) => {}, {reservedFor: bluePlayer});
 
-      req.url = '/terraforming/api/game/logs?id=' + playerUnderTest.id;
-      ctx.url = new URL('http://boo.com' + req.url);
-      ApiGameLogs.INSTANCE.get(req, res.hide(), ctx);
+      scaffolding.url = '/terraforming/api/game/logs?id=' + playerUnderTest.id;
+      scaffolding.get(ApiGameLogs.INSTANCE, res);
       const messages = JSON.parse(res.content);
 
       expect(messages.length).eq(2);

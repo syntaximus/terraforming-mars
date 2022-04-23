@@ -95,6 +95,7 @@
                     </table>
                     <br/>
                     <h2 v-i18n>Victory points details</h2>
+                    <victory-point-chart :players="players" :generation="game.generation" :animation="true"></victory-point-chart>
                     <div class="game-end-flexrow">
                         <div v-for="p in getSortedPlayers()" :key="p.color" class="game-end-column">
                             <div class="game-end-winer-scorebreak-player-title">
@@ -168,8 +169,9 @@ import MoonBoard from '@/client/components/moon/MoonBoard.vue';
 import PlanetaryTracks from '@/client/components/pathfinders/PlanetaryTracks.vue';
 import LogPanel from '@/client/components/LogPanel.vue';
 import Button from '@/client/components/common/Button.vue';
+import VictoryPointChart from '@/client/components/gameend/VictoryPointChart.vue';
 import {playerColorClass} from '@/common/utils/utils';
-import {Timer} from '@/Timer';
+import {Timer} from '@/common/Timer';
 
 
 import * as constants from '@/common/constants';
@@ -219,6 +221,7 @@ export default Vue.extend({
     Button,
     MoonBoard,
     PlanetaryTracks,
+    VictoryPointChart,
   },
   methods: {
     getEndGamePlayerRowColorClass(color: string): string {

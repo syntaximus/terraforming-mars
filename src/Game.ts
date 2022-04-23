@@ -6,9 +6,8 @@ import {CardFinder} from './CardFinder';
 import {CardName} from './common/cards/CardName';
 import {CardType} from './common/cards/CardType';
 import {ClaimedMilestone, serializeClaimedMilestones, deserializeClaimedMilestones} from './milestones/ClaimedMilestone';
+import {ColonyDealer} from './colonies/ColonyDealer';
 import {IColony} from './colonies/IColony';
-import {serializeColonies} from './colonies/Colony';
-import {ColonyDealer, loadColoniesFromJSON} from './colonies/ColonyDealer';
 import {ColonyName} from './common/colonies/ColonyName';
 import {Color} from './common/Color';
 import {ICorporationCard} from './cards/corporation/ICorporationCard';
@@ -33,9 +32,9 @@ import {Phase} from './common/Phase';
 import {Player} from './Player';
 import {PlayerId, GameId, SpectatorId, SpaceId} from './common/Types';
 import {PlayerInput} from './PlayerInput';
-import {ResourceType} from './common/ResourceType';
+import {CardResource} from './common/CardResource';
 import {Resources} from './common/Resources';
-import {DeferredAction, Priority} from './deferredActions/DeferredAction';
+import {DeferredAction, Priority, SimpleDeferredAction} from './deferredActions/DeferredAction';
 import {DeferredActionsQueue} from './deferredActions/DeferredActionsQueue';
 import {SelectHowToPayDeferred} from './deferredActions/SelectHowToPayDeferred';
 import {SelectInitialCards} from './inputs/SelectInitialCards';
@@ -72,6 +71,7 @@ import {ArabiaTerraBoard} from './boards/ArabiaTerraBoard';
 import {AddResourcesToCard} from './deferredActions/AddResourcesToCard';
 import {isProduction} from './utils/server';
 import {VastitasBorealisBoard} from './boards/VastitasBorealisBoard';
+import {ColonyDeserializer} from './colonies/ColonyDeserializer';
 
 export interface Score {
   corporation: String;
@@ -208,7 +208,7 @@ export class Game {
 
   // Expansion-specific data
   public colonies: Array<IColony> = [];
-  public colonyDealer: ColonyDealer | undefined = undefined;
+  public discardedColonies: Array<IColony> = []; // Not serialized
   public turmoil: Turmoil | undefined;
   public aresData: IAresData | undefined;
   public moonData: IMoonData | undefined;
@@ -297,11 +297,10 @@ export class Game {
 
     // Add colonies stuff
     if (gameOptions.coloniesExtension) {
-      game.colonyDealer = new ColonyDealer(rng);
-      const communityColoniesSelected = GameSetup.includesCommunityColonies(gameOptions);
-      const allowCommunityColonies = gameOptions.communityCardsOption || communityColoniesSelected;
-
-      game.colonies = game.colonyDealer.drawColonies(players.length, gameOptions.customColoniesList, gameOptions.venusNextExtension, gameOptions.turmoilExtension, allowCommunityColonies);
+      const dealer = new ColonyDealer(rng, gameOptions);
+      dealer.drawColonies(players.length);
+      game.colonies = dealer.colonies;
+      game.discardedColonies = dealer.discardedColonies;
     }
 
     // Add Turmoil stuff
@@ -423,8 +422,7 @@ export class Game {
       awards: this.awards.map((a) => a.name),
       board: this.board.serialize(),
       claimedMilestones: serializeClaimedMilestones(this.claimedMilestones),
-      colonies: serializeColonies(this.colonies),
-      colonyDealer: this.colonyDealer,
+      colonies: this.colonies.map((colony) => colony.serialize()),
       currentSeed: this.rng.current,
       dealer: this.dealer.serialize(),
       deferredActions: [],
@@ -637,7 +635,7 @@ export class Game {
     // trigger other corp's effect, e.g. SaturnSystems,PharmacyUnion,Splice
     for (const somePlayer of this.getPlayersInGenerationOrder()) {
       if (somePlayer !== player && somePlayer.corporationCard !== undefined && somePlayer.corporationCard.onCorpCardPlayed !== undefined) {
-        this.defer(new DeferredAction(
+        this.defer(new SimpleDeferredAction(
           player,
           () => {
             if (somePlayer.corporationCard !== undefined && somePlayer.corporationCard.onCorpCardPlayed !== undefined) {
@@ -652,7 +650,7 @@ export class Game {
     // Activate some colonies
     if (this.gameOptions.coloniesExtension && corporationCard.resourceType !== undefined) {
       this.colonies.forEach((colony) => {
-        if (colony.resourceType !== undefined && colony.resourceType === corporationCard.resourceType) {
+        if (colony.metadata.resourceType !== undefined && colony.metadata.resourceType === corporationCard.resourceType) {
           colony.isActive = true;
         }
       });
@@ -779,6 +777,10 @@ export class Game {
       this.log('Final greenery placement', (b) => b.forNewGeneration());
       this.gotoFinalGreeneryPlacement();
       return;
+    } else {
+      this.players.forEach((player) => {
+        player.returnTradeFleets();
+      });
     }
 
     // solar Phase Option
@@ -790,7 +792,7 @@ export class Game {
     this.gotoEndGeneration();
   }
 
-  private gotoEndGeneration() {
+  private endGenerationForColonies() {
     if (this.gameOptions.coloniesExtension) {
       this.colonies.forEach((colony) => {
         colony.endGeneration(this);
@@ -798,26 +800,32 @@ export class Game {
       // Syndicate Pirate Raids hook. Also see Colony.ts and Player.ts
       this.syndicatePirateRaider = undefined;
     }
+  }
+
+  private gotoEndGeneration() {
+    this.endGenerationForColonies();
 
     Turmoil.ifTurmoil(this, (turmoil) => {
       turmoil.endGeneration(this);
     });
 
-    // Resolve Turmoil deferred actions
+    // turmoil.endGeneration might have added actions.
     if (this.deferredActions.length > 0) {
-      this.resolveTurmoilDeferredActions();
-      return;
+      this.deferredActions.runAll(() => this.goToDraftOrResearch());
+    } else {
+      this.phase = Phase.INTERGENERATION;
+      this.goToDraftOrResearch();
     }
-
-    this.phase = Phase.INTERGENERATION;
-    this.goToDraftOrResearch();
   }
 
-  private resolveTurmoilDeferredActions() {
-    this.deferredActions.runAll(() => this.goToDraftOrResearch());
+  private updateVPbyGeneration(): void {
+    this.getPlayers().forEach((player) => {
+      player.victoryPointsByGeneration.push(player.getVictoryPoints().total);
+    });
   }
 
   private goToDraftOrResearch() {
+    this.updateVPbyGeneration();
     this.generation++;
     this.log('Generation ${0}', (b) => b.forNewGeneration().number(this.generation));
     this.incrementFirstPlayer();
@@ -1088,6 +1096,7 @@ export class Game {
         this.donePlayers.add(player.id);
       }
     }
+    this.updateVPbyGeneration();
     this.gotoEndGame();
   }
 
@@ -1412,20 +1421,20 @@ export class Game {
       // ignore
       break;
     case SpaceBonus.MICROBE:
-      this.defer(new AddResourcesToCard(player, ResourceType.MICROBE, {count: count}));
+      this.defer(new AddResourcesToCard(player, CardResource.MICROBE, {count: count}));
       break;
     case SpaceBonus.DATA:
-      this.defer(new AddResourcesToCard(player, ResourceType.DATA, {count: count}));
+      this.defer(new AddResourcesToCard(player, CardResource.DATA, {count: count}));
       break;
     case SpaceBonus.ENERGY_PRODUCTION:
-      player.addProduction(Resources.ENERGY, count);
+      player.addProduction(Resources.ENERGY, count, {log: true});
       break;
     case SpaceBonus.SCIENCE:
-      this.defer(new AddResourcesToCard(player, ResourceType.SCIENCE, {count: count}));
+      this.defer(new AddResourcesToCard(player, CardResource.SCIENCE, {count: count}));
       break;
     case SpaceBonus.TEMPERATURE:
       if (this.getTemperature() < constants.MAX_TEMPERATURE) {
-        this.defer(new DeferredAction(player, () => this.increaseTemperature(player, 1)));
+        this.defer(new SimpleDeferredAction(player, () => this.increaseTemperature(player, 1)));
         this.defer(new SelectHowToPayDeferred(
           player,
           constants.VASTITAS_BOREALIS_BONUS_TEMPERATURE_COST,
@@ -1533,7 +1542,7 @@ export class Game {
     throw new Error(`No player has played ${name}`);
   }
 
-  public getCardsInHandByResource(player: Player, resourceType: ResourceType) {
+  public getCardsInHandByResource(player: Player, resourceType: CardResource) {
     return player.cardsInHand.filter((card) => card.resourceType === resourceType);
   }
 
@@ -1588,7 +1597,7 @@ export class Game {
 
   public static deserialize(d: SerializedGame): Game {
     const gameOptions = d.gameOptions;
-    const players = d.players.map((element: SerializedPlayer) => Player.deserialize(element));
+    const players = d.players.map((element: SerializedPlayer) => Player.deserialize(element, d));
     const first = players.find((player) => player.id === d.first);
     if (first === undefined) {
       throw new Error(`Player ${d.first} not found when rebuilding First Player`);
@@ -1643,13 +1652,10 @@ export class Game {
     }
     // Reload colonies elements if needed
     if (gameOptions.coloniesExtension) {
-      game.colonyDealer = new ColonyDealer(game.rng);
-
-      if (d.colonyDealer !== undefined) {
-        game.colonyDealer.discardedColonies = loadColoniesFromJSON(d.colonyDealer.discardedColonies);
-      }
-
-      game.colonies = loadColoniesFromJSON(d.colonies);
+      game.colonies = ColonyDeserializer.deserializeAndFilter(d.colonies);
+      const dealer = new ColonyDealer(rng, gameOptions);
+      dealer.restore(game.colonies);
+      game.discardedColonies = game.discardedColonies;
     }
 
     // Reload turmoil elements if needed
@@ -1712,7 +1718,7 @@ export class Game {
       game.gotoResearchPhase();
     } else {
       // We should be in ACTION phase, let's prompt the active player for actions
-      game.getPlayerById(game.activePlayer).takeAction();
+      game.getPlayerById(game.activePlayer).takeAction(/* saveBeforeTakingAction */ false);
     }
 
     return game;
