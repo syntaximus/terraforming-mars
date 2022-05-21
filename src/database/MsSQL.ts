@@ -150,7 +150,7 @@ export class MsSQL implements IDatabase {
 
     getGames(cb: (err: Error | undefined, allGames: Array<GameId>) => void) {
         const allGames: Array<GameId> = [];
-        const sql: string = 'SELECT games.game_id FROM games, (SELECT max(save_id) save_id, game_id FROM games WHERE status=\'running\' GROUP BY game_id) a WHERE games.game_id = a.game_id AND games.save_id = a.save_id ORDER BY created_time DESC';
+        const sql: string = 'SELECT games.game_id FROM games, (SELECT max(save_id) save_id, game_id FROM games GROUP BY game_id) a WHERE games.game_id = a.game_id AND games.save_id = a.save_id ORDER BY created_time DESC';
         this.client.query<any>(sql, (err, res) => {
             if (err) {
                 console.error('MsSQL:getGames', err);
@@ -288,7 +288,7 @@ export class MsSQL implements IDatabase {
     // Purge unfinished games older than MAX_GAME_DAYS days. If this environment variable is absent, it uses the default of 10 days.
     purgeUnfinishedGames(): void {
         const envDays = parseInt(process.env.MAX_GAME_DAYS || '');
-        const days = Number.isInteger(envDays) ? envDays : 10;
+        const days = Number.isInteger(envDays) ? envDays : 9999;
         this.client
             .request()
             .input('days', days)
