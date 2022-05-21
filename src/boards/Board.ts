@@ -5,7 +5,6 @@ import {SpaceType} from '../common/boards/SpaceType';
 import {BASE_OCEAN_TILES as UNCOVERED_OCEAN_TILES, CITY_TILES, GREENERY_TILES, OCEAN_TILES, OCEAN_UPGRADE_TILES, TileType} from '../common/TileType';
 import {AresHandler} from '../ares/AresHandler';
 import {SerializedBoard, SerializedSpace} from './SerializedBoard';
-import {SpaceName} from '../SpaceName';
 import {CardName} from '../common/cards/CardName';
 
 /**
@@ -16,6 +15,7 @@ import {CardName} from '../common/cards/CardName';
 export abstract class Board {
   private maxX: number = 0;
   private maxY: number = 0;
+  private map: Map<string, ISpace> = new Map();
 
   // stores adjacent spaces in clockwise order starting from the top left
   private readonly adjacentSpaces = new Map<SpaceId, Array<ISpace>>();
@@ -25,16 +25,21 @@ export abstract class Board {
     this.maxY = Math.max(...spaces.map((s) => s.y));
     spaces.forEach((space) => {
       this.adjacentSpaces.set(space.id, this.computeAdjacentSpaces(space));
+      this.map.set(space.id, space);
     });
   }
 
-  public abstract getVolcanicSpaceIds(): Array<string>;
+  public getVolcanicSpaceIds(): Array<SpaceId> {
+    return [];
+  }
 
-  public abstract getNoctisCitySpaceIds(): Array<string>;
+  public getNoctisCitySpaceId(): SpaceId | undefined {
+    return undefined;
+  }
 
   /* Returns the space given a Space ID. */
   public getSpace(id: string): ISpace {
-    const space = this.spaces.find((space) => space.id === id);
+    const space = this.map.get(id);
     if (space === undefined) {
       throw new Error(`Can't find space with id ${id}`);
     }
@@ -302,16 +307,6 @@ export abstract class Board {
       x: serialized.x,
       y: serialized.y,
     };
-
-    // Patch for games with a broken spacetype for noctis city.
-    // TODO(kberg): Remove this patch by 2022-04-01
-    // See https://github.com/terraforming-mars/terraforming-mars/issues/4056
-    if (serialized.spaceType === undefined) {
-      console.log(`Undefined space type for ${space.id}`);
-      if (space.id === SpaceName.NOCTIS_CITY) {
-        space.spaceType = SpaceType.LAND;
-      }
-    }
 
     if (serialized.tile !== undefined) {
       space.tile = serialized.tile;

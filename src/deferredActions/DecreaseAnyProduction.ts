@@ -29,23 +29,13 @@ export class DecreaseAnyProduction extends DeferredAction {
       return undefined;
     }
 
-    let candidates: Array<Player> = this.player.game.getPlayers().filter((p) => !p.productionIsProtected());
-
-    if (this.resource === Resources.MEGACREDITS) {
-      candidates = candidates.filter((p) => p.getProduction(this.resource) >= this.options.count - 5);
-    } else {
-      candidates = candidates.filter((p) => p.getProduction(this.resource) >= this.options.count);
-    }
-
-    if (this.resource === Resources.STEEL || this.resource === Resources.TITANIUM) {
-      candidates = candidates.filter((candidate) => !candidate.alloysAreProtected());
-    }
+    const candidates: Array<Player> = this.player.game.getPlayers().filter((p) => p.canHaveProductionReduced(this.resource, this.options.count, this.player));
 
     if (candidates.length === 0) {
       return undefined;
     }
 
-    if (candidates.length === 1) {
+    if (candidates.length === 1 && candidates[0] !== this.player) {
       candidates[0].addProduction(this.resource, -this.options.count, {log: true, from: this.player, stealing: this.options.stealing});
       return undefined;
     }

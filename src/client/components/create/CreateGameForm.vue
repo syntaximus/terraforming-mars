@@ -12,7 +12,7 @@
                     <div v-if="isSoloModePage">
                       <div class="create-game-solo-player form-group" v-for="newPlayer in getPlayers()" v-bind:key="newPlayer.index">
                           <div>
-                              <input class="form-input form-inline create-game-player-name" placeholder="Your name" v-model="newPlayer.name" />
+                              <input class="form-input form-inline create-game-player-name" :placeholder="$t('Your name')" v-model="newPlayer.name" />
                           </div>
                           <div class="create-game-colors-wrapper">
                               <label class="form-label form-inline create-game-color-label" v-i18n>Color:</label>
@@ -47,7 +47,7 @@
                         <div class="create-game-page-column">
                             <h4 v-i18n>Expansions</h4>
 
-                            <input type="checkbox" name="allOfficialExpansions" id="allOfficialExpansions-checkbox" v-model="allOfficialExpansions" v-on:change="selectAll()">
+                            <input type="checkbox" name="allOfficialExpansions" id="allOfficialExpansions-checkbox" v-model="allOfficialExpansions">
                             <label for="allOfficialExpansions-checkbox">
                                 <span v-i18n>All</span>
                             </label>
@@ -64,7 +64,7 @@
                                 <span v-i18n>Prelude</span>
                             </label>
 
-                            <input type="checkbox" name="venusNext" id="venusNext-checkbox" v-model="venusNext" v-on:change="toggleVenusNext()">
+                            <input type="checkbox" name="venusNext" id="venusNext-checkbox" v-model="venusNext">
                             <label for="venusNext-checkbox" class="expansion-button">
                             <div class="create-game-expansion-icon expansion-icon-venus"></div>
                                 <span v-i18n>Venus Next</span>
@@ -76,7 +76,7 @@
                                 <span v-i18n>Colonies</span>
                             </label>
 
-                            <input type="checkbox" name="turmoil" id="turmoil-checkbox" v-model="turmoil" v-on:change="deselectPoliticalAgendasWhenDeselectingTurmoil()">
+                            <input type="checkbox" name="turmoil" id="turmoil-checkbox" v-model="turmoil">
                             <label for="turmoil-checkbox" class="expansion-button">
                                 <div class="create-game-expansion-icon expansion-icon-turmoil"></div>
                                 <span v-i18n>Turmoil</span>
@@ -442,7 +442,7 @@ import {BoardName} from '@/common/boards/BoardName';
 import {RandomBoardOption} from '@/common/boards/RandomBoardOption';
 import {CardName} from '@/common/cards/CardName';
 import CorporationsFilter from '@/client/components/create/CorporationsFilter.vue';
-import {translateTextWithParams} from '@/client/directives/i18n';
+import {translateText, translateTextWithParams} from '@/client/directives/i18n';
 import ColoniesFilter from '@/client/components/create/ColoniesFilter.vue';
 import {ColonyName} from '@/common/colonies/ColonyName';
 import CardsFilter from '@/client/components/create/CardsFilter.vue';
@@ -452,6 +452,8 @@ import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
 import {GameId} from '@/common/Types';
 import {AgendaStyle} from '@/common/turmoil/Types';
 import PreferencesIcon from '@/client/components/PreferencesIcon.vue';
+import {getCard} from '@/client/cards/ClientCardManifest';
+import {GameModule} from '@/common/cards/GameModule';
 
 import * as constants from '@/common/constants';
 
@@ -613,6 +615,30 @@ export default (Vue as WithRefs<Refs>).extend({
       this.isSoloModePage = true;
     }
   },
+  watch: {
+    allOfficialExpansions(value: boolean) {
+      this.corporateEra = value;
+      this.prelude = value;
+      this.venusNext = value;
+      this.colonies = value;
+      this.turmoil = value;
+      this.promoCardsOption = value;
+      this.solarPhaseOption = value;
+    },
+    venusNext(value: boolean) {
+      this.solarPhaseOption = value;
+    },
+    turmoil(value: boolean) {
+      if (value === false) {
+        this.politicalAgendasExtension = AgendaStyle.STANDARD;
+      }
+    },
+    playersCount(value: number) {
+      if (value === 1) {
+        this.corporateEra = true;
+      }
+    },
+  },
   methods: {
     async downloadCurrentSettings() {
       const serializedData = await this.serializeSettings();
@@ -735,23 +761,6 @@ export default (Vue as WithRefs<Refs>).extend({
     isBeginnerToggleEnabled(): Boolean {
       return !(this.initialDraft || this.prelude || this.venusNext || this.colonies || this.turmoil);
     },
-    selectAll() {
-      this.corporateEra = this.$data.allOfficialExpansions;
-      this.prelude = this.$data.allOfficialExpansions;
-      this.venusNext = this.$data.allOfficialExpansions;
-      this.colonies = this.$data.allOfficialExpansions;
-      this.turmoil = this.$data.allOfficialExpansions;
-      this.promoCardsOption = this.$data.allOfficialExpansions;
-      this.solarPhaseOption = this.$data.allOfficialExpansions;
-    },
-    toggleVenusNext() {
-      this.solarPhaseOption = this.$data.venusNext;
-    },
-    deselectPoliticalAgendasWhenDeselectingTurmoil() {
-      if (this.$data.turmoil === false) {
-        this.politicalAgendasExtension = AgendaStyle.STANDARD;
-      }
-    },
     deselectVenusCompletion() {
       if (this.$data.venusNext === false) {
         this.requiresVenusTrackCompletion = false;
@@ -783,6 +792,21 @@ export default (Vue as WithRefs<Refs>).extend({
     },
     getPlayerContainerColorClass(color: string): string {
       return playerColorClass(color.toLowerCase(), 'bg_transparent');
+    },
+    isEnabled(module: GameModule): boolean {
+      switch (module) {
+      case 'corpera': return this.$data.corpera;
+      case 'promo': return this.$data.promoCardsOption;
+      case 'venus': return this.$data.venusNext;
+      case 'colonies': return this.$data.colonies;
+      case 'prelude': return this.$data.prelude;
+      case 'turmoil': return this.$data.turmoil;
+      case 'community': return this.$data.communityCardsOption;
+      case 'ares': return this.$data.aresExtension;
+      case 'moon': return this.$data.moonExpansion;
+      case 'pathfinders': return this.$data.pathfindersExpansion;
+      default: return true;
+      }
     },
     async serializeSettings() {
       // TODO(kberg): remove 'component'
@@ -884,12 +908,32 @@ export default (Vue as WithRefs<Refs>).extend({
         }
       }
 
+      if (players.length === 1 && corporateEra === false) {
+        const confirm = window.confirm(translateText(
+          'We do not recommend playing a solo game without the Corporate Era. Press OK if you want to play without it.'));
+        if (confirm === false) return;
+      }
+
       // Check custom corp count
       if (component.showCorporationList && customCorporationsList.length > 0) {
         const neededCorpsCount = players.length * startingCorporations;
         if (customCorporationsList.length < neededCorpsCount) {
           window.alert(translateTextWithParams('Must select at least ${0} corporations', [neededCorpsCount.toString()]));
           return;
+        }
+        let valid = true;
+        for (const corp of customCorporationsList) {
+          const card = getCard(corp);
+          for (const module of card?.compatibility ?? []) {
+            if (!this.isEnabled(module)) {
+              valid = false;
+            }
+          }
+        }
+        if (valid === false) {
+          const confirm = window.confirm(translateText(
+            'Some of the corps you selected need expansions you have not enabled. Using them might break your game. Press OK to continue or Cancel to change your selections.'));
+          if (confirm === false) return;
         }
       } else {
         customCorporationsList.length = 0;

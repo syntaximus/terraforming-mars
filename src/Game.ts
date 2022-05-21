@@ -631,6 +631,7 @@ export class Game {
     }
     corporationCard.play(player);
     this.log('${0} played ${1}', (b) => b.player(player).card(corporationCard));
+    player.game.log('${0} kept ${1} project cards', (b) => b.player(player).number(player.cardsInHand.length));
 
     // trigger other corp's effect, e.g. SaturnSystems,PharmacyUnion,Splice
     for (const somePlayer of this.getPlayersInGenerationOrder()) {
@@ -1169,14 +1170,13 @@ export class Game {
         player.increaseTerraformRating();
       }
       if (this.gameOptions.altVenusBoard) {
-        // The second half of this equation removes any increases earler than 16-to-18.
-
         const newValue = this.venusScaleLevel + steps * 2;
         const minimalBaseline = Math.max(this.venusScaleLevel, 16);
         const maximumBaseline = Math.min(newValue, 30);
         const standardResourcesGranted = Math.max((maximumBaseline - minimalBaseline) / 2, 0);
 
         const grantWildResource = this.venusScaleLevel + (steps * 2) >= 30;
+        // The second half of this expression removes any increases earler than 16-to-18.
         if (grantWildResource || standardResourcesGranted > 0) {
           this.defer(new GrantVenusAltTrackBonusDeferred(player, standardResourcesGranted, grantWildResource));
         }
@@ -1268,7 +1268,7 @@ export class Game {
   }
 
   public getCitiesCount(player?: Player): number {
-    let cities = this.board.spaces.filter((space) => Board.isCitySpace(space));
+    let cities = this.board.spaces.filter(Board.isCitySpace);
     if (player !== undefined) cities = cities.filter(Board.ownedBy(player));
     return cities.length;
   }
@@ -1572,15 +1572,24 @@ export class Game {
     });
   }
 
-  public discardForCost(toPlace: TileType) {
-    const card = this.dealer.dealCard(this);
-    this.dealer.discard(card);
-    this.log('Drew and discarded ${0} (cost ${1}) to place a ${2}', (b) => b.card(card).number(card.cost).tileType(toPlace));
-    return card.cost;
+  public discardForCost(cardCount: 1 | 2, toPlace: TileType) {
+    if (cardCount === 1) {
+      const card = this.dealer.dealCard(this);
+      this.dealer.discard(card);
+      this.log('Drew and discarded ${0} (cost ${1}) to place a ${2}', (b) => b.card(card).number(card.cost).tileType(toPlace));
+      return card.cost;
+    } else {
+      const card1 = this.dealer.dealCard(this);
+      this.dealer.discard(card1);
+      const card2 = this.dealer.dealCard(this);
+      this.dealer.discard(card2);
+      this.log('Drew and discarded ${0} (cost ${1}) and ${2} (cost ${3}) to place a ${4}', (b) => b.card(card1).number(card1.cost).card(card2).number(card2.cost).tileType(toPlace));
+      return card1.cost + card2.cost;
+    }
   }
 
-  public getSpaceByOffset(direction: -1 | 1, toPlace: TileType) {
-    const cost = this.discardForCost(toPlace);
+  public getSpaceByOffset(direction: -1 | 1, toPlace: TileType, cardCount: 1 | 2 = 1) {
+    const cost = this.discardForCost(cardCount, toPlace);
 
     const distance = Math.max(cost-1, 0); // Some cards cost zero.
     const space = this.board.getNthAvailableLandSpace(distance, direction, undefined /* player */,
