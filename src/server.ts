@@ -7,12 +7,15 @@ require('console-stamp')(
 import * as https from 'https';
 import * as http from 'http';
 import * as fs from 'fs';
+import * as raw_settings from './genfiles/settings.json';
 
 import {ApiCloneableGame} from './routes/ApiCloneableGame';
 import {ApiGameLogs} from './routes/ApiGameLogs';
 import {ApiGames} from './routes/ApiGames';
 import {ApiGame} from './routes/ApiGame';
+import {ApiGameHistory} from './routes/ApiGameHistory';
 import {ApiPlayer} from './routes/ApiPlayer';
+import {ApiStats} from './routes/ApiStats';
 import {ApiSpectator} from './routes/ApiSpectator';
 import {ApiWaitingFor} from './routes/ApiWaitingFor';
 import {Database} from './database/Database';
@@ -26,7 +29,6 @@ import {Route} from './routes/Route';
 import {PlayerInput} from './routes/PlayerInput';
 import {ServeApp} from './routes/ServeApp';
 import {ServeAsset} from './routes/ServeAsset';
-import * as raw_settings from './genfiles/settings.json';
 
 process.on('uncaughtException', (err: any) => {
   console.error('UNCAUGHT EXCEPTION', err);
@@ -40,9 +42,11 @@ const handlers: Map<string, IHandler> = new Map(
     ['/terraforming/', ServeApp.INSTANCE],
     ['/terraforming/api/cloneablegame', ApiCloneableGame.INSTANCE],
     ['/terraforming/api/game', ApiGame.INSTANCE],
+    ['/terraforming/api/game/history', ApiGameHistory.INSTANCE],
     ['/terraforming/api/game/logs', ApiGameLogs.INSTANCE],
     ['/terraforming/api/games', ApiGames.INSTANCE],
     ['/terraforming/api/player', ApiPlayer.INSTANCE],
+    ['/terraforming/api/stats', ApiStats.INSTANCE],
     ['/terraforming/api/spectator', ApiSpectator.INSTANCE],
     ['/terraforming/api/waitingfor', ApiWaitingFor.INSTANCE],
     ['/terraforming/cards', ServeApp.INSTANCE],
@@ -126,7 +130,16 @@ if (process.env.KEY_PATH && process.env.CERT_PATH) {
 }
 
 Database.getInstance().initialize()
-  .then(() => {
+  .catch((err) => {
+    console.error('Cannot connect to database:', err);
+    throw err;
+  }).then(async () => {
+    const stats = await Database.getInstance().stats();
+    console.log(JSON.stringify(stats, undefined, 2));
+  }).catch((err) => {
+    console.error('Cannot generate stats:', err);
+    // Do not fail.
+  }).then(() => {
     Database.getInstance().purgeUnfinishedGames();
 
     const port = process.env.PORT || 8080;
@@ -144,8 +157,8 @@ Database.getInstance().initialize()
       '* Overview of existing games: /games-overview?serverId=' + serverId,
     );
     console.log('* API for game IDs: /api/games?serverId=' + serverId + '\n');
-  })
-  .catch((err) => {
-    console.error('Cannot connect to database:', err);
+  }).catch((err) => {
+    console.error('Cannot start server:', err);
     throw err;
   });
+
