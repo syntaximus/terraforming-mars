@@ -50,7 +50,7 @@ const handlers: Map<string, IHandler> = new Map(
     ['/terraforming/api/spectator', ApiSpectator.INSTANCE],
     ['/terraforming/api/waitingfor', ApiWaitingFor.INSTANCE],
     ['/terraforming/cards', ServeApp.INSTANCE],
-    ['/favicon.ico', ServeAsset.INSTANCE],
+    ['/terraforming/favicon.ico', ServeAsset.INSTANCE],
     ['/terraforming/game', GameHandler.INSTANCE],
     ['/terraforming/games-overview', GamesOverview.INSTANCE],
     ['/terraforming/help', ServeApp.INSTANCE],
