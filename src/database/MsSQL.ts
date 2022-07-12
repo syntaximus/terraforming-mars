@@ -1,4 +1,4 @@
-import { DbLoadCallback, IDatabase } from './IDatabase';
+import { IDatabase } from './IDatabase';
 import { Game, GameOptions, Score } from '../Game';
 import { GameId } from '../common/Types';
 import { SerializedGame } from '../SerializedGame';
@@ -111,69 +111,54 @@ export class MsSQL implements IDatabase {
 
     }
 
-    getPlayerCount(game_id: GameId): Promise<number> {
+    public async getPlayerCount(game_id: GameId): Promise<number> {
         const sql = 'SELECT TOP 1 players FROM games WHERE save_id = 0 AND game_id = @game_id';
 
-        return this.client
+        const res = await this.client
             .request()
             .input('game_id', game_id)
-            .query<any>(sql)
-            .then((res) => {
-                if (res?.recordsets[0].length) {
-                    throw new Error(`no rows found for game id ${game_id}`);
-                }
-                return res?.recordsets[0][0].players;
-            });
+            .query<any>(sql);
+
+        if (res?.recordsets[0].length === 0) {
+            throw new Error(`no rows found for game id ${game_id}`);
+        }
+        return res?.recordsets[0][0].players;
     }
 
-    getGames(): Promise<Array<GameId>> {
-        const sql: string = 'SELECT distinct game_id FROM games';
-        return this.client
+    public async getGameIds(): Promise<Array<GameId>> {
+        // To only load incomplete games add `WHERE status=\'running\'`
+        // above "GROUP BY game_id) a"
+        const sql: string = `
+            SELECT games.game_id
+            FROM games, (
+              SELECT max(save_id) save_id, game_id
+              FROM games
+              GROUP BY game_id) a
+            WHERE games.game_id = a.game_id
+            AND games.save_id = a.save_id
+            ORDER BY created_time DESC`;
+        const res = await this.client
             .request()
-            .query<any>(sql)
-            .then((res) => {
-                return res?.recordsets[0].map((row) => row.game_id);
-            })
-            .catch((err) => {
-                console.error('MsSQL:getGames', err);
-                throw err;
-            });
+            .query<any>(sql);
+
+        return res?.recordsets[0].map((row) => row.game_id);
     }
 
-    loadCloneableGame(game_id: GameId): Promise<SerializedGame> {
-        // Retrieve first save from database
-        return this.client
-            .request()
-            .input('game_id', game_id)
-            .query<any>('SELECT game_id game_id, game game FROM games WHERE game_id = @game_id AND save_id = 0')
-            .then((res) => {
-                if (res?.recordsets[0].length === 0) {
-                    throw new Error(`Game ${game_id} not found`);
-                }
-
-                const json = JSON.parse(res?.recordsets[0][0].game);
-                return json;
-            });
+    public loadCloneableGame(game_id: GameId): Promise<SerializedGame> {
+        return this.getGameVersion(game_id, 0);
     }
 
-    getGame(game_id: GameId, cb: (err: Error | undefined, game?: SerializedGame) => void): void {
+    public async getGame(game_id: GameId): Promise<SerializedGame> {
         // Retrieve last save from database
-        this.client
+        const res = await this.client
             .request()
             .input('game_id', game_id)
-            .query<any>('SELECT TOP 1 game game FROM games WHERE game_id = @game_id ORDER BY save_id DESC', (err, res) => {
-                if (err) {
-                    console.error('MsSQL:getGame', err);
-                    return cb(err);
-                }
-                if (res?.recordsets[0].length === 0) {
-                    return cb(new Error('Game not found'));
-                }
-                cb(undefined, JSON.parse(res?.recordsets[0][0].game));
-            });
+            .query<any>('SELECT TOP 1 game game FROM games WHERE game_id = @game_id ORDER BY save_id DESC');
+        const json = JSON.parse(res?.recordsets[0][0].game);
+        return json;
     }
     
-    getGameId(id: string): Promise<GameId> {
+    public async getGameId(id: string): Promise<GameId> {
         let sql = undefined;
         if (id.charAt(0) === 'p') {
             sql =
@@ -189,25 +174,22 @@ export class MsSQL implements IDatabase {
                     OUTER APPLY OPENJSON(game) WITH (spectator NVARCHAR(MAX) '$.spectatorId') AS j1
                     WHERE save_id = 0 AND j1.spectator = @id`;
         } else {
-            throw new Error(`id ${id} is neither a player id or spectator id`);
+            throw new Error(`id ${id} is neither a player id nor spectator id`);
         }
 
-        return this.client
-            .request()
-            .input('id', id)
-            .query<any>(sql)
-            .then((res) => {
-                if (res?.recordsets[0].length === 0) {
-                    throw new Error(`Game for player id ${id} not found`);
-                }
-                return res?.recordsets[0][0].game_id;
-            })
-            .catch((err) => {
-                if (err) {
-                    console.error('MsSQL:getGameId', err);
-                    throw err;
-                }
-            });
+        try {
+            const res = await this.client
+                .request()
+                .input('id', id)
+                .query<any>(sql);
+            if (res?.recordsets[0].length === 0) {
+                throw new Error(`Game for player id ${id} not found`);
+            }
+            return res?.recordsets[0][0].game_id;
+        } catch (err) {
+            console.error('MsSQL:getGameId', err);
+            throw err;
+        }
     }
 
     public async getSaveIds(gameId: GameId): Promise<Array<number>> {
@@ -223,19 +205,18 @@ export class MsSQL implements IDatabase {
         return Promise.resolve(allSaveIds);
     }
 
-    getGameVersion(game_id: GameId, save_id: number): Promise<SerializedGame> {
-        return this.client
+    async getGameVersion(game_id: GameId, save_id: number): Promise<SerializedGame> {
+        const res = await this.client
             .request()
             .input('game_id', game_id)
             .input('save_id', save_id)
-            .query<any>('SELECT game game FROM games WHERE game_id = @game_id and save_id = @save_id')
-            .then((res) => {
-                if (res?.recordsets[0].length === 0) {
-                    throw new Error(`Game ${game_id} not found at save_id ${save_id}`);
-                }
+            .query<any>('SELECT game game FROM games WHERE game_id = @game_id and save_id = @save_id');
 
-                return JSON.parse(res?.recordsets[0][0].game);
-            });
+        if (res?.recordsets[0].length === 0) {
+            throw new Error(`Game ${game_id} not found at save_id ${save_id}`);
+        }
+
+        return JSON.parse(res?.recordsets[0][0].game);
     }
 
     saveGameResults(game_id: GameId, players: number, generations: number, gameOptions: GameOptions, scores: Array<Score>): void {
@@ -255,16 +236,12 @@ export class MsSQL implements IDatabase {
             });
     }
 
-    getMaxSaveId(game_id: GameId, cb: DbLoadCallback<number>): void {
-        this.client
+    async getMaxSaveId(game_id: GameId): Promise<SerializedGame> {
+        const res = await this.client
             .request()
             .input('game_id', game_id)
-            .query<any>('SELECT MAX(save_id) as save_id FROM games WHERE game_id = @game_id', (err: Error | undefined, res) => {
-                if (err) {
-                    return cb(err ?? undefined, undefined);
-                }
-                cb(undefined, res?.recordsets[0][0].save_id);
-            });
+            .query<any>('SELECT MAX(save_id) as save_id FROM games WHERE game_id = @game_id');
+        return res?.recordsets[0][0].save_id;
     }
 
     throwIf(err: any, condition: string) {
@@ -274,35 +251,29 @@ export class MsSQL implements IDatabase {
         }
     }
 
-    cleanSaves(game_id: GameId): void {
-        this.getMaxSaveId(game_id, ((err, save_id) => {
-            this.throwIf(err, 'cleanSaves0');
-            if (save_id === undefined) throw new Error('saveId is undefined for ' + game_id);
-            // DELETE all saves except initial and last one
-            this.client
-                .request()
-                .input('game_id', game_id)
-                .input('save_id', save_id)
-                .query<any>('DELETE FROM games WHERE game_id = @game_id AND save_id < @save_id AND save_id > 0', (err) => {
-                    this.throwIf(err, 'cleanSaves1');
-                    // Flag game as finished
-                    this.client
-                        .request()
-                        .input('game_id', game_id)
-                        .query('UPDATE games SET status = \'finished\' WHERE game_id = @game_id', (err2) => {
-                            this.throwIf(err2, 'cleanSaves2');
-                            // Purge after setting the status as finished so it does not delete the game.
-                            this.purgeUnfinishedGames();
-                        });
-                });
-        }));
+    async cleanGame(game_id: GameId): Promise<void> {
+        const maxSaveId = await this.getMaxSaveId(game_id);
+        // DELETE all saves except initial and last one
+        const delete1 = this.client
+            .request()
+            .input('game_id', game_id)
+            .input('save_id', maxSaveId)
+            .query<any>('DELETE FROM games WHERE game_id = @game_id AND save_id < @save_id AND save_id > 0');
+        // Flag game as finished
+        const delete2 = this.client
+            .request()
+            .input('game_id', game_id)
+            .query('UPDATE games SET status = \'finished\' WHERE game_id = @game_id');
+        // Purge after setting the status as finished so it does not delete the game.
+        const delete3 = this.purgeUnfinishedGames();
+        await Promise.all([delete1, delete2, delete3]);
     }
 
     // Purge unfinished games older than MAX_GAME_DAYS days. If this environment variable is absent, it uses the default of 10 days.
-    purgeUnfinishedGames(maxGameDays: string | undefined = process.env.MAX_GAME_DAYS): void {
+    async purgeUnfinishedGames(maxGameDays: string | undefined = process.env.MAX_GAME_DAYS): Promise<void> {
         const envDays = parseInt(maxGameDays || '');
         const days = Number.isInteger(envDays) ? envDays : 9999;
-        this.client
+        await this.client
             .request()
             .input('days', days)
             .query<any>('DELETE FROM games WHERE created_time < DATEADD(DAY, -1 * @days, GETDATE())', function (err: Error | undefined, res) {
@@ -315,34 +286,27 @@ export class MsSQL implements IDatabase {
             });
     }
 
-    restoreGame(game_id: GameId, save_id: number, cb: DbLoadCallback<SerializedGame>): void {
+    async restoreGame(game_id: GameId, save_id: number): Promise<SerializedGame> {
         // Retrieve last save from database
         logForUndo(game_id, 'restore to', save_id);
-        this.client
+        const res = await this.client
             .request()
             .input('game_id', game_id)
             .input('save_id', save_id)
-            .query<any>('SELECT TOP 1 game game FROM games WHERE game_id = @game_id AND save_id = @save_id ORDER BY save_id DESC', (err, res) => {
-                if (err) {
-                    console.error('MsSQL:restoreGame', err);
-                    cb(err, undefined);
-                    return;
-                }
-                if (res?.recordsets[0].length === 0) {
-                    console.error('MsSQL:restoreGame', `Game ${game_id} not found`);
-                    cb(err, undefined);
-                    return;
-                }
-                try {
-                    // Transform string to json
-                    const game = JSON.parse(res?.recordsets[0][0].game);
-                    logForUndo(game.id, 'restored to', game.lastSaveId, 'from', save_id);
-                    cb(undefined, game);
-                } catch (e) {
-                    const error = e instanceof Error ? e : new Error(String(e));
-                    cb(error, undefined);
-                }
-            });
+            .query<any>('SELECT TOP 1 game game FROM games WHERE game_id = @game_id AND save_id = @save_id ORDER BY save_id DESC');
+
+        if (res?.recordsets[0].length === 0) {
+            throw new Error(`Game ${game_id} not found`);
+        }
+        try {
+            // Transform string to json
+            const json = JSON.parse(res?.recordsets[0][0].game);
+            logForUndo(json.id, 'restored to', json.lastSaveId, 'from', save_id);
+            return json;
+        } catch (e) {
+            const error = e instanceof Error ? e : new Error(String(e));
+            throw error;
+        }
     }
 
     saveGame(game: Game): Promise<void> {
@@ -450,7 +414,7 @@ export class MsSQL implements IDatabase {
         };
 
         // TODO(kberg): return row counts
-        return this.client
+        const res = await this.client
             .request()
             .input('db_name', this.databaseName)
             .query<any>(
@@ -478,13 +442,11 @@ export class MsSQL implements IDatabase {
                     FROM sys.master_files WITH(NOWAIT)
                     WHERE database_id = DB_ID('terraforming') -- for current db
                     GROUP BY database_id
-                `)
-            .then((res) => {
-                map['size-bytes-games'] = res?.recordsets[0][0].used_bytes;
-                map['size-bytes-game-results'] = res?.recordsets[0][1].used_bytes;
-                map['size-bytes-database'] = res?.recordsets[1][0].total_size_bytes;
-                return map;
-            });
+                `);
+        map['size-bytes-games'] = res?.recordsets[0][0].used_bytes;
+        map['size-bytes-game-results'] = res?.recordsets[0][1].used_bytes;
+        map['size-bytes-database'] = res?.recordsets[1][0].total_size_bytes;
+        return map;
     }
 }
 

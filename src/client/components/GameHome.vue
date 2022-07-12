@@ -93,7 +93,7 @@ export default Vue.extend({
     getPlayerCubeColorClass(color: string): string {
       return playerColorClass(color.toLowerCase(), 'bg');
     },
-    getHref(playerId: PlayerId | SpectatorId): string {
+    getHref(playerId: PlayerId | SpectatorId | undefined): string {
       if (playerId === this.game.spectatorId) {
         return `spectator?id=${playerId}`;
       }
@@ -101,7 +101,7 @@ export default Vue.extend({
     },
     copyUrl(playerId: PlayerId | SpectatorId | undefined): void {
       copyToClipboard(window.location.origin + '/terraforming/' + this.getHref(playerId));
-      this.urlCopiedPlayerId = playerId;
+      this.urlCopiedPlayerId = playerId as (PlayerId | SpectatorId);
     },
     isPlayerUrlCopied(playerId: string): boolean {
       return playerId === this.urlCopiedPlayerId;
