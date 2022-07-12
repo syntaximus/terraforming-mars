@@ -3,20 +3,22 @@ import {IDatabase} from '../../src/database/IDatabase';
 import {SerializedGame} from '../../src/SerializedGame';
 
 const FAKE_DATABASE: IDatabase = {
-  cleanSaves: () => {},
+  cleanGame: () => Promise.resolve(),
   deleteGameNbrSaves: () => {},
   getPlayerCount: () => Promise.resolve(0),
-  getGame: () => {},
-  getGameId: () => Promise.resolve(''),
+  getGame: () => Promise.resolve({} as SerializedGame),
+  getGameId: () => Promise.resolve('g'),
   getGameVersion: () => Promise.resolve({} as SerializedGame),
-  getGames: () => Promise.resolve([]),
+  getGameIds: () => Promise.resolve([]),
   getSaveIds: () => Promise.resolve([]),
   initialize: () => Promise.resolve(),
-  restoreGame: () => {},
+  restoreGame: () => {
+    throw new Error('game not found');
+  },
   loadCloneableGame: () => Promise.resolve({} as SerializedGame),
   saveGameResults: () => {},
   saveGame: () => Promise.resolve(),
-  purgeUnfinishedGames: () => {},
+  purgeUnfinishedGames: () => Promise.resolve(),
   stats: () => Promise.resolve({}),
 };
 

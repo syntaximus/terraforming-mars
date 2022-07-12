@@ -17,7 +17,7 @@ import {$t} from '@/client/directives/i18n';
 import * as constants from '@/common/constants';
 import * as raw_settings from '@/genfiles/settings.json';
 import {SpectatorModel} from '@/common/models/SpectatorModel';
-import {isPlayerId, isSpectatorId} from '@/common/utils/utils';
+import {isPlayerId, isSpectatorId} from '@/common/Types';
 import {hasShowModal, showModal, windowHasHTMLDialogElement} from './HTMLDialogElementCompatibility';
 
 const dialogPolyfill = require('dialog-polyfill');
@@ -217,9 +217,7 @@ export const mainAppSettings = {
       xhr.send();
     } else if (currentPathname === '/games-overview') {
       app.screen = 'games-overview';
-    } else if (
-      currentPathname === '/new-game' || currentPathname === '/solo'
-    ) {
+    } else if (currentPathname === '/new-game') {
       app.screen = 'create-game-form';
     } else if (currentPathname === '/load') {
       app.screen = 'load';

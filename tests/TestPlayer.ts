@@ -6,8 +6,8 @@ import {Tags} from '../src/common/cards/Tags';
 import {InputResponse} from '../src/common/inputs/InputResponse';
 
 export class TestPlayer extends Player {
-  constructor(color: Color) {
-    super('player-' + color, color, false, 0, 'p-' + color + '-id');
+  constructor(color: Color, beginner: boolean = false, idSuffix = '') {
+    super('player-' + color, color, beginner, 0, `p-${color}-id${idSuffix}`);
   }
 
   public setProductionForTest(units: Partial<Units>) {

@@ -121,7 +121,7 @@ export class Server {
   public static getSpectatorModel(game: Game): SpectatorModel {
     return {
       color: Color.NEUTRAL,
-      id: game.spectatorId ?? '',
+      id: game.spectatorId,
       game: this.getGameModel(game),
       players: game.getPlayersInGenerationOrder().map(this.getPlayer),
       thisPlayer: undefined,
@@ -301,7 +301,7 @@ export class Server {
       playerInputModel.minCardsToSelect = selectCard.config.min;
       playerInputModel.showOnlyInLearnerMode = selectCard.config.enabled?.every((p: boolean) => p === false);
       playerInputModel.selectBlueCardAction = selectCard.config.selectBlueCardAction;
-      playerInputModel.showOwner = selectCard.config?.showOwner === true;
+      playerInputModel.showOwner = selectCard.config.showOwner === true;
       break;
     case PlayerInputTypes.SELECT_COLONY:
       playerInputModel.coloniesModel = this.getColonyModel(player.game, (waitingFor as SelectColony).colonies);

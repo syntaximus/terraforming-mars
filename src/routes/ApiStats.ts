@@ -10,12 +10,13 @@ export class ApiStats extends Handler {
     super({validateServerId: true});
   }
 
-  public override get(req: http.IncomingMessage, res: http.ServerResponse, ctx: IContext): void {
-    Database.getInstance().stats().then((stats) => {
-      ctx.route.writeJson(res, stats);
-    }).catch((err) => {
+  public override async get(req: http.IncomingMessage, res: http.ServerResponse, ctx: IContext): Promise<void> {
+    try {
+      const stats = await Database.getInstance().stats();
+      ctx.route.writeJson(res, stats, 2);
+    } catch (err) {
       console.error(err);
       ctx.route.badRequest(req, res, 'could not load admin stats');
-    });
+    }
   }
 }
