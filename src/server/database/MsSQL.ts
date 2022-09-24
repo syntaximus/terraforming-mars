@@ -1,7 +1,10 @@
 import { IDatabase } from './IDatabase';
-import { Game, GameOptions, Score } from '../Game';
-import { GameId } from '../common/Types';
+import { Game, Score } from '../Game';
+import { GameOptions } from '../GameOptions';
+import { GameId, PlayerId, SpectatorId } from '../../common/Types';
 import { SerializedGame } from '../SerializedGame';
+import { GameIdLedger } from './IDatabase';
+import { MultiMap } from 'mnemonist';
 import { ConnectionPool, config } from 'mssql';
 
 export class MsSQL implements IDatabase {
@@ -50,6 +53,20 @@ export class MsSQL implements IDatabase {
                         status nvarchar(max) DEFAULT \'running\',
                         created_time datetime DEFAULT GETDATE(),
                         PRIMARY KEY (game_id, save_id))
+                END`,
+                (err) => {
+                    if (err) {
+                        throw err;
+                    }
+                });
+
+            this.client.query(`
+                IF OBJECT_ID(\'dbo.participants\', \'U\') IS NULL
+                BEGIN
+                    CREATE TABLE dbo.participants (
+                        game_id nvarchar(450) NOT NULL,
+                        participant nvarchar(450) NOT NULL
+                        PRIMARY KEY (game_id, participant))
                 END`,
                 (err) => {
                     if (err) {
@@ -154,6 +171,9 @@ export class MsSQL implements IDatabase {
             .request()
             .input('game_id', game_id)
             .query<any>('SELECT TOP 1 game game FROM games WHERE game_id = @game_id ORDER BY save_id DESC');
+        if (res?.recordsets[0].length === 0) {
+            throw new Error(`Game ${game_id} not found`);
+        }
         const json = JSON.parse(res?.recordsets[0][0].game);
         return json;
     }
@@ -309,75 +329,83 @@ export class MsSQL implements IDatabase {
         }
     }
 
-    saveGame(game: Game): Promise<void> {
+    async saveGame(game: Game): Promise<void> {
         const gameJSON = game.toJSON();
         this.statistics.saveCount++;
         if (game.gameOptions.undoOption) logForUndo(game.id, 'start save', game.lastSaveId);
-        return this.client
-            .request()
-            .input('game_id', game.id)
-            .input('save_id', game.lastSaveId)
-            .input('game', gameJSON)
-            .input('players', game.getPlayers().length)
-            .query<any>(`
-                    MERGE games AS g
-                    USING (
-                      SELECT
-                        @game_id AS game_id,
-                        @save_id AS save_id,
-                        @game AS game,
-                        @players AS players
-                     ) AS source
-                    ON g.game_id = source.game_id AND g.save_id = source.save_id
-                    WHEN NOT MATCHED THEN
-                      INSERT(game_id, save_id, game, players)
-                      VALUES(source.game_id, source.save_id, source.game, source.players)
-                    WHEN MATCHED THEN
-                      UPDATE SET
-                        g.game = source.game
-                    OUTPUT inserted.*;`)
-            .then((res) => {
-                let inserted: boolean = true;
-                try {
-                    inserted = res?.recordsets[0].length > 0;
-                } catch (err) {
-                    console.error(err);
-                }
-                if (inserted === false) {
-                    if (game.gameOptions.undoOption) {
-                        this.statistics.saveConflictUndoCount++;
-                    } else {
-                        this.statistics.saveConflictNormalCount++;
-                    }
-                }
 
-                game.lastSaveId++;
-                if (game.gameOptions.undoOption) logForUndo(game.id, 'increment save id, now', game.lastSaveId);
-            })
-            .catch((err) => {
-                if (err) {
-                    console.error('MsSQL:saveGame', err);
-                    return;
-                }
-            });
+        try {
+            // Holding onto a value avoids certain race conditions where saveGame is called twice in a row.
+            const thisSaveId = game.lastSaveId;
+            const res = await this.client
+                .request()
+                .input('game_id', game.id)
+                .input('save_id', game.lastSaveId)
+                .input('game', gameJSON)
+                .input('players', game.getPlayers().length)
+                .query<any>(`
+                        MERGE games AS g
+                        USING (
+                          SELECT
+                            @game_id AS game_id,
+                            @save_id AS save_id,
+                            @game AS game,
+                            @players AS players
+                         ) AS source
+                        ON g.game_id = source.game_id AND g.save_id = source.save_id
+                        WHEN NOT MATCHED THEN
+                          INSERT(game_id, save_id, game, players)
+                          VALUES(source.game_id, source.save_id, source.game, source.players)
+                        WHEN MATCHED THEN
+                          UPDATE SET
+                            g.game = source.game
+                        OUTPUT inserted.*;`);
 
+            game.lastSaveId = thisSaveId + 1;
+                
+            let inserted: boolean = true;
+            try {
+                inserted = res?.recordsets[0].length > 0;
+            } catch (err) {
+                console.error(err);
+            }
+            if (inserted === false) {
+                if (game.gameOptions.undoOption) {
+                    this.statistics.saveConflictUndoCount++;
+                } else {
+                    this.statistics.saveConflictNormalCount++;
+                }
+            }
+
+            // Save IDs on the very first save for this game. That's when the incoming saveId is 0, and also
+            // when the database operation was an insert. (We should figure out why multiple saves occur and
+            // try to stop them. But that's for another day.)
+            if (inserted === true && thisSaveId === 0) {
+                const participantIds: Array<PlayerId | SpectatorId> = game.getPlayers().map((p) => p.id);
+                if (game.spectatorId) participantIds.push(game.spectatorId);
+                await this.storeParticipants({ gameId: game.id, participantIds: participantIds });
+            }
+
+            if (game.gameOptions.undoOption) logForUndo(game.id, 'increment save id, now', game.lastSaveId);
+        } catch (err) {
+            this.statistics.saveErrorCount++;
+            console.error('MsSQL:saveGame', err);
+        };
     }
 
-    deleteGameNbrSaves(game_id: GameId, rollbackCount: number): void {
+    async deleteGameNbrSaves(game_id: GameId, rollbackCount: number): Promise<void> {
         if (rollbackCount <= 0) {
-            console.error(`invalid rollback count for ${game_id}: $rollbackCount`);
+            console.error(`invalid rollback count for ${game_id}: ${rollbackCount}`);
+            // Should this be an error?
             return;
         }
         logForUndo(game_id, 'deleting', rollbackCount, 'saves');
-
-        this
-            .getSaveIds(game_id)
-            .then((first) => {
-                this.client
-                    .request()
-                    .input('game_id', game_id)
-                    .input('rollbackCount', rollbackCount)
-                    .query<any>(`
+        const first = await this.getSaveIds(game_id);
+        const res = await this.client
+            .request()
+            .input('game_id', game_id)
+            .input('rollbackCount', rollbackCount)
+            .query<any>(`
                         ;WITH CTE AS
                         (
                           SELECT TOP (@rollbackCount) *
@@ -385,20 +413,38 @@ export class MsSQL implements IDatabase {
                           WHERE game_id = @game_id
                           ORDER BY save_id DESC
                         )
-                        DELETE FROM CTE`,
-                        (err, res) => {
-                            if (err) {
-                                console.error(err.message);
-                            }
-                            logForUndo(game_id, 'deleted', res?.rowsAffected, 'rows');
-                            this.getSaveIds(game_id)
-                                .then((second) => {
-                                    const difference = first.filter((x) => !second.includes(x));
-                                    logForUndo(game_id, 'second', second);
-                                    logForUndo(game_id, 'Rollback difference', difference);
-                                });
-                        });
+                        DELETE FROM CTE`);
+        logForUndo(game_id, 'deleted', res?.rowsAffected, 'rows');
+        const second = await this.getSaveIds(game_id);
+        const difference = first.filter((x) => !second.includes(x));
+        logForUndo(game_id, 'second', second);
+        logForUndo(game_id, 'Rollback difference', difference);
+    }
+
+    public async storeParticipants(entry: GameIdLedger): Promise<void> {
+        // Sequence of [game_id, id] pairs.
+        const values = entry.participantIds.map((participant) => '(\'' + entry.gameId + '\',\'' + participant + '\')').join(', ');
+        await this.client
+            .request()
+            .query<any>('INSERT INTO participants (game_id, participant) VALUES ' + values, (err) => {
+                if (err) {
+                    console.error('MsSQL:storeParticipants', err);
+                    throw err;
+                }
             });
+    }
+
+    public async getParticipants(): Promise<Array<GameIdLedger>> {
+        const res = await this.client
+            .request()
+            .query<any>('SELECT game_id, participant FROM participants');
+        const multimap = new MultiMap<GameId, PlayerId | SpectatorId>();
+        res?.recordsets[0].forEach((row) => multimap.set(row.game_id, row.participant));
+        const result: Array<GameIdLedger> = [];
+        multimap.forEachAssociation((participantIds, gameId) => {
+            result.push({ gameId, participantIds });
+        });
+        return result;
     }
 
     public async stats(): Promise<{ [key: string]: string | number }> {

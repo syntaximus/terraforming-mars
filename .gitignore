@@ -26,3 +26,4 @@ Obj/
 # Local Packages
 node_modules/
 
+*.orig
