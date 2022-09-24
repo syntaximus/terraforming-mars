@@ -1,24 +1,20 @@
 import {expect} from 'chai';
-import {ISpace} from '../../src/boards/ISpace';
-import {SpecialDesign} from '../../src/cards/base/SpecialDesign';
-import {EcologicalSurvey} from '../../src/cards/ares/EcologicalSurvey';
-import {GeologicalSurvey} from '../../src/cards/ares/GeologicalSurvey';
-import {LunaMiningHub} from '../../src/cards/moon/LunaMiningHub';
-import {Philares} from '../../src/cards/promo/Philares';
-import {Game} from '../../src/Game';
-import {IMoonData} from '../../src/moon/IMoonData';
-import {MoonExpansion} from '../../src/moon/MoonExpansion';
-import {MoonSpaces} from '../../src/moon/MoonSpaces';
-import {Resources} from '../../src/common/Resources';
-import {SpaceName} from '../../src/SpaceName';
+import {ISpace} from '../../src/server/boards/ISpace';
+import {SpecialDesign} from '../../src/server/cards/base/SpecialDesign';
+import {EcologicalSurvey} from '../../src/server/cards/ares/EcologicalSurvey';
+import {GeologicalSurvey} from '../../src/server/cards/ares/GeologicalSurvey';
+import {LunaMiningHub} from '../../src/server/cards/moon/LunaMiningHub';
+import {Philares} from '../../src/server/cards/promo/Philares';
+import {Game} from '../../src/server/Game';
+import {IMoonData} from '../../src/server/moon/IMoonData';
+import {MoonExpansion} from '../../src/server/moon/MoonExpansion';
+import {MoonSpaces} from '../../src/common/moon/MoonSpaces';
+import {SpaceName} from '../../src/server/SpaceName';
 import {TileType} from '../../src/common/TileType';
-import {setCustomGameOptions} from '../TestingUtils';
+import {testGameOptions} from '../TestingUtils';
 import {TestPlayer} from '../TestPlayer';
-import {TestPlayers} from '../TestPlayers';
 import {Phase} from '../../src/common/Phase';
-import {VictoryPointsBreakdown} from '../../src/VictoryPointsBreakdown';
-
-const MOON_OPTIONS = setCustomGameOptions({moonExpansion: true});
+import {VictoryPointsBreakdown} from '../../src/server/VictoryPointsBreakdown';
 
 describe('MoonExpansion', () => {
   let game: Game;
@@ -27,9 +23,9 @@ describe('MoonExpansion', () => {
   let moonData: IMoonData;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.PINK.newPlayer();
-    game = Game.newInstance('gameid', [player, player2], player, MOON_OPTIONS);
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.PINK.newPlayer();
+    game = Game.newInstance('gameid', [player, player2], player, testGameOptions({moonExpansion: true}));
     moonData = MoonExpansion.moonData(game);
   });
 
@@ -63,7 +59,7 @@ describe('MoonExpansion', () => {
   // changing these tests, but I would be surprised if that were the case.
   it('Adding a tile while someone has cards with onTilePlaced behavior does not trigger them.', () => {
     player.cardsInHand = [new EcologicalSurvey(), new GeologicalSurvey()];
-    player.corporationCard = new Philares();
+    player.setCorporationForTest(new Philares());
     player.steel = 0;
     MoonExpansion.addTile(player, 'm03', {tileType: TileType.MOON_ROAD});
     expect(player.steel).eq(1);
@@ -142,9 +138,9 @@ describe('MoonExpansion', () => {
 
   it('Raise mining rate bonus 5-6', () => {
     moonData.miningRate = 5;
-    player.setProductionForTest({titanium: 0});
+    player.production.override({titanium: 0});
     MoonExpansion.raiseMiningRate(player, 1);
-    expect(player.getProduction(Resources.TITANIUM)).eq(1);
+    expect(player.production.titanium).eq(1);
   });
 
   it('Raise logistic rate bonus 2-3', () => {
@@ -156,9 +152,9 @@ describe('MoonExpansion', () => {
 
   it('Raise logistic rate bonus 5-6', () => {
     moonData.logisticRate = 5;
-    player.setProductionForTest({steel: 0});
+    player.production.override({steel: 0});
     MoonExpansion.raiseLogisticRate(player, 1);
-    expect(player.getProduction(Resources.STEEL)).eq(1);
+    expect(player.production.steel).eq(1);
   });
 
   it('Raise colony rate bonus 2-3', () => {
@@ -170,9 +166,9 @@ describe('MoonExpansion', () => {
 
   it('Raise colony rate bonus 5-6', () => {
     moonData.colonyRate = 5;
-    player.setProductionForTest({energy: 0});
+    player.production.override({energy: 0});
     MoonExpansion.raiseColonyRate(player, 1);
-    expect(player.getProduction(Resources.ENERGY)).eq(1);
+    expect(player.production.energy).eq(1);
   });
 
   it('Moon parameters are global parameters', () => {

@@ -1,30 +1,32 @@
-import {MarketingExperts} from '../../../src/cards/ares/MarketingExperts';
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {Resources} from '../../../src/common/Resources';
+import {MarketingExperts} from '../../../src/server/cards/ares/MarketingExperts';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
 import {expect} from 'chai';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
 import {TileType} from '../../../src/common/TileType';
 import {ARES_OPTIONS_NO_HAZARDS} from '../../ares/AresTestHelper';
 import {SpaceBonus} from '../../../src/common/boards/SpaceBonus';
 import {EmptyBoard} from '../../ares/EmptyBoard';
-import {TestPlayers} from '../../TestPlayers';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('MarketingExperts', function() {
-  let card : MarketingExperts; let player : Player; let otherPlayer: Player; let game : Game;
+  let card: MarketingExperts;
+  let player: Player;
+  let otherPlayer: Player;
+  let game: Game;
 
   beforeEach(function() {
     card = new MarketingExperts();
-    player = TestPlayers.BLUE.newPlayer();
-    otherPlayer = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    otherPlayer = TestPlayer.RED.newPlayer();
     game = Game.newInstance('gameid', [player, otherPlayer], player, ARES_OPTIONS_NO_HAZARDS);
     game.board = EmptyBoard.newInstance();
   });
 
   it('Play', function() {
-    expect(player.getProduction(Resources.MEGACREDITS)).eq(0);
+    expect(player.production.megacredits).eq(0);
     card.play(player);
-    expect(player.getProduction(Resources.MEGACREDITS)).eq(1);
+    expect(player.production.megacredits).eq(1);
   });
 
   // This doesn't test anything about this card, but about the behavior this card provides, from

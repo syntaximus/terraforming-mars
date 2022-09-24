@@ -1,25 +1,25 @@
 import {expect} from 'chai';
-import {Incite} from '../../../src/cards/community/Incite';
-import {EventAnalysts} from '../../../src/cards/turmoil/EventAnalysts';
-import {Game} from '../../../src/Game';
-import {SelectPartyToSendDelegate} from '../../../src/inputs/SelectPartyToSendDelegate';
-import {Player} from '../../../src/Player';
+import {Incite} from '../../../src/server/cards/community/Incite';
+import {EventAnalysts} from '../../../src/server/cards/turmoil/EventAnalysts';
+import {Game} from '../../../src/server/Game';
+import {SelectPartyToSendDelegate} from '../../../src/server/inputs/SelectPartyToSendDelegate';
 import {PartyName} from '../../../src/common/turmoil/PartyName';
-import {setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
+import {cast, testGameOptions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('Incite', function() {
-  let card : Incite; let player : Player; let game : Game;
+  let card: Incite;
+  let player: TestPlayer;
+  let game: Game;
 
   beforeEach(function() {
     card = new Incite();
-    player = TestPlayers.BLUE.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
 
-    const gameOptions = setCustomGameOptions();
-    game = Game.newInstance('gameid', [player], player, gameOptions);
+    game = Game.newInstance('gameid', [player], player, testGameOptions({turmoilExtension: true}));
 
     card.play(player);
-    player.corporationCard = card;
+    player.setCorporationForTest(card);
   });
 
   it('Starts with +1 influence', function() {
@@ -36,7 +36,7 @@ describe('Incite', function() {
     card.initialAction(player);
     expect(game.deferredActions).has.lengthOf(1);
 
-    const sendDelegate = game.deferredActions.peek()!.execute() as SelectPartyToSendDelegate;
+    const sendDelegate = cast(game.deferredActions.peek()!.execute(), SelectPartyToSendDelegate);
     sendDelegate.cb(PartyName.MARS);
 
     const marsFirst = game.turmoil!.getPartyByName(PartyName.MARS);

@@ -1,13 +1,11 @@
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {LunaHyperloopCorporation} from '../../../src/cards/moon/LunaHyperloopCorporation';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
+import {testGameOptions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {LunaHyperloopCorporation} from '../../../src/server/cards/moon/LunaHyperloopCorporation';
 import {expect} from 'chai';
-import {MoonExpansion} from '../../../src/moon/MoonExpansion';
-import {IMoonData} from '../../../src/moon/IMoonData';
-
-const MOON_OPTIONS = setCustomGameOptions({moonExpansion: true});
+import {MoonExpansion} from '../../../src/server/moon/MoonExpansion';
+import {IMoonData} from '../../../src/server/moon/IMoonData';
 
 describe('LunaHyperloopCorporation', () => {
   let player: Player;
@@ -15,8 +13,8 @@ describe('LunaHyperloopCorporation', () => {
   let moonData: IMoonData;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
-    const game = Game.newInstance('gameid', [player], player, MOON_OPTIONS);
+    player = TestPlayer.BLUE.newPlayer();
+    const game = Game.newInstance('gameid', [player], player, testGameOptions({moonExpansion: true}));
     card = new LunaHyperloopCorporation();
     moonData = MoonExpansion.moonData(game);
   });

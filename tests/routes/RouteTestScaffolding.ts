@@ -1,7 +1,7 @@
 import * as http from 'http';
-import {IContext} from '../../src/routes/IHandler';
-import {Handler} from '../../src/routes/Handler';
-import {Route} from '../../src/routes/Route';
+import {Context} from '../../src/server/routes/IHandler';
+import {Handler} from '../../src/server/routes/Handler';
+import {Route} from '../../src/server/routes/Route';
 import {FakeGameLoader} from './FakeGameLoader';
 import {MockResponse} from './HttpMocks';
 
@@ -10,7 +10,7 @@ export type Header = 'accept-encoding';
 // Reusable components for testing routes.
 export class RouteTestScaffolding {
   public req: http.IncomingMessage;
-  public ctx: IContext;
+  public ctx: Context;
 
   constructor(req: Partial<http.IncomingMessage> = {}) {
     this.req = req as http.IncomingMessage;
@@ -29,11 +29,11 @@ export class RouteTestScaffolding {
     this.ctx.url = new URL('http://boo.com' + headlessUri);
   }
 
-  public async get(handler: Handler, res: MockResponse): Promise<void> {
+  public get(handler: Handler, res: MockResponse): Promise<void> {
     return handler.get(this.req, res.hide(), this.ctx);
   }
 
-  public async post(handler: Handler, res: MockResponse) {
+  public post(handler: Handler, res: MockResponse) {
     return handler.post(this.req, res.hide(), this.ctx);
   }
 }

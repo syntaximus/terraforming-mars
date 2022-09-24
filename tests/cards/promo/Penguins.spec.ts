@@ -1,16 +1,17 @@
 import {expect} from 'chai';
-import {Penguins} from '../../../src/cards/promo/Penguins';
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
+import {Penguins} from '../../../src/server/cards/promo/Penguins';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
 import {maxOutOceans} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('Penguins', function() {
-  let card : Penguins; let player : Player;
+  let card: Penguins;
+  let player: Player;
 
   beforeEach(function() {
     card = new Penguins();
-    player = TestPlayers.BLUE.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
     Game.newInstance('gameid', [player], player);
   });
 

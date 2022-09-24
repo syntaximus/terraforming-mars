@@ -1,16 +1,17 @@
 import {expect} from 'chai';
-import {AquiferTurbines} from '../../../src/cards/prelude/AquiferTurbines';
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {Resources} from '../../../src/common/Resources';
-import {TestPlayers} from '../../TestPlayers';
+import {AquiferTurbines} from '../../../src/server/cards/prelude/AquiferTurbines';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('AquiferTurbines', function() {
-  let card : AquiferTurbines; let player : Player; let game : Game;
+  let card: AquiferTurbines;
+  let player: Player;
+  let game: Game;
 
   beforeEach(function() {
     card = new AquiferTurbines();
-    player = TestPlayers.BLUE.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
     game = Game.newInstance('gameid', [player], player);
   });
 
@@ -26,10 +27,10 @@ describe('AquiferTurbines', function() {
     // PlaceOceanTile
     game.deferredActions.pop();
 
-    // SelectHowToPayDeferred
+    // SelectPaymentDeferred
     game.deferredActions.runNext();
 
-    expect(player.getProduction(Resources.ENERGY)).to.eq(2);
+    expect(player.production.energy).to.eq(2);
     expect(player.megaCredits).to.eq(0);
   });
 });

@@ -1,14 +1,13 @@
 import {expect} from 'chai';
-import {Ambient} from '../../../src/cards/pathfinders/Ambient';
-import {Game} from '../../../src/Game';
+import {Ambient} from '../../../src/server/cards/pathfinders/Ambient';
+import {Game} from '../../../src/server/Game';
 import {TestPlayer} from '../../TestPlayer';
 import {getTestPlayer, newTestGame} from '../../TestGame';
 import {cast, fakeCard, runAllActions} from '../../TestingUtils';
-import {Tags} from '../../../src/common/cards/Tags';
-import {Resources} from '../../../src/common/Resources';
+import {Tag} from '../../../src/common/cards/Tag';
 import {MAX_TEMPERATURE} from '../../../src/common/constants';
-import {OrOptions} from '../../../src/inputs/OrOptions';
-import {SelectCard} from '../../../src/inputs/SelectCard';
+import {OrOptions} from '../../../src/server/inputs/OrOptions';
+import {SelectCard} from '../../../src/server/inputs/SelectCard';
 
 describe('Ambient', function() {
   let card: Ambient;
@@ -21,7 +20,7 @@ describe('Ambient', function() {
     game = newTestGame(2);
     player = getTestPlayer(game, 0);
     player2 = getTestPlayer(game, 1);
-    player.corporationCard = card;
+    player.setCorporationForTest(card);
   });
 
   it('initialAction', function() {
@@ -35,21 +34,21 @@ describe('Ambient', function() {
   });
 
   it('onCardPlayed', function() {
-    expect(player.getProduction(Resources.HEAT)).eq(0);
+    expect(player.production.heat).eq(0);
 
     card.onCardPlayed(player, fakeCard({tags: []}));
-    expect(player.getProduction(Resources.HEAT)).eq(0);
+    expect(player.production.heat).eq(0);
 
-    card.onCardPlayed(player, fakeCard({tags: [Tags.EARTH]}));
-    expect(player.getProduction(Resources.HEAT)).eq(0);
+    card.onCardPlayed(player, fakeCard({tags: [Tag.EARTH]}));
+    expect(player.production.heat).eq(0);
 
-    card.onCardPlayed(player, fakeCard({tags: [Tags.VENUS]}));
-    expect(player.getProduction(Resources.HEAT)).eq(1);
-    expect(player2.getProduction(Resources.HEAT)).eq(0);
+    card.onCardPlayed(player, fakeCard({tags: [Tag.VENUS]}));
+    expect(player.production.heat).eq(1);
+    expect(player2.production.heat).eq(0);
 
-    card.onCardPlayed(player2, fakeCard({tags: [Tags.VENUS]}));
-    expect(player.getProduction(Resources.HEAT)).eq(1);
-    expect(player2.getProduction(Resources.HEAT)).eq(0);
+    card.onCardPlayed(player2, fakeCard({tags: [Tag.VENUS]}));
+    expect(player.production.heat).eq(1);
+    expect(player2.production.heat).eq(0);
   });
 
   it('canAct', function() {

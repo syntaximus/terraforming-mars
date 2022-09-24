@@ -1,4 +1,4 @@
-<template>
+ClientCard<template>
   <div class="debug-ui-container" :class="getLanguageCssClass()">
       <h1 v-i18n>Cards List</h1>
       <div class="legacy-anchor">
@@ -130,9 +130,9 @@ import {ColonyModel} from '@/common/models/ColonyModel';
 import {ColonyName} from '@/common/colonies/ColonyName';
 import PreferencesIcon from '@/client/components/PreferencesIcon.vue';
 import {GameModule, GAME_MODULES} from '@/common/cards/GameModule';
-import {Tags} from '@/common/cards/Tags';
+import {Tag} from '@/common/cards/Tag';
 import {getColony} from '@/client/colonies/ClientColonyManifest';
-import {IClientCard} from '@/common/cards/IClientCard';
+import {ClientCard} from '@/common/cards/ClientCard';
 
 const moduleAbbreviations: Record<GameModule, string> = {
   base: 'b',
@@ -152,7 +152,7 @@ const moduleAbbreviations: Record<GameModule, string> = {
 const ALL_MODULES = 'bcpvCt*ramP';
 
 type TypeOptions = CardType | 'colonyTiles' | 'globalEvents';
-type TagOptions = Tags | 'none';
+type TagOptions = Tag | 'none';
 
 export interface DebugUIModel {
   filterText: string,
@@ -247,11 +247,11 @@ export default Vue.extend({
         'globalEvents',
       ];
     },
-    allTags(): Array<Tags | 'none'> {
-      const results: Array<Tags | 'none'> = [];
-      for (const tag in Tags) {
-        if (Object.prototype.hasOwnProperty.call(Tags, tag)) {
-          results.push((<any>Tags)[tag]);
+    allTags(): Array<Tag | 'none'> {
+      const results: Array<Tag | 'none'> = [];
+      for (const tag in Tag) {
+        if (Object.prototype.hasOwnProperty.call(Tag, tag)) {
+          results.push((<any>Tag)[tag]);
         }
       }
       return results.concat('none');
@@ -350,7 +350,7 @@ export default Vue.extend({
       case 'pathfinders': return 'Pathfinders';
       }
     },
-    filterByTags(card: IClientCard): boolean {
+    filterByTags(card: ClientCard): boolean {
       if (card.tags.length === 0) {
         return this.tags['none'] === true;
       }
@@ -376,7 +376,6 @@ export default Vue.extend({
     showGlobalEvent(name: GlobalEventName): boolean {
       if (!this.filterByName(name)) return false;
       const globalEvent = getGlobalEvent(name);
-      console.log(globalEvent?.module);
       return globalEvent !== undefined && this.expansions[globalEvent.module] === true;
     },
     showColony(name: ColonyName): boolean {
@@ -391,9 +390,9 @@ export default Vue.extend({
     colonyModel(colonyName: ColonyName): ColonyModel {
       return {
         colonies: [],
-        isActive: true,
+        isActive: false,
         name: colonyName,
-        trackPosition: 5,
+        trackPosition: 0,
         visitor: undefined,
       };
     },

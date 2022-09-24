@@ -1,28 +1,37 @@
 import {expect} from 'chai';
-import {EarthOffice} from '../../../src/cards/base/EarthOffice';
-import {Sponsors} from '../../../src/cards/base/Sponsors';
-import {SaturnSurfing} from '../../../src/cards/promo/SaturnSurfing';
-import {Player} from '../../../src/Player';
+import {EarthOffice} from '../../../src/server/cards/base/EarthOffice';
+import {Sponsors} from '../../../src/server/cards/base/Sponsors';
+import {SaturnSurfing} from '../../../src/server/cards/promo/SaturnSurfing';
 import {Resources} from '../../../src/common/Resources';
-import {TestPlayers} from '../../TestPlayers';
+import {TestPlayer} from '../../TestPlayer';
+import {getTestPlayer, newTestGame} from '../../TestGame';
+import {runAllActions} from '../../TestingUtils';
+import {Game} from '../../../src/server/Game';
 
 describe('SaturnSurfing', function() {
-  let card : SaturnSurfing; let player : Player;
+  let card: SaturnSurfing;
+  let player: TestPlayer;
+  let game: Game;
 
   beforeEach(function() {
     card = new SaturnSurfing();
-    player = TestPlayers.BLUE.newPlayer();
+    game = newTestGame(1);
+    player = getTestPlayer(game, 0);
   });
 
   it('Should play', function() {
     player.playedCards.push(new Sponsors());
     player.playedCards.push(new EarthOffice());
     card.play(player);
+    runAllActions(game);
+
     expect(card.resourceCount).to.eq(3);
   });
 
-  it('Can\'t act if no floaters on the card', function() {
+  it('Can not act if no floaters on the card', function() {
     card.play(player);
+    runAllActions(game);
+
     expect(card.resourceCount).to.eq(1);
 
     card.resourceCount = 0;
@@ -33,6 +42,8 @@ describe('SaturnSurfing', function() {
     player.playedCards.push(new Sponsors());
     player.playedCards.push(new EarthOffice());
     card.play(player);
+    runAllActions(game);
+
     expect(card.resourceCount).to.eq(3);
 
     expect(card.canAct()).is.true;

@@ -1,19 +1,23 @@
 import {expect} from 'chai';
-import {Sponsors} from '../../src/cards/base/Sponsors';
-import {Game} from '../../src/Game';
-import {Player} from '../../src/Player';
-import {Revolution} from '../../src/turmoil/globalEvents/Revolution';
-import {Kelvinists} from '../../src/turmoil/parties/Kelvinists';
-import {Turmoil} from '../../src/turmoil/Turmoil';
-import {TestPlayers} from '../TestPlayers';
+import {Sponsors} from '../../src/server/cards/base/Sponsors';
+import {Game} from '../../src/server/Game';
+import {Player} from '../../src/server/Player';
+import {Revolution} from '../../src/server/turmoil/globalEvents/Revolution';
+import {Kelvinists} from '../../src/server/turmoil/parties/Kelvinists';
+import {Turmoil} from '../../src/server/turmoil/Turmoil';
+import {TestPlayer} from '../TestPlayer';
 
 describe('Revolution', function() {
-  let card : Revolution; let player : Player; let player2 : Player; let game : Game; let turmoil: Turmoil;
+  let card: Revolution;
+  let player: Player;
+  let player2: Player;
+  let game: Game;
+  let turmoil: Turmoil;
 
   beforeEach(function() {
     card = new Revolution();
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
 
     game = Game.newInstance('gameid', [player, player2], player);
     turmoil = Turmoil.newInstance(game);
@@ -34,7 +38,7 @@ describe('Revolution', function() {
     expect(player2.getTerraformRating()).to.eq(18);
   });
 
-  it('doesn\'t reduce TR for players with 0 Earth tags + influence', function() {
+  it('doesn not reduce TR for players with 0 Earth tags + influence', function() {
     player2.playedCards.push(new Sponsors());
 
     card.resolve(game, turmoil);

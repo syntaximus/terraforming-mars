@@ -1,5 +1,6 @@
-import {GameIdLedger, IGameLoader} from '../../src/database/IGameLoader';
-import {Game} from '../../src/Game';
+import {IGameLoader} from '../../src/server/database/IGameLoader';
+import {GameIdLedger} from '../../src/server/database/IDatabase';
+import {Game} from '../../src/server/Game';
 import {GameId, isGameId, PlayerId, SpectatorId} from '../../src/common/Types';
 
 export class FakeGameLoader implements IGameLoader {
@@ -10,8 +11,8 @@ export class FakeGameLoader implements IGameLoader {
   }
   async getIds(): Promise<Array<GameIdLedger>> {
     return Array.from(this.games.keys())
-      .map((id) => {
-        return {id: id, participants: []};
+      .map((gameId) => {
+        return {gameId: gameId, participantIds: []};
       });
   }
   public getGame(id: GameId | PlayerId | SpectatorId): Promise<Game | undefined> {
@@ -25,5 +26,7 @@ export class FakeGameLoader implements IGameLoader {
   }
   restoreGameAt(_gameId: string, _saveId: number): Promise<Game> {
     throw new Error('Method not implemented.');
+  }
+  public mark() {
   }
 }

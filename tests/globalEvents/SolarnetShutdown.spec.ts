@@ -1,18 +1,18 @@
 import {expect} from 'chai';
-import {ColonizerTrainingCamp} from '../../src/cards/base/ColonizerTrainingCamp';
-import {InventorsGuild} from '../../src/cards/base/InventorsGuild';
-import {Game} from '../../src/Game';
+import {ColonizerTrainingCamp} from '../../src/server/cards/base/ColonizerTrainingCamp';
+import {InventorsGuild} from '../../src/server/cards/base/InventorsGuild';
+import {Game} from '../../src/server/Game';
 import {Resources} from '../../src/common/Resources';
-import {SolarnetShutdown} from '../../src/turmoil/globalEvents/SolarnetShutdown';
-import {Kelvinists} from '../../src/turmoil/parties/Kelvinists';
-import {Turmoil} from '../../src/turmoil/Turmoil';
-import {TestPlayers} from '../TestPlayers';
+import {SolarnetShutdown} from '../../src/server/turmoil/globalEvents/SolarnetShutdown';
+import {Kelvinists} from '../../src/server/turmoil/parties/Kelvinists';
+import {Turmoil} from '../../src/server/turmoil/Turmoil';
+import {TestPlayer} from '../TestPlayer';
 
 describe('SolarnetShutdown', function() {
   it('resolve play', function() {
     const card = new SolarnetShutdown();
-    const player = TestPlayers.BLUE.newPlayer();
-    const player2 = TestPlayers.RED.newPlayer();
+    const player = TestPlayer.BLUE.newPlayer();
+    const player2 = TestPlayer.RED.newPlayer();
     const game = Game.newInstance('gameid', [player, player2], player);
     const turmoil = Turmoil.newInstance(game);
 

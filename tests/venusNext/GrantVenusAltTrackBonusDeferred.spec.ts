@@ -1,20 +1,20 @@
 import {expect} from 'chai';
-import {Player} from '../../src/Player';
-import {Game} from '../../src/Game';
-import {TestPlayers} from '../TestPlayers';
-import {GrantVenusAltTrackBonusDeferred} from '../../src/venusNext/GrantVenusAltTrackBonusDeferred';
-import {AndOptions} from '../../src/inputs/AndOptions';
+import {Player} from '../../src/server/Player';
+import {Game} from '../../src/server/Game';
+import {TestPlayer} from '../TestPlayer';
+import {GrantVenusAltTrackBonusDeferred} from '../../src/server/venusNext/GrantVenusAltTrackBonusDeferred';
+import {AndOptions} from '../../src/server/inputs/AndOptions';
 import {cast} from '../TestingUtils';
-import {Tardigrades} from '../../src/cards/base/Tardigrades';
-import {OrOptions} from '../../src/inputs/OrOptions';
-import {SelectCard} from '../../src/inputs/SelectCard';
-import {Birds} from '../../src/cards/base/Birds';
+import {Tardigrades} from '../../src/server/cards/base/Tardigrades';
+import {OrOptions} from '../../src/server/inputs/OrOptions';
+import {SelectCard} from '../../src/server/inputs/SelectCard';
+import {Birds} from '../../src/server/cards/base/Birds';
 
 describe('GrantVenusAltTrackBonusDeferred', function() {
   let player: Player;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
     Game.newInstance('gameid', [player], player);
   });
 

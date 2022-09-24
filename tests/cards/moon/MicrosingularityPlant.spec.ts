@@ -1,15 +1,12 @@
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {MicrosingularityPlant} from '../../../src/cards/moon/MicrosingularityPlant';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
+import {testGameOptions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {MicrosingularityPlant} from '../../../src/server/cards/moon/MicrosingularityPlant';
 import {expect} from 'chai';
-import {MoonExpansion} from '../../../src/moon/MoonExpansion';
-import {IMoonData} from '../../../src/moon/IMoonData';
-import {Resources} from '../../../src/common/Resources';
+import {MoonExpansion} from '../../../src/server/moon/MoonExpansion';
+import {IMoonData} from '../../../src/server/moon/IMoonData';
 import {TileType} from '../../../src/common/TileType';
-
-const MOON_OPTIONS = setCustomGameOptions({moonExpansion: true});
 
 describe('MicrosingularityPlant', () => {
   let player: Player;
@@ -17,8 +14,8 @@ describe('MicrosingularityPlant', () => {
   let moonData: IMoonData;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
-    const game = Game.newInstance('gameid', [player], player, MOON_OPTIONS);
+    player = TestPlayer.BLUE.newPlayer();
+    const game = Game.newInstance('gameid', [player], player, testGameOptions({moonExpansion: true}));
     card = new MicrosingularityPlant();
     moonData = MoonExpansion.moonData(game);
   });
@@ -39,11 +36,11 @@ describe('MicrosingularityPlant', () => {
   });
 
   it('play', () => {
-    expect(player.getProduction(Resources.ENERGY)).eq(0);
+    expect(player.production.energy).eq(0);
 
     card.play(player);
 
-    expect(player.getProduction(Resources.ENERGY)).eq(2);
+    expect(player.production.energy).eq(2);
   });
 });
 

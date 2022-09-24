@@ -1,18 +1,18 @@
 import {expect} from 'chai';
-import {Ants} from '../../src/cards/base/Ants';
-import {Fish} from '../../src/cards/base/Fish';
-import {SecurityFleet} from '../../src/cards/base/SecurityFleet';
-import {Game} from '../../src/Game';
-import {SponsoredProjects} from '../../src/turmoil/globalEvents/SponsoredProjects';
-import {Kelvinists} from '../../src/turmoil/parties/Kelvinists';
-import {Turmoil} from '../../src/turmoil/Turmoil';
-import {TestPlayers} from '../TestPlayers';
+import {Ants} from '../../src/server/cards/base/Ants';
+import {Fish} from '../../src/server/cards/base/Fish';
+import {SecurityFleet} from '../../src/server/cards/base/SecurityFleet';
+import {Game} from '../../src/server/Game';
+import {SponsoredProjects} from '../../src/server/turmoil/globalEvents/SponsoredProjects';
+import {Kelvinists} from '../../src/server/turmoil/parties/Kelvinists';
+import {Turmoil} from '../../src/server/turmoil/Turmoil';
+import {TestPlayer} from '../TestPlayer';
 
 describe('SponsoredProjects', function() {
   it('resolve play', function() {
     const card = new SponsoredProjects();
-    const player = TestPlayers.BLUE.newPlayer();
-    const player2 = TestPlayers.RED.newPlayer();
+    const player = TestPlayer.BLUE.newPlayer();
+    const player2 = TestPlayer.RED.newPlayer();
     const game = Game.newInstance('gameid', [player, player2], player);
     const turmoil = Turmoil.newInstance(game);
 

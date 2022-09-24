@@ -1,21 +1,23 @@
 import {expect} from 'chai';
-import {Player} from '../../../src/Player';
-import {Game} from '../../../src/Game';
-import {Turmoil} from '../../../src/turmoil/Turmoil';
-import {setCustomGameOptions, setRulingPartyAndRulingPolicy} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {MarsFirst, MARS_FIRST_BONUS_1, MARS_FIRST_BONUS_2, MARS_FIRST_POLICY_4} from '../../../src/turmoil/parties/MarsFirst';
-import {Mine} from '../../../src/cards/base/Mine';
-import {Tags} from '../../../src/common/cards/Tags';
+import {Player} from '../../../src/server/Player';
+import {Game} from '../../../src/server/Game';
+import {Turmoil} from '../../../src/server/turmoil/Turmoil';
+import {testGameOptions, setRulingPartyAndRulingPolicy} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {MarsFirst, MARS_FIRST_BONUS_1, MARS_FIRST_BONUS_2, MARS_FIRST_POLICY_4} from '../../../src/server/turmoil/parties/MarsFirst';
+import {Mine} from '../../../src/server/cards/base/Mine';
+import {Tag} from '../../../src/common/cards/Tag';
 
 describe('MarsFirst', function() {
-  let player : Player; let game : Game; let turmoil: Turmoil; let marsFirst: MarsFirst;
+  let player: Player;
+  let game: Game;
+  let turmoil: Turmoil;
+  let marsFirst: MarsFirst;
 
   beforeEach(function() {
-    player = TestPlayers.BLUE.newPlayer();
-    const otherPlayer = TestPlayers.RED.newPlayer();
-    const gameOptions = setCustomGameOptions();
-    game = Game.newInstance('gameid', [player, otherPlayer], player, gameOptions);
+    player = TestPlayer.BLUE.newPlayer();
+    const otherPlayer = TestPlayer.RED.newPlayer();
+    game = Game.newInstance('gameid', [player, otherPlayer], player, testGameOptions({turmoilExtension: true}));
     turmoil = game.turmoil!;
     marsFirst = new MarsFirst();
   });
@@ -68,7 +70,7 @@ describe('MarsFirst', function() {
 
     expect(player.cardsInHand).has.lengthOf(1);
     expect(player.megaCredits).to.eq(3);
-    expect(player.cardsInHand[0].tags.includes(Tags.BUILDING)).to.be.true;
+    expect(player.cardsInHand[0].tags.includes(Tag.BUILDING)).to.be.true;
     expect(marsFirstPolicy.canAct(player)).to.be.false;
   });
 });

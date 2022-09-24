@@ -1,17 +1,17 @@
 import {expect} from 'chai';
-import {StripMine} from '../../src/cards/base/StripMine';
-import {Game} from '../../src/Game';
+import {StripMine} from '../../src/server/cards/base/StripMine';
+import {Game} from '../../src/server/Game';
 import {Resources} from '../../src/common/Resources';
-import {Pandemic} from '../../src/turmoil/globalEvents/Pandemic';
-import {Kelvinists} from '../../src/turmoil/parties/Kelvinists';
-import {Turmoil} from '../../src/turmoil/Turmoil';
-import {TestPlayers} from '../TestPlayers';
+import {Pandemic} from '../../src/server/turmoil/globalEvents/Pandemic';
+import {Kelvinists} from '../../src/server/turmoil/parties/Kelvinists';
+import {Turmoil} from '../../src/server/turmoil/Turmoil';
+import {TestPlayer} from '../TestPlayer';
 
 describe('Pandemic', function() {
   it('resolve play', function() {
     const card = new Pandemic();
-    const player = TestPlayers.BLUE.newPlayer();
-    const player2 = TestPlayers.RED.newPlayer();
+    const player = TestPlayer.BLUE.newPlayer();
+    const player2 = TestPlayer.RED.newPlayer();
     const game = Game.newInstance('gameid', [player, player2], player);
     const turmoil = Turmoil.newInstance(game);
     turmoil.initGlobalEvent(game);

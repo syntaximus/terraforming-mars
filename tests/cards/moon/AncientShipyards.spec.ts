@@ -1,13 +1,10 @@
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {cast, setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {AncientShipyards} from '../../../src/cards/moon/AncientShipyards';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
+import {cast, testGameOptions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {AncientShipyards} from '../../../src/server/cards/moon/AncientShipyards';
 import {expect} from 'chai';
-import {Resources} from '../../../src/common/Resources';
-import {OrOptions} from '../../../src/inputs/OrOptions';
-
-const MOON_OPTIONS = setCustomGameOptions({moonExpansion: true});
+import {OrOptions} from '../../../src/server/inputs/OrOptions';
 
 describe('AncientShipyards', () => {
   let game: Game;
@@ -16,9 +13,9 @@ describe('AncientShipyards', () => {
   let card: AncientShipyards;
 
   beforeEach(() => {
-    bluePlayer = TestPlayers.BLUE.newPlayer();
-    redPlayer = TestPlayers.RED.newPlayer();
-    game = Game.newInstance('gameid', [bluePlayer, redPlayer], bluePlayer, MOON_OPTIONS);
+    bluePlayer = TestPlayer.BLUE.newPlayer();
+    redPlayer = TestPlayer.RED.newPlayer();
+    game = Game.newInstance('gameid', [bluePlayer, redPlayer], bluePlayer, testGameOptions({moonExpansion: true}));
     card = new AncientShipyards();
   });
 
@@ -33,7 +30,7 @@ describe('AncientShipyards', () => {
 
   it('play', () => {
     bluePlayer.titanium = 3;
-    expect(bluePlayer.getProduction(Resources.STEEL)).eq(0);
+    expect(bluePlayer.production.steel).eq(0);
 
     card.play(bluePlayer);
 
@@ -56,8 +53,8 @@ describe('AncientShipyards', () => {
   });
 
   it('act solo', () => {
-    redPlayer = TestPlayers.RED.newPlayer();
-    game = Game.newInstance('gameid', [redPlayer], redPlayer, MOON_OPTIONS);
+    redPlayer = TestPlayer.RED.newPlayer();
+    game = Game.newInstance('gameid', [redPlayer], redPlayer, testGameOptions({moonExpansion: true}));
 
     expect(card.resourceCount).eq(0);
     redPlayer.megaCredits = 10;

@@ -1,17 +1,15 @@
 import {expect} from 'chai';
-import {AerosportTournament} from '../../../src/cards/venusNext/AerosportTournament';
-import {Celestic} from '../../../src/cards/venusNext/Celestic';
-import {Game} from '../../../src/Game';
-import {TestPlayers} from '../../TestPlayers';
+import {AerosportTournament} from '../../../src/server/cards/venusNext/AerosportTournament';
+import {Celestic} from '../../../src/server/cards/venusNext/Celestic';
+import {getTestPlayer, newTestGame} from '../../TestGame';
 
 describe('AerosportTournament', function() {
   it('Should play', function() {
     const card = new AerosportTournament();
     const corp = new Celestic();
-    const player = TestPlayers.BLUE.newPlayer();
-    const redPlayer = TestPlayers.RED.newPlayer();
-    const game = Game.newInstance('gameid', [player, redPlayer], player);
-    player.corporationCard = corp;
+    const game = newTestGame(2);
+    const player = getTestPlayer(game, 0);
+    player.setCorporationForTest(corp);
     corp.action(player);
     corp.action(player);
     corp.action(player);

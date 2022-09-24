@@ -1,19 +1,21 @@
 import {expect} from 'chai';
-import {TradeAdvance} from '../../../src/cards/community/TradeAdvance';
+import {TradeAdvance} from '../../../src/server/cards/community/TradeAdvance';
 import {ColonyName} from '../../../src/common/colonies/ColonyName';
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {setCustomGameOptions, runAllActions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
+import {testGameOptions, runAllActions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('TradeAdvance', function() {
-  let card : TradeAdvance; let player : Player; let game : Game;
+  let card: TradeAdvance;
+  let player: Player;
+  let game: Game;
 
   beforeEach(function() {
     card = new TradeAdvance();
-    player = TestPlayers.BLUE.newPlayer();
-    const redPlayer = TestPlayers.RED.newPlayer();
-    const gameOptions = setCustomGameOptions({
+    player = TestPlayer.BLUE.newPlayer();
+    const redPlayer = TestPlayer.RED.newPlayer();
+    const gameOptions = testGameOptions({
       coloniesExtension: true,
       customColoniesList: [ColonyName.LUNA, ColonyName.CALLISTO, ColonyName.CERES, ColonyName.IO, ColonyName.TITAN],
     });

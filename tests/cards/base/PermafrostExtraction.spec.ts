@@ -1,18 +1,20 @@
 import {expect} from 'chai';
-import {PermafrostExtraction} from '../../../src/cards/base/PermafrostExtraction';
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {TestPlayers} from '../../TestPlayers';
-import {SelectSpace} from '../../../src/inputs/SelectSpace';
+import {PermafrostExtraction} from '../../../src/server/cards/base/PermafrostExtraction';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
+import {TestPlayer} from '../../TestPlayer';
+import {SelectSpace} from '../../../src/server/inputs/SelectSpace';
 import {runAllActions, cast} from '../../TestingUtils';
 
 describe('PermafrostExtraction', function() {
-  let card : PermafrostExtraction; let player : Player; let game : Game;
+  let card: PermafrostExtraction;
+  let player: Player;
+  let game: Game;
 
   beforeEach(function() {
     card = new PermafrostExtraction();
-    player = TestPlayers.BLUE.newPlayer();
-    const redPlayer = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    const redPlayer = TestPlayer.RED.newPlayer();
     game = Game.newInstance('gameid', [player, redPlayer], player);
   });
 

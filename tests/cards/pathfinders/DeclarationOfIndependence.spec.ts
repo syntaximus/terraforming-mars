@@ -1,12 +1,11 @@
 import {expect} from 'chai';
-import {DeclarationOfIndependence} from '../../../src/cards/pathfinders/DeclarationOfIndependence';
-import {Game} from '../../../src/Game';
+import {DeclarationOfIndependence} from '../../../src/server/cards/pathfinders/DeclarationOfIndependence';
+import {Game} from '../../../src/server/Game';
 import {TestPlayer} from '../../TestPlayer';
-import {TestPlayers} from '../../TestPlayers';
-import {cast, runAllActions, setCustomGameOptions} from '../../TestingUtils';
-import {Turmoil} from '../../../src/turmoil/Turmoil';
+import {cast, runAllActions, testGameOptions} from '../../TestingUtils';
+import {Turmoil} from '../../../src/server/turmoil/Turmoil';
 import {PartyName} from '../../../src/common/turmoil/PartyName';
-import {SelectPartyToSendDelegate} from '../../../src/inputs/SelectPartyToSendDelegate';
+import {SelectPartyToSendDelegate} from '../../../src/server/inputs/SelectPartyToSendDelegate';
 
 describe('DeclarationOfIndependence', function() {
   let card: DeclarationOfIndependence;
@@ -15,8 +14,8 @@ describe('DeclarationOfIndependence', function() {
 
   beforeEach(function() {
     card = new DeclarationOfIndependence();
-    player = TestPlayers.BLUE.newPlayer();
-    Game.newInstance('gameid', [player], player, setCustomGameOptions());
+    player = TestPlayer.BLUE.newPlayer();
+    Game.newInstance('gameid', [player], player, testGameOptions({turmoilExtension: true}));
     turmoil = player.game.turmoil!;
   });
 

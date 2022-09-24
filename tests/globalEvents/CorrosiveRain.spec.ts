@@ -1,17 +1,16 @@
 import {expect} from 'chai';
-import {Game} from '../../src/Game';
-import {CorrosiveRain} from '../../src/turmoil/globalEvents/CorrosiveRain';
-import {Kelvinists} from '../../src/turmoil/parties/Kelvinists';
-import {Turmoil} from '../../src/turmoil/Turmoil';
-import {TestPlayers} from '../TestPlayers';
-import {cast, runAllActions, setCustomGameOptions} from '../TestingUtils';
+import {Game} from '../../src/server/Game';
+import {CorrosiveRain} from '../../src/server/turmoil/globalEvents/CorrosiveRain';
+import {Kelvinists} from '../../src/server/turmoil/parties/Kelvinists';
+import {Turmoil} from '../../src/server/turmoil/Turmoil';
+import {cast, runAllActions, testGameOptions} from '../TestingUtils';
 import {TestPlayer} from '../TestPlayer';
-import {TitanShuttles} from '../../src/cards/colonies/TitanShuttles';
-import {TitanAirScrapping} from '../../src/cards/colonies/TitanAirScrapping';
-import {Birds} from '../../src/cards/base/Birds';
-import {SelectCard} from '../../src/inputs/SelectCard';
-import {OrOptions} from '../../src/inputs/OrOptions';
-import {SelectOption} from '../../src/inputs/SelectOption';
+import {TitanShuttles} from '../../src/server/cards/colonies/TitanShuttles';
+import {TitanAirScrapping} from '../../src/server/cards/colonies/TitanAirScrapping';
+import {Birds} from '../../src/server/cards/base/Birds';
+import {SelectCard} from '../../src/server/inputs/SelectCard';
+import {OrOptions} from '../../src/server/inputs/OrOptions';
+import {SelectOption} from '../../src/server/inputs/SelectOption';
 
 describe('CorrosiveRain', function() {
   let card: CorrosiveRain;
@@ -22,9 +21,9 @@ describe('CorrosiveRain', function() {
 
   beforeEach(() => {
     card = new CorrosiveRain();
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
-    game = Game.newInstance('gameid', [player, player2], player, setCustomGameOptions({turmoilExtension: true}));
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
+    game = Game.newInstance('gameid', [player, player2], player, testGameOptions({turmoilExtension: true}));
     turmoil = game.turmoil!;
     player.popWaitingFor(); // To clear out the SelectInitialCards input.
   });

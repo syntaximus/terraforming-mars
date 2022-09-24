@@ -1,21 +1,24 @@
 import {expect} from 'chai';
-import {ColonizerTrainingCamp} from '../../../src/cards/base/ColonizerTrainingCamp';
-import {ICard} from '../../../src/cards/ICard';
-import {DeuteriumExport} from '../../../src/cards/venusNext/DeuteriumExport';
-import {Dirigibles} from '../../../src/cards/venusNext/Dirigibles';
-import {HydrogenToVenus} from '../../../src/cards/venusNext/HydrogenToVenus';
-import {Game} from '../../../src/Game';
-import {SelectCard} from '../../../src/inputs/SelectCard';
-import {Player} from '../../../src/Player';
-import {TestPlayers} from '../../TestPlayers';
+import {cast} from '../../TestingUtils';
+import {ColonizerTrainingCamp} from '../../../src/server/cards/base/ColonizerTrainingCamp';
+import {ICard} from '../../../src/server/cards/ICard';
+import {DeuteriumExport} from '../../../src/server/cards/venusNext/DeuteriumExport';
+import {Dirigibles} from '../../../src/server/cards/venusNext/Dirigibles';
+import {HydrogenToVenus} from '../../../src/server/cards/venusNext/HydrogenToVenus';
+import {Game} from '../../../src/server/Game';
+import {SelectCard} from '../../../src/server/inputs/SelectCard';
+import {Player} from '../../../src/server/Player';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('HydrogenToVenus', function() {
-  let card : HydrogenToVenus; let player : Player; let game : Game;
+  let card: HydrogenToVenus;
+  let player: Player;
+  let game: Game;
 
   beforeEach(function() {
     card = new HydrogenToVenus();
-    player = TestPlayers.BLUE.newPlayer();
-    const redPlayer = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    const redPlayer = TestPlayer.RED.newPlayer();
     game = Game.newInstance('gameid', [player, redPlayer], player);
   });
 
@@ -25,8 +28,7 @@ describe('HydrogenToVenus', function() {
     const card4 = new Dirigibles();
     player.playedCards.push(card2, card3, card4);
 
-    const action = card.play(player) as SelectCard<ICard>;
-    expect(action).instanceOf(SelectCard);
+    const action = cast(card.play(player), SelectCard<ICard>);
     action.cb([card2]);
     expect(card2.resourceCount).to.eq(1);
     expect(game.getVenusScaleLevel()).to.eq(2);
@@ -38,9 +40,9 @@ describe('HydrogenToVenus', function() {
     const card3 = new ColonizerTrainingCamp();
     player.playedCards.push(card2, card3);
 
-        card.play(player) as SelectCard<ICard>;
-        expect(card2.resourceCount).to.eq(1);
-        expect(game.getVenusScaleLevel()).to.eq(2);
+    expect(card.play(player)).is.undefined;
+    expect(card2.resourceCount).to.eq(1);
+    expect(game.getVenusScaleLevel()).to.eq(2);
   });
 
   it('Should play with no venus cards', function() {

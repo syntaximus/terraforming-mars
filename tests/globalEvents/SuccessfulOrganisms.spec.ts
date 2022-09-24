@@ -1,16 +1,16 @@
 import {expect} from 'chai';
-import {Game} from '../../src/Game';
+import {Game} from '../../src/server/Game';
 import {Resources} from '../../src/common/Resources';
-import {SuccessfulOrganisms} from '../../src/turmoil/globalEvents/SuccessfulOrganisms';
-import {Kelvinists} from '../../src/turmoil/parties/Kelvinists';
-import {Turmoil} from '../../src/turmoil/Turmoil';
-import {TestPlayers} from '../TestPlayers';
+import {SuccessfulOrganisms} from '../../src/server/turmoil/globalEvents/SuccessfulOrganisms';
+import {Kelvinists} from '../../src/server/turmoil/parties/Kelvinists';
+import {Turmoil} from '../../src/server/turmoil/Turmoil';
+import {TestPlayer} from '../TestPlayer';
 
 describe('SuccessfulOrganisms', function() {
   it('resolve play', function() {
     const card = new SuccessfulOrganisms();
-    const player = TestPlayers.BLUE.newPlayer();
-    const player2 = TestPlayers.RED.newPlayer();
+    const player = TestPlayer.BLUE.newPlayer();
+    const player2 = TestPlayer.RED.newPlayer();
     const game = Game.newInstance('gameid', [player, player2], player);
     const turmoil = Turmoil.newInstance(game);
 
@@ -21,8 +21,8 @@ describe('SuccessfulOrganisms', function() {
     turmoil.dominantParty.delegates.push(player2.id);
     turmoil.dominantParty.delegates.push(player2.id);
 
-    player.addProduction(Resources.PLANTS, 3);
-    player2.addProduction(Resources.PLANTS, 3);
+    player.production.add(Resources.PLANTS, 3);
+    player2.production.add(Resources.PLANTS, 3);
 
     card.resolve(game, turmoil);
     expect(player.getResource(Resources.PLANTS)).to.eq(3);

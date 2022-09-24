@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import {Steelaris} from '../../../src/cards/pathfinders/Steelaris';
-import {Game} from '../../../src/Game';
+import {Steelaris} from '../../../src/server/cards/pathfinders/Steelaris';
+import {Game} from '../../../src/server/Game';
 import {TestPlayer} from '../../TestPlayer';
 import {getTestPlayer, newTestGame} from '../../TestGame';
 import {TileType} from '../../../src/common/TileType';
@@ -18,7 +18,7 @@ describe('Steelaris', function() {
     game = newTestGame(2);
     player = getTestPlayer(game, 0);
     player2 = getTestPlayer(game, 1);
-    player.corporationCard = card;
+    player.setCorporationForTest(card);
     game.board = EmptyBoard.newInstance();
   });
 

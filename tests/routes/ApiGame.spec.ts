@@ -1,8 +1,8 @@
 import {expect} from 'chai';
-import {ApiGame} from '../../src/routes/ApiGame';
-import {Game} from '../../src/Game';
+import {ApiGame} from '../../src/server/routes/ApiGame';
+import {Game} from '../../src/server/Game';
 import {MockResponse} from './HttpMocks';
-import {TestPlayers} from '../TestPlayers';
+import {TestPlayer} from '../TestPlayer';
 import {RouteTestScaffolding} from './RouteTestScaffolding';
 
 describe('ApiGame', () => {
@@ -22,7 +22,7 @@ describe('ApiGame', () => {
   });
 
   it('invalid id', async () => {
-    const player = TestPlayers.BLACK.newPlayer();
+    const player = TestPlayer.BLACK.newPlayer();
     scaffolding.ctx.gameLoader.add(Game.newInstance('game-valid-id', [player], player));
     scaffolding.url = '/terraforming/api/game?id=invalidId';
     await scaffolding.get(ApiGame.INSTANCE, res);
@@ -31,7 +31,7 @@ describe('ApiGame', () => {
   });
 
   it('valid id', async () => {
-    const player = TestPlayers.BLACK.newPlayer();
+    const player = TestPlayer.BLACK.newPlayer();
     scaffolding.ctx.gameLoader.add(Game.newInstance('game-valid-id', [player], player));
     scaffolding.url = '/terraforming/api/game?id=game-valid-id';
     await scaffolding.get(ApiGame.INSTANCE, res);
@@ -53,11 +53,12 @@ describe('ApiGame', () => {
           'altVenusBoard': false,
           'aresExtension': false,
           'boardName': 'tharsis',
-          'cardsBlackList': [],
+          'bannedCards': [],
           'coloniesExtension': false,
           'communityCardsOption': false,
           'corporateEra': true,
           'draftVariant': false,
+          'corporationsDraft': false,
           'escapeVelocityMode': false,
           'escapeVelocityPenalty': 1,
           'escapeVelocityPeriod': 2,

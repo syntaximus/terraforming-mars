@@ -1,16 +1,14 @@
-import {Game} from '../../../src/Game';
-import {IMoonData} from '../../../src/moon/IMoonData';
-import {MoonExpansion} from '../../../src/moon/MoonExpansion';
-import {Player} from '../../../src/Player';
-import {setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {LunarDustProcessingPlant} from '../../../src/cards/moon/LunarDustProcessingPlant';
+import {Game} from '../../../src/server/Game';
+import {IMoonData} from '../../../src/server/moon/IMoonData';
+import {MoonExpansion} from '../../../src/server/moon/MoonExpansion';
+import {Player} from '../../../src/server/Player';
+import {testGameOptions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {LunarDustProcessingPlant} from '../../../src/server/cards/moon/LunarDustProcessingPlant';
 import {expect} from 'chai';
-import {MareSerenitatisMine} from '../../../src/cards/moon/MareSerenitatisMine';
+import {MareSerenitatisMine} from '../../../src/server/cards/moon/MareSerenitatisMine';
 import {CardName} from '../../../src/common/cards/CardName';
-import {MoonRoadStandardProject} from '../../../src/cards/moon/MoonRoadStandardProject';
-
-const MOON_OPTIONS = setCustomGameOptions({moonExpansion: true});
+import {MoonRoadStandardProject} from '../../../src/server/cards/moon/MoonRoadStandardProject';
 
 describe('LunarDustProcessingPlant', () => {
   let game: Game;
@@ -19,8 +17,8 @@ describe('LunarDustProcessingPlant', () => {
   let card: LunarDustProcessingPlant;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
-    game = Game.newInstance('gameid', [player], player, MOON_OPTIONS);
+    player = TestPlayer.BLUE.newPlayer();
+    game = Game.newInstance('gameid', [player], player, testGameOptions({moonExpansion: true}));
     moonData = MoonExpansion.moonData(game);
     card = new LunarDustProcessingPlant();
   });

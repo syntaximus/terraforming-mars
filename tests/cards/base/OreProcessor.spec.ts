@@ -1,20 +1,22 @@
 import {expect} from 'chai';
-import {OreProcessor} from '../../../src/cards/base/OreProcessor';
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {TestPlayers} from '../../TestPlayers';
+import {OreProcessor} from '../../../src/server/cards/base/OreProcessor';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('OreProcessor', function() {
-  let card : OreProcessor; let player : Player; let game : Game;
+  let card: OreProcessor;
+  let player: Player;
+  let game: Game;
 
   beforeEach(function() {
     card = new OreProcessor();
-    player = TestPlayers.BLUE.newPlayer();
-    const redPlayer = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    const redPlayer = TestPlayer.RED.newPlayer();
     game = Game.newInstance('gameid', [player, redPlayer], player);
   });
 
-  it('Can\'t act', function() {
+  it('Can not act', function() {
     player.energy = 3;
     expect(card.canAct(player)).is.not.true;
   });

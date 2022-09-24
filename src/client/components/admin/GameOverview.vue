@@ -6,7 +6,7 @@
       ...{{status}}
     </template>
     <template v-else>
-      with {{game.players.length}} player(s) :
+      <span v-i18n>with {{game.players.length}} player(s) :</span>
       <span class="player_home_block nofloat" >
           <span v-for="player in game.players" class="player_name" :class="'player_bg_color_'+ player.color" :key="player.color">
               <a target="blank" :href="'player?id=' + player.id">{{player.name}}</a>

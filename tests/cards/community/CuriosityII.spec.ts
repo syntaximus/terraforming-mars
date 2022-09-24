@@ -1,25 +1,28 @@
 import {expect} from 'chai';
-import {OceanSanctuary} from '../../../src/cards/ares/OceanSanctuary';
-import {CuriosityII} from '../../../src/cards/community/CuriosityII';
-import {Game} from '../../../src/Game';
-import {OrOptions} from '../../../src/inputs/OrOptions';
+import {OceanSanctuary} from '../../../src/server/cards/ares/OceanSanctuary';
+import {CuriosityII} from '../../../src/server/cards/community/CuriosityII';
+import {Game} from '../../../src/server/Game';
+import {OrOptions} from '../../../src/server/inputs/OrOptions';
 import {Phase} from '../../../src/common/Phase';
-import {Player} from '../../../src/Player';
 import {TileType} from '../../../src/common/TileType';
-import {setCustomGameOptions, runAllActions, cast} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
+import {testGameOptions, runAllActions, cast} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {SelectSpace} from '../../../src/server/inputs/SelectSpace';
 
 describe('CuriosityII', function() {
-  let card : CuriosityII; let player : Player; let player2 : Player; let game : Game;
+  let card: CuriosityII;
+  let player: TestPlayer;
+  let player2: TestPlayer;
+  let game: Game;
 
   beforeEach(function() {
     card = new CuriosityII();
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
-    game = Game.newInstance('gameid', [player, player2], player, setCustomGameOptions({aresExtension: true, aresHazards: false}));
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
+    game = Game.newInstance('gameid', [player, player2], player, testGameOptions({aresExtension: true, aresHazards: false}));
     game.phase = Phase.ACTION;
 
-    player.corporationCard = card;
+    player.setCorporationForTest(card);
     player.megaCredits = 2;
   });
 
@@ -65,11 +68,14 @@ describe('CuriosityII', function() {
     game.board.getSpace(oceanSpace.id).tile = {tileType: TileType.OCEAN};
 
     const oceanCity = new OceanSanctuary();
-    const action = oceanCity.play(player);
+    const action = cast(oceanCity.play(player), SelectSpace);
     action.cb(oceanSpace);
 
-    const orOptions = cast(game.deferredActions.pop()!.execute(), OrOptions);
+    runAllActions(game);
+
+    const orOptions = cast(player.popWaitingFor(), OrOptions);
     orOptions.options[0].cb(); // Pay 2 M€ to draw a card
+
     runAllActions(game);
 
     expect(player.cardsInHand).has.lengthOf(1);

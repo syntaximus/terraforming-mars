@@ -1,20 +1,17 @@
 import {expect} from 'chai';
-import {RedTourismWave} from '../../../src/cards/turmoil/RedTourismWave';
-import {Game} from '../../../src/Game';
+import {RedTourismWave} from '../../../src/server/cards/turmoil/RedTourismWave';
 import {Resources} from '../../../src/common/Resources';
-import {SpaceName} from '../../../src/SpaceName';
+import {SpaceName} from '../../../src/server/SpaceName';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
 import {PartyName} from '../../../src/common/turmoil/PartyName';
-import {setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
+import {testGameOptions} from '../../TestingUtils';
+import {getTestPlayer, newTestGame} from '../../TestGame';
 
 describe('RedTourismWave', function() {
   it('Should play', function() {
     const card = new RedTourismWave();
-    const player = TestPlayers.BLUE.newPlayer();
-    const redPlayer = TestPlayers.RED.newPlayer();
-    const gameOptions = setCustomGameOptions();
-    const game = Game.newInstance('gameid', [player, redPlayer], player, gameOptions);
+    const game = newTestGame(2, testGameOptions({turmoilExtension: true}));
+    const player = getTestPlayer(game, 0);
     expect(player.canPlayIgnoringCost(card)).is.not.true;
 
     const reds = game.turmoil!.getPartyByName(PartyName.REDS)!;

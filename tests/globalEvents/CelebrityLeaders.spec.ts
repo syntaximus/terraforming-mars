@@ -1,17 +1,17 @@
 import {expect} from 'chai';
-import {Virus} from '../../src/cards/base/Virus';
-import {Game} from '../../src/Game';
+import {Virus} from '../../src/server/cards/base/Virus';
+import {Game} from '../../src/server/Game';
 import {Resources} from '../../src/common/Resources';
-import {CelebrityLeaders} from '../../src/turmoil/globalEvents/CelebrityLeaders';
-import {Kelvinists} from '../../src/turmoil/parties/Kelvinists';
-import {Turmoil} from '../../src/turmoil/Turmoil';
-import {TestPlayers} from '../TestPlayers';
+import {CelebrityLeaders} from '../../src/server/turmoil/globalEvents/CelebrityLeaders';
+import {Kelvinists} from '../../src/server/turmoil/parties/Kelvinists';
+import {Turmoil} from '../../src/server/turmoil/Turmoil';
+import {TestPlayer} from '../TestPlayer';
 
 describe('CelebrityLeaders', function() {
   it('resolve play', function() {
     const card = new CelebrityLeaders();
-    const player = TestPlayers.BLUE.newPlayer();
-    const player2 = TestPlayers.RED.newPlayer();
+    const player = TestPlayer.BLUE.newPlayer();
+    const player2 = TestPlayer.RED.newPlayer();
     const game = Game.newInstance('gameid', [player, player2], player);
     const turmoil = Turmoil.newInstance(game);
 

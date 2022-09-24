@@ -1,18 +1,21 @@
 import {expect} from 'chai';
 import {cast} from '../../TestingUtils';
-import {MiningExpedition} from '../../../src/cards/base/MiningExpedition';
-import {Game} from '../../../src/Game';
-import {OrOptions} from '../../../src/inputs/OrOptions';
-import {Player} from '../../../src/Player';
-import {TestPlayers} from '../../TestPlayers';
+import {MiningExpedition} from '../../../src/server/cards/base/MiningExpedition';
+import {Game} from '../../../src/server/Game';
+import {OrOptions} from '../../../src/server/inputs/OrOptions';
+import {Player} from '../../../src/server/Player';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('MiningExpedition', function() {
-  let card : MiningExpedition; let player : Player; let player2 : Player; let game : Game;
+  let card: MiningExpedition;
+  let player: Player;
+  let player2: Player;
+  let game: Game;
 
   beforeEach(function() {
     card = new MiningExpedition();
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
     game = Game.newInstance('gameid', [player, player2], player);
   });
 

@@ -1,19 +1,19 @@
 import {expect} from 'chai';
 import {SpaceBonus} from '../../src/common/boards/SpaceBonus';
-import {Player} from '../../src/Player';
+import {Player} from '../../src/server/Player';
 import {Resources} from '../../src/common/Resources';
 import {SpaceType} from '../../src/common/boards/SpaceType';
 import {TileType} from '../../src/common/TileType';
-import {ISpace} from '../../src/boards/ISpace';
-import {setCustomGameOptions} from '../TestingUtils';
-import {AresHandler} from '../../src/ares/AresHandler';
+import {ISpace} from '../../src/server/boards/ISpace';
+import {testGameOptions} from '../TestingUtils';
+import {AresHandler} from '../../src/server/ares/AresHandler';
 
-export const ARES_OPTIONS_NO_HAZARDS = setCustomGameOptions({
+export const ARES_OPTIONS_NO_HAZARDS = testGameOptions({
   aresExtension: true,
   aresHazards: false,
 });
 
-export const ARES_OPTIONS_WITH_HAZARDS = setCustomGameOptions({
+export const ARES_OPTIONS_WITH_HAZARDS = testGameOptions({
   aresExtension: true,
   aresHazards: true,
 });

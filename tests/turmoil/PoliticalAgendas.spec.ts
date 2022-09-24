@@ -1,12 +1,12 @@
 import {expect} from 'chai';
-import {Player} from '../../src/Player';
+import {Player} from '../../src/server/Player';
 import {PartyName} from '../../src/common/turmoil/PartyName';
-import {Game} from '../../src/Game';
-import {cast, runAllActions, setCustomGameOptions} from '../TestingUtils';
-import {TestPlayers} from '../TestPlayers';
-import {PoliticalAgendas} from '../../src/turmoil/PoliticalAgendas';
+import {Game} from '../../src/server/Game';
+import {cast, runAllActions, testGameOptions} from '../TestingUtils';
+import {TestPlayer} from '../TestPlayer';
+import {PoliticalAgendas} from '../../src/server/turmoil/PoliticalAgendas';
 import {AgendaStyle} from '../../src/common/turmoil/Types';
-import {OrOptions} from '../../src/inputs/OrOptions';
+import {OrOptions} from '../../src/server/inputs/OrOptions';
 
 describe('PoliticalAgendas', function() {
   let player1: Player;
@@ -14,8 +14,8 @@ describe('PoliticalAgendas', function() {
   let randomElement: (list: Array<any>) => any;
 
   beforeEach(() => {
-    player1 = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
+    player1 = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
     randomElement = PoliticalAgendas.randomElement;
   });
 
@@ -28,7 +28,7 @@ describe('PoliticalAgendas', function() {
   deserialized.forEach((deserialize) => {
     const suffix = deserialize ? ', but deserialized' : '';
     it('Standard' + suffix, () => {
-      let game = Game.newInstance('gameid', [player1, player2], player1, setCustomGameOptions({politicalAgendasExtension: AgendaStyle.STANDARD}));
+      let game = Game.newInstance('gameid', [player1, player2], player1, testGameOptions({turmoilExtension: true, politicalAgendasExtension: AgendaStyle.STANDARD}));
       if (deserialize) {
         game = Game.deserialize(game.serialize());
       }
@@ -51,7 +51,7 @@ describe('PoliticalAgendas', function() {
       // For the neutral chairman to always pick the second item in the list.
       PoliticalAgendas.randomElement = (list: Array<any>) => list[1];
 
-      let game = Game.newInstance('gameid', [player1, player2], player1, setCustomGameOptions({politicalAgendasExtension: AgendaStyle.CHAIRMAN}));
+      let game = Game.newInstance('gameid', [player1, player2], player1, testGameOptions({turmoilExtension: true, politicalAgendasExtension: AgendaStyle.CHAIRMAN}));
       if (deserialize) {
         game = Game.deserialize(game.serialize());
         // Get a new copy of player2 who will have a different set of waitingFor.
@@ -88,7 +88,7 @@ describe('PoliticalAgendas', function() {
       // For the neutral chairperson to always pick the second item.
       PoliticalAgendas.randomElement = (list: Array<any>) => list[1];
 
-      let game = Game.newInstance('gameid', [player1, player2], player1, setCustomGameOptions({politicalAgendasExtension: AgendaStyle.CHAIRMAN}));
+      let game = Game.newInstance('gameid', [player1, player2], player1, testGameOptions({turmoilExtension: true, politicalAgendasExtension: AgendaStyle.CHAIRMAN}));
       if (deserialize) {
         game = Game.deserialize(game.serialize());
       }

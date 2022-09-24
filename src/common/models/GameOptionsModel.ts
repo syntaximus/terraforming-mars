@@ -3,15 +3,16 @@ import {RandomMAOptionType} from '../ma/RandomMAOptionType';
 import {AgendaStyle} from '../turmoil/Types';
 import {CardName} from '../cards/CardName';
 
-export interface GameOptionsModel {
+export type GameOptionsModel = {
   aresExtension: boolean,
   altVenusBoard: boolean,
   boardName: BoardName,
-  cardsBlackList: Array<CardName>;
+  bannedCards: Array<CardName>;
   coloniesExtension: boolean,
   communityCardsOption: boolean,
   corporateEra: boolean,
   draftVariant: boolean,
+  corporationsDraft: boolean,
   escapeVelocityMode: boolean,
   escapeVelocityThreshold?: number,
   escapeVelocityPeriod?: number,

@@ -1,14 +1,12 @@
-import {Game} from '../../../src/Game';
-import {IMoonData} from '../../../src/moon/IMoonData';
-import {MoonExpansion} from '../../../src/moon/MoonExpansion';
-import {Player} from '../../../src/Player';
-import {cast, setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {TitaniumMarketMonopolists} from '../../../src/cards/moon/TitaniumMarketMonopolists';
+import {Game} from '../../../src/server/Game';
+import {IMoonData} from '../../../src/server/moon/IMoonData';
+import {MoonExpansion} from '../../../src/server/moon/MoonExpansion';
+import {Player} from '../../../src/server/Player';
+import {cast, runAllActions, testGameOptions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {TitaniumMarketMonopolists} from '../../../src/server/cards/moon/TitaniumMarketMonopolists';
 import {expect} from 'chai';
-import {SelectAmount} from '../../../src/inputs/SelectAmount';
-
-const MOON_OPTIONS = setCustomGameOptions({moonExpansion: true});
+import {SelectAmount} from '../../../src/server/inputs/SelectAmount';
 
 describe('TitaniumMarketMonopolists', () => {
   let game: Game;
@@ -17,8 +15,8 @@ describe('TitaniumMarketMonopolists', () => {
   let card: TitaniumMarketMonopolists;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
-    game = Game.newInstance('gameid', [player], player, MOON_OPTIONS);
+    player = TestPlayer.BLUE.newPlayer();
+    game = Game.newInstance('gameid', [player], player, testGameOptions({moonExpansion: true}));
     moonData = MoonExpansion.moonData(game);
     card = new TitaniumMarketMonopolists();
   });
@@ -76,6 +74,7 @@ describe('TitaniumMarketMonopolists', () => {
     expect(selectAmount.min).eq(1);
     expect(selectAmount.max).eq(3);
     selectAmount.cb(2);
+    runAllActions(game);
     expect(player.megaCredits).eq(3);
     expect(player.titanium).eq(2);
   });

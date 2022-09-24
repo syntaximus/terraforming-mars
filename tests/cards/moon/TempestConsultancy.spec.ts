@@ -1,13 +1,14 @@
-import {Game} from '../../../src/Game';
-import {TempestConsultancy} from '../../../src/cards/moon/TempestConsultancy';
+import {Game} from '../../../src/server/Game';
+import {TempestConsultancy} from '../../../src/server/cards/moon/TempestConsultancy';
 import {expect} from 'chai';
 import {PartyName} from '../../../src/common/turmoil/PartyName';
-import {Turmoil} from '../../../src/turmoil/Turmoil';
+import {Turmoil} from '../../../src/server/turmoil/Turmoil';
 import {TestPlayer} from '../../TestPlayer';
-import {TestPlayers} from '../../TestPlayers';
-import {SendDelegateToArea} from '../../../src/deferredActions/SendDelegateToArea';
-import {Greens} from '../../../src/turmoil/parties/Greens';
-import {runAllActions, setCustomGameOptions} from '../../TestingUtils';
+import {SendDelegateToArea} from '../../../src/server/deferredActions/SendDelegateToArea';
+import {Greens} from '../../../src/server/turmoil/parties/Greens';
+import {runAllActions, testGameOptions} from '../../TestingUtils';
+import {VoteOfNoConfidence} from '../../../src/server/cards/turmoil/VoteOfNoConfidence';
+import {isPlayerId, PlayerId} from '../../../src/common/Types';
 
 describe('TempestConsultancy', () => {
   let player: TestPlayer;
@@ -17,9 +18,9 @@ describe('TempestConsultancy', () => {
   let turmoil: Turmoil;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
-    otherPlayer = TestPlayers.RED.newPlayer();
-    game = Game.newInstance('gameid', [player, otherPlayer], player, setCustomGameOptions());
+    player = TestPlayer.BLUE.newPlayer();
+    otherPlayer = TestPlayer.RED.newPlayer();
+    game = Game.newInstance('gameid', [player, otherPlayer], player, testGameOptions({turmoilExtension: true}));
     card = new TempestConsultancy();
     turmoil = game.turmoil!;
   });
@@ -32,12 +33,11 @@ describe('TempestConsultancy', () => {
     expect(card.canAct(player)).is.false;
   });
 
-  it('can act, not enough delegates', () => {
+  it('cannot act, not enough delegates', () => {
     player.tagsForTest = {moon: 5};
     expect(card.canAct(player)).is.true;
     turmoil.delegateReserve = [];
-    // Can still play, just ... no delegates
-    expect(card.canAct(player)).is.true;
+    expect(card.canAct(player)).is.false;
   });
 
   it('action, 1 delegate', () => {
@@ -89,7 +89,7 @@ describe('TempestConsultancy', () => {
   });
 
   it('new chairman', () => {
-    player.corporationCard = card;
+    player.setCorporationForTest(card);
     turmoil.rulingParty = new Greens();
     turmoil.rulingParty.partyLeader = player.id;
     expect(player.getTerraformRating()).eq(20);
@@ -99,6 +99,25 @@ describe('TempestConsultancy', () => {
 
     expect(turmoil.chairman).eq(player.id);
     expect(player.getTerraformRating()).eq(22);
+  });
+
+  it('With Vote of No Confidence', () => {
+    player.setCorporationForTest(card);
+    turmoil.chairman = 'NEUTRAL';
+
+    const greens = turmoil.getPartyByName(PartyName.GREENS)!;
+    greens.partyLeader = player.id;
+
+    expect(player.getTerraformRating()).to.eq(20);
+
+    const voteOfNoConfidence = new VoteOfNoConfidence();
+    voteOfNoConfidence.play(player);
+
+    expect(isPlayerId(turmoil.chairman)).is.true;
+    expect(game.getPlayerById(turmoil.chairman as PlayerId)).to.eq(player);
+    runAllActions(game);
+    // With Vote of No Confidence, player becomes chairman and gains 1 TR. Tempest gives player a second TR.
+    expect(player.getTerraformRating()).to.eq(22);
   });
 });
 

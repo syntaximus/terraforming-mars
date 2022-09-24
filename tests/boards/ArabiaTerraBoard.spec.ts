@@ -1,32 +1,32 @@
 import {expect} from 'chai';
-import {DEFAULT_GAME_OPTIONS, Game} from '../../src/Game';
-import {ArabiaTerraBoard} from '../../src/boards/ArabiaTerraBoard';
-import {Player} from '../../src/Player';
+import {Game} from '../../src/server/Game';
+import {DEFAULT_GAME_OPTIONS} from '../../src/server/GameOptions';
+import {ArabiaTerraBoard} from '../../src/server/boards/ArabiaTerraBoard';
+import {Player} from '../../src/server/Player';
 import {TileType} from '../../src/common/TileType';
 import {SpaceType} from '../../src/common/boards/SpaceType';
-import {TestPlayers} from '../TestPlayers';
-import {SeededRandom} from '../../src/Random';
+import {TestPlayer} from '../TestPlayer';
+import {SeededRandom} from '../../src/server/Random';
 import {SpaceBonus} from '../../src/common/boards/SpaceBonus';
-import {setCustomGameOptions, runAllActions, cast} from '../TestingUtils';
+import {testGameOptions, runAllActions, cast} from '../TestingUtils';
 import {BoardName} from '../../src/common/boards/BoardName';
-import {ProcessorFactory} from '../../src/cards/moon/ProcessorFactory';
-import {SearchForLife} from '../../src/cards/base/SearchForLife';
-import {Decomposers} from '../../src/cards/base/Decomposers';
-import {Resources} from '../../src/common/Resources';
-import {LandClaim} from '../../src/cards/base/LandClaim';
-import {SelectSpace} from '../../src/inputs/SelectSpace';
+import {ProcessorFactory} from '../../src/server/cards/moon/ProcessorFactory';
+import {SearchForLife} from '../../src/server/cards/base/SearchForLife';
+import {Decomposers} from '../../src/server/cards/base/Decomposers';
+import {LandClaim} from '../../src/server/cards/base/LandClaim';
+import {SelectSpace} from '../../src/server/inputs/SelectSpace';
 
 describe('ArabiaTerraBoard', function() {
-  let board : ArabiaTerraBoard;
+  let board: ArabiaTerraBoard;
   let game: Game;
-  let player : Player;
-  let player2 : Player;
+  let player: Player;
+  let player2: Player;
 
   beforeEach(function() {
     board = ArabiaTerraBoard.newInstance(DEFAULT_GAME_OPTIONS, new SeededRandom(0));
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
-    game = Game.newInstance('gameId', [player, player2], player, setCustomGameOptions({boardName: BoardName.ARABIA_TERRA}));
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
+    game = Game.newInstance('gameId', [player, player2], player, testGameOptions({boardName: BoardName.ARABIA_TERRA}));
   });
 
   it('Can place an ocean in a cove', () => {
@@ -75,12 +75,12 @@ describe('ArabiaTerraBoard', function() {
 
   it('Grants energy production bonus', () => {
     const space = board.spaces.find((space) => space.bonus.includes(SpaceBonus.ENERGY_PRODUCTION))!;
-    expect(player.getProduction(Resources.ENERGY)).eq(0);
+    expect(player.production.energy).eq(0);
 
     game.addTile(player, space.spaceType, space, {tileType: TileType.CITY});
     runAllActions(game);
 
-    expect(player.getProduction(Resources.ENERGY)).eq(1);
+    expect(player.production.energy).eq(1);
   });
 
   it('Grants microbe bonus', () => {

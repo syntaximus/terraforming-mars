@@ -1,17 +1,17 @@
 import {expect} from 'chai';
-import {CorroderSuits} from '../../src/cards/venusNext/CorroderSuits';
-import {Game} from '../../src/Game';
+import {CorroderSuits} from '../../src/server/cards/venusNext/CorroderSuits';
+import {Game} from '../../src/server/Game';
 import {Resources} from '../../src/common/Resources';
-import {VenusInfrastructure} from '../../src/turmoil/globalEvents/VenusInfrastructure';
-import {Kelvinists} from '../../src/turmoil/parties/Kelvinists';
-import {Turmoil} from '../../src/turmoil/Turmoil';
-import {TestPlayers} from '../TestPlayers';
+import {VenusInfrastructure} from '../../src/server/turmoil/globalEvents/VenusInfrastructure';
+import {Kelvinists} from '../../src/server/turmoil/parties/Kelvinists';
+import {Turmoil} from '../../src/server/turmoil/Turmoil';
+import {TestPlayer} from '../TestPlayer';
 
 describe('VenusInfrastructure', function() {
   it('resolve play', function() {
     const card = new VenusInfrastructure();
-    const player = TestPlayers.BLUE.newPlayer();
-    const player2 = TestPlayers.RED.newPlayer();
+    const player = TestPlayer.BLUE.newPlayer();
+    const player2 = TestPlayer.RED.newPlayer();
     const game = Game.newInstance('gameid', [player, player2], player);
     const turmoil = Turmoil.newInstance(game);
 

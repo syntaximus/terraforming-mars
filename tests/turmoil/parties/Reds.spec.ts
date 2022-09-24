@@ -1,22 +1,23 @@
 import {expect} from 'chai';
 import {TestPlayer} from '../../TestPlayer';
-import {Game} from '../../../src/Game';
-import {Turmoil} from '../../../src/turmoil/Turmoil';
-import {cast, runAllActions, setCustomGameOptions, setRulingPartyAndRulingPolicy} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {Reds, REDS_BONUS_1, REDS_BONUS_2, REDS_POLICY_3} from '../../../src/turmoil/parties/Reds';
-import {Resources} from '../../../src/common/Resources';
-import {MoonExpansion} from '../../../src/moon/MoonExpansion';
-import {OrOptions} from '../../../src/inputs/OrOptions';
+import {Game} from '../../../src/server/Game';
+import {Turmoil} from '../../../src/server/turmoil/Turmoil';
+import {cast, runAllActions, testGameOptions, setRulingPartyAndRulingPolicy} from '../../TestingUtils';
+import {Reds, REDS_BONUS_1, REDS_BONUS_2, REDS_POLICY_3} from '../../../src/server/turmoil/parties/Reds';
+import {MoonExpansion} from '../../../src/server/moon/MoonExpansion';
+import {OrOptions} from '../../../src/server/inputs/OrOptions';
 
 describe('Reds', function() {
-  let player : TestPlayer; let secondPlayer : TestPlayer; let game : Game; let turmoil: Turmoil; let reds: Reds;
+  let player: TestPlayer;
+  let secondPlayer: TestPlayer;
+  let game: Game;
+  let turmoil: Turmoil;
+  let reds: Reds;
 
   beforeEach(function() {
-    player = TestPlayers.BLUE.newPlayer();
-    secondPlayer = TestPlayers.RED.newPlayer();
-    const gameOptions = setCustomGameOptions();
-    game = Game.newInstance('gameid', [player, secondPlayer], player, gameOptions);
+    player = TestPlayer.BLUE.newPlayer();
+    secondPlayer = TestPlayer.RED.newPlayer();
+    game = Game.newInstance('gameid', [player, secondPlayer], player, testGameOptions({turmoilExtension: true}));
     turmoil = game.turmoil!;
     reds = new Reds();
   });
@@ -94,7 +95,7 @@ describe('Reds', function() {
 
   it('Ruling policy 3: Pay 4 M€ to reduce a non-maxed global parameter 1 step: Moon', function() {
     // Reset the whole game infrastructure to include the Moon
-    const gameOptions = setCustomGameOptions({moonExpansion: true});
+    const gameOptions = testGameOptions({turmoilExtension: true, moonExpansion: true});
     game = Game.newInstance('gameid', [player, secondPlayer], player, gameOptions);
     turmoil = game.turmoil!;
     player.popWaitingFor(); // Remove SelectInitialCards
@@ -125,6 +126,6 @@ describe('Reds', function() {
     setRulingPartyAndRulingPolicy(game, turmoil, reds, reds.policies[3].id);
 
     game.increaseOxygenLevel(player, 1);
-    expect(player.getProduction(Resources.MEGACREDITS)).to.eq(-1);
+    expect(player.production.megacredits).to.eq(-1);
   });
 });

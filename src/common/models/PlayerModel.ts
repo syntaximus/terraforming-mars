@@ -7,6 +7,7 @@ import {TimerModel} from './TimerModel';
 import {GameModel} from './GameModel';
 import {PlayerId, SpectatorId} from '../Types';
 import {CardName} from '../cards/CardName';
+import {Resources} from '../Resources';
 
 export interface ViewModel {
   game: GameModel;
@@ -15,8 +16,13 @@ export interface ViewModel {
   thisPlayer: PublicPlayerModel | undefined;
 }
 
+// 'off': Resources (or production) are unprotected.
+// 'on': Resources (or production) are protected.
+// 'half': Half resources are protected when targeted. Applies to Botanical Experience.
+export type Protection = 'off' | 'on' | 'half';
+
 /** The public information about a player */
-export interface PublicPlayerModel {
+export type PublicPlayerModel = {
   actionsTakenThisRound: number;
   actionsThisGeneration: Array<string /* CardName */>;
   actionsTakenThisGame: number;
@@ -27,7 +33,6 @@ export interface PublicPlayerModel {
   citiesCount: number;
   coloniesCount: number;
   color: Color;
-  corporationCard: CardModel | undefined;
   energy: number;
   energyProduction: number;
   fleetSize: number;
@@ -46,8 +51,9 @@ export interface PublicPlayerModel {
   noTagsCount: number;
   plants: number;
   plantProduction: number;
-  plantsAreProtected: boolean;
-  playedCards: Array<CardModel>;
+  protectedResources: Record<Resources, Protection>;
+  protectedProduction: Record<Resources, Protection>;
+  tableau: Array<CardModel>;
   selfReplicatingRobotsCards: Array<CardModel>;
   steel: number;
   steelProduction: number;
@@ -69,6 +75,7 @@ export interface PlayerViewModel extends ViewModel {
   dealtCorporationCards: Array<CardModel>;
   dealtPreludeCards: Array<CardModel>;
   dealtProjectCards: Array<CardModel>;
+  draftedCorporations: Array<CardModel>;
   draftedCards: Array<CardModel>;
   id: PlayerId;
   pickedCorporationCard: Array<CardModel>; // Why Array?

@@ -1,27 +1,22 @@
 import * as http from 'http';
 import {expect} from 'chai';
-import {ApiGameLogs} from '../../src/routes/ApiGameLogs';
-import {Route} from '../../src/routes/Route';
-import {Game} from '../../src/Game';
-import {TestPlayers} from '../TestPlayers';
+import {ApiGameLogs} from '../../src/server/routes/ApiGameLogs';
+import {Game} from '../../src/server/Game';
+import {TestPlayer} from '../TestPlayer';
 import {MockResponse} from './HttpMocks';
-import {IContext} from '../../src/routes/IHandler';
-import {FakeGameLoader} from './FakeGameLoader';
+import {RouteTestScaffolding} from './RouteTestScaffolding';
+import {Phase} from '../../src/common/Phase';
+import {use} from 'chai';
+import chaiAsPromised = require('chai-as-promised');
+use(chaiAsPromised);
 
 describe('ApiGameLogs', function() {
-  let req: http.IncomingMessage;
+  let scaffolding: RouteTestScaffolding;
   let res: MockResponse;
-  let ctx: IContext;
 
   beforeEach(() => {
-    req = {} as http.IncomingMessage;
+    scaffolding = new RouteTestScaffolding();
     res = new MockResponse();
-    ctx = {
-      route: new Route(),
-      serverId: '1',
-      url: new URL('http://boo.com'),
-      gameLoader: new FakeGameLoader(),
-    };
   });
 
   it('fails when id not provided', async () => {
@@ -43,7 +38,7 @@ describe('ApiGameLogs', function() {
   });
 
   it('pulls logs when no generation provided', async () => {
-    const player = TestPlayers.BLACK.newPlayer();
+    const player = TestPlayer.BLACK.newPlayer();
     scaffolding.url = '/terraforming/api/game/logs?id=' + player.id;
     const game = Game.newInstance('game-id', [player], player);
     await scaffolding.ctx.gameLoader.add(game);
@@ -56,7 +51,7 @@ describe('ApiGameLogs', function() {
   });
 
   it('pulls logs for most recent generation', async () => {
-    const player = TestPlayers.BLACK.newPlayer();
+    const player = TestPlayer.BLACK.newPlayer();
     scaffolding.url = '/terraforming/api/game/logs?id=' + player.id + '&generation=50';
     const game = Game.newInstance('game-id', [player], player);
     await scaffolding.ctx.gameLoader.add(game);
@@ -69,7 +64,7 @@ describe('ApiGameLogs', function() {
   });
 
   it('pulls logs for first generation', async () => {
-    const player = TestPlayers.BLACK.newPlayer();
+    const player = TestPlayer.BLACK.newPlayer();
     scaffolding.url = '/terraforming/api/game/logs?id=' + player.id;
     const game = Game.newInstance('game-id', [player], player);
     await scaffolding.ctx.gameLoader.add(game);
@@ -81,7 +76,7 @@ describe('ApiGameLogs', function() {
   });
 
   it('pulls logs for missing generation', async () => {
-    const player = TestPlayers.BLACK.newPlayer();
+    const player = TestPlayer.BLACK.newPlayer();
     scaffolding.url = '/terraforming/api/game/logs?id=' + player.id + '&generation=2';
     const game = Game.newInstance('game-id', [player], player);
     await scaffolding.ctx.gameLoader.add(game);
@@ -92,9 +87,9 @@ describe('ApiGameLogs', function() {
 
   [{idx: 0, color: 'Yellow'}, {idx: 1, color: 'Orange'}, {idx: 2, color: 'Blue'}].forEach((entry) => {
     it('omits private logs for other players: ' + entry.color, async () => {
-      const yellowPlayer = TestPlayers.YELLOW.newPlayer();
-      const orangePlayer = TestPlayers.ORANGE.newPlayer();
-      const bluePlayer = TestPlayers.BLUE.newPlayer();
+      const yellowPlayer = TestPlayer.YELLOW.newPlayer();
+      const orangePlayer = TestPlayer.ORANGE.newPlayer();
+      const bluePlayer = TestPlayer.BLUE.newPlayer();
 
       const players = [yellowPlayer, orangePlayer, bluePlayer];
       const playerUnderTest = players[entry.idx];
@@ -117,5 +112,24 @@ describe('ApiGameLogs', function() {
       expect(messages[0].message).eq('All players see this.');
       expect(messages[1].message).eq(`${entry.color} player sees this.`);
     });
+  });
+
+  it('Cannot pull full logs before game end', async () => {
+    const player = TestPlayer.BLACK.newPlayer();
+    scaffolding.url = '/api/game/logs?id=' + player.id + '&full';
+    const game = Game.newInstance('game-id', [player], player);
+    await scaffolding.ctx.gameLoader.add(game);
+    await scaffolding.get(ApiGameLogs.INSTANCE, res);
+    expect(res.content).eq('Bad request: cannot fetch game-end log');
+  });
+
+  it('Pulls full logs at game end', async () => {
+    const player = TestPlayer.BLACK.newPlayer();
+    scaffolding.url = '/api/game/logs?id=' + player.id + '&full';
+    const game = Game.newInstance('game-id', [player], player);
+    game.phase = Phase.END;
+    await scaffolding.ctx.gameLoader.add(game);
+    await scaffolding.get(ApiGameLogs.INSTANCE, res);
+    expect(res.content).to.match(/^Drew and discarded/);
   });
 });

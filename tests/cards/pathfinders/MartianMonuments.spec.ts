@@ -1,12 +1,11 @@
 import {expect} from 'chai';
-import {MartianMonuments} from '../../../src/cards/pathfinders/MartianMonuments';
-import {Game} from '../../../src/Game';
+import {MartianMonuments} from '../../../src/server/cards/pathfinders/MartianMonuments';
+import {Game} from '../../../src/server/Game';
 import {TestPlayer} from '../../TestPlayer';
-import {TestPlayers} from '../../TestPlayers';
 import {addCity} from '../../TestingUtils';
 import {Units} from '../../../src/common/Units';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
-import {SpaceName} from '../../../src/SpaceName';
+import {SpaceName} from '../../../src/server/SpaceName';
 
 describe('MartianMonuments', function() {
   let card: MartianMonuments;
@@ -15,8 +14,8 @@ describe('MartianMonuments', function() {
 
   beforeEach(function() {
     card = new MartianMonuments();
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
     Game.newInstance('gameid', [player, player2], player);
   });
 
@@ -35,6 +34,6 @@ describe('MartianMonuments', function() {
   it('play', function() {
     player.tagsForTest = {mars: 8};
     card.play(player);
-    expect(player.getProductionForTest()).deep.eq(Units.of({megacredits: 9})); // "including this"
+    expect(player.production.asUnits()).deep.eq(Units.of({megacredits: 9})); // "including this"
   });
 });

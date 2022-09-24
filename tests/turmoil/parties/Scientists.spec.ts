@@ -1,26 +1,27 @@
 import {expect} from 'chai';
-import {Player} from '../../../src/Player';
-import {Game} from '../../../src/Game';
-import {Turmoil} from '../../../src/turmoil/Turmoil';
-import {setCustomGameOptions, setRulingPartyAndRulingPolicy} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {Scientists, SCIENTISTS_BONUS_1, SCIENTISTS_BONUS_2, SCIENTISTS_POLICY_1, SCIENTISTS_POLICY_2, SCIENTISTS_POLICY_3, SCIENTISTS_POLICY_4} from '../../../src/turmoil/parties/Scientists';
-import {SearchForLife} from '../../../src/cards/base/SearchForLife';
-import {Research} from '../../../src/cards/base/Research';
-import {GeneRepair} from '../../../src/cards/base/GeneRepair';
-import {PrideoftheEarthArkship} from '../../../src/cards/moon/PrideoftheEarthArkship';
-import {SpaceStation} from '../../../src/cards/base/SpaceStation';
-import {Satellites} from '../../../src/cards/base/Satellites';
-import {HabitatMarte} from '../../../src/cards/pathfinders/HabitatMarte';
-import {DesignedOrganisms} from '../../../src/cards/pathfinders/DesignedOrganisms';
+import {Game} from '../../../src/server/Game';
+import {Turmoil} from '../../../src/server/turmoil/Turmoil';
+import {testGameOptions, setRulingPartyAndRulingPolicy} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {Scientists, SCIENTISTS_BONUS_1, SCIENTISTS_BONUS_2, SCIENTISTS_POLICY_1, SCIENTISTS_POLICY_2, SCIENTISTS_POLICY_3, SCIENTISTS_POLICY_4} from '../../../src/server/turmoil/parties/Scientists';
+import {SearchForLife} from '../../../src/server/cards/base/SearchForLife';
+import {Research} from '../../../src/server/cards/base/Research';
+import {GeneRepair} from '../../../src/server/cards/base/GeneRepair';
+import {PrideoftheEarthArkship} from '../../../src/server/cards/moon/PrideoftheEarthArkship';
+import {SpaceStation} from '../../../src/server/cards/base/SpaceStation';
+import {Satellites} from '../../../src/server/cards/base/Satellites';
+import {HabitatMarte} from '../../../src/server/cards/pathfinders/HabitatMarte';
+import {DesignedOrganisms} from '../../../src/server/cards/pathfinders/DesignedOrganisms';
 
 describe('Scientists', function() {
-  let player : Player; let game : Game; let turmoil: Turmoil; let scientists: Scientists;
+  let player: TestPlayer;
+  let game: Game;
+  let turmoil: Turmoil;
+  let scientists: Scientists;
 
   beforeEach(function() {
-    player = TestPlayers.BLUE.newPlayer();
-    const gameOptions = setCustomGameOptions();
-    game = Game.newInstance('gameid', [player], player, gameOptions);
+    player = TestPlayer.BLUE.newPlayer();
+    game = Game.newInstance('gameid', [player], player, testGameOptions({turmoilExtension: true}));
     turmoil = game.turmoil!;
     scientists = new Scientists();
   });
@@ -34,7 +35,7 @@ describe('Scientists', function() {
   });
 
   it('Ruling bonus 1: Gain 1 M€ for each Science tag you have, with Habitat Marte', function() {
-    player.corporationCard = new HabitatMarte();
+    player.setCorporationForTest(new HabitatMarte());
     player.playedCards.push(new SearchForLife(), new DesignedOrganisms());
 
     const bonus = SCIENTISTS_BONUS_1;

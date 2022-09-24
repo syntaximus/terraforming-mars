@@ -1,21 +1,22 @@
 import {expect} from 'chai';
-import {ColonizerTrainingCamp} from '../../../src/cards/base/ColonizerTrainingCamp';
-import {MethaneFromTitan} from '../../../src/cards/base/MethaneFromTitan';
-import {GalileanWaystation} from '../../../src/cards/colonies/GalileanWaystation';
-import {ResearchCoordination} from '../../../src/cards/prelude/ResearchCoordination';
-import {ResearchNetwork} from '../../../src/cards/prelude/ResearchNetwork';
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {Resources} from '../../../src/common/Resources';
-import {TestPlayers} from '../../TestPlayers';
+import {ColonizerTrainingCamp} from '../../../src/server/cards/base/ColonizerTrainingCamp';
+import {MethaneFromTitan} from '../../../src/server/cards/base/MethaneFromTitan';
+import {GalileanWaystation} from '../../../src/server/cards/colonies/GalileanWaystation';
+import {ResearchCoordination} from '../../../src/server/cards/prelude/ResearchCoordination';
+import {ResearchNetwork} from '../../../src/server/cards/prelude/ResearchNetwork';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('GalileanWaystation', function() {
-  let card : GalileanWaystation; let player : Player; let player2: Player;
+  let card: GalileanWaystation;
+  let player: Player;
+  let player2: Player;
 
   beforeEach(function() {
     card = new GalileanWaystation();
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
     Game.newInstance('gameid', [player, player2], player);
   });
 
@@ -26,7 +27,7 @@ describe('GalileanWaystation', function() {
     player2.playedCards.push(card3);
 
     card.play(player);
-    expect(player.getProduction(Resources.MEGACREDITS)).to.eq(2);
+    expect(player.production.megacredits).to.eq(2);
   });
 
   it('Corectly counts wildtags', function() {
@@ -39,6 +40,6 @@ describe('GalileanWaystation', function() {
     player2.playedCards.push(card3, researchNetwork); // Should NOT include this wild tag
 
     card.play(player);
-    expect(player.getProduction(Resources.MEGACREDITS)).to.eq(3);
+    expect(player.production.megacredits).to.eq(3);
   });
 });

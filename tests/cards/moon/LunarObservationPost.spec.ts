@@ -1,11 +1,9 @@
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {LunarObservationPost} from '../../../src/cards/moon/LunarObservationPost';
+import {Game} from '../../../src/server/Game';
+import {Player} from '../../../src/server/Player';
+import {testGameOptions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {LunarObservationPost} from '../../../src/server/cards/moon/LunarObservationPost';
 import {expect} from 'chai';
-
-const MOON_OPTIONS = setCustomGameOptions({moonExpansion: true});
 
 describe('LunarObservationPost', () => {
   let game: Game;
@@ -13,8 +11,8 @@ describe('LunarObservationPost', () => {
   let card: LunarObservationPost;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
-    game = Game.newInstance('gameid', [player], player, MOON_OPTIONS);
+    player = TestPlayer.BLUE.newPlayer();
+    game = Game.newInstance('gameid', [player], player, testGameOptions({moonExpansion: true}));
     card = new LunarObservationPost();
   });
 
@@ -43,6 +41,7 @@ describe('LunarObservationPost', () => {
     expect(card.resourceCount).eq(0);
 
     card.action(player);
+    // TODO(kberg): figure out what type action should be.
     const action = game.deferredActions.pop();
     action!.execute();
 

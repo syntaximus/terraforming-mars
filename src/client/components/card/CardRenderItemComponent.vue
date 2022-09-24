@@ -13,7 +13,7 @@ import {generateClassString} from '@/common/utils/utils';
 import {CardRenderItemType} from '@/common/cards/render/CardRenderItemType';
 import {AltSecondaryTag} from '@/common/cards/render/AltSecondaryTag';
 import {Size} from '@/common/cards/render/Size';
-import {Tags} from '@/common/cards/Tags';
+import {Tag} from '@/common/cards/Tag';
 import {ICardRenderItem, isICardRenderItem} from '@/common/cards/render/Types';
 
 // microbe, animal and plant tag could be used both as a resource and played tag
@@ -96,6 +96,7 @@ export default Vue.extend({
       } else if (type === CardRenderItemType.WILD) {
         classes.push('card-resource');
         classes.push('card-resource-wild');
+        if (this.item.cancelled === true) classes.push('card-private-security');
       } else if (type === CardRenderItemType.PRESERVATION) {
         classes.push('card-resource');
         classes.push('card-resource-preservation');
@@ -302,7 +303,7 @@ export default Vue.extend({
     },
     getAmountAbs(): number {
       if (this.item.amountInside) return 1;
-      return Math.abs(this.item.amount || 1);
+      return Math.abs(this.item.amount);
     },
     itemsToShow(): number {
       if (this.item.showDigit) return 1;
@@ -310,7 +311,7 @@ export default Vue.extend({
     },
     // Oooh this is begging to be a template or something.
     itemHtmlContent(): string {
-      let result: string = '';
+      let result = '';
       // in case of symbols inside
       if (isICardRenderItem(this.item) && this.item.amountInside) {
         if (this.item.amount !== 0) {
@@ -321,24 +322,23 @@ export default Vue.extend({
         }
       }
 
-      const previouslyRendered: Array<Tags | AltSecondaryTag> = [
+      const previouslyRendered: Array<Tag | AltSecondaryTag> = [
         AltSecondaryTag.OXYGEN,
         AltSecondaryTag.MOON_COLONY_RATE,
         AltSecondaryTag.MOON_MINING_RATE,
         AltSecondaryTag.MOON_LOGISTICS_RATE,
       ];
       // Oxygen is handled specially separately.
-      if (this.item.secondaryTag !== undefined && !previouslyRendered.includes(this.item.secondaryTag)) {
-        const classes: string[] = ['card-icon'];
-        classes.push(`card-tag-${this.item.secondaryTag}`);
-        result += '<div class="' + generateClassString(classes) + '"></div>';
+      const secondaryTag = this.item.secondaryTag;
+      if (secondaryTag !== undefined && !previouslyRendered.includes(secondaryTag)) {
+        result += '<div class="card-icon card-tag-' + secondaryTag + '"></div>';
       }
       if (this.item.isPlate || this.item.text !== undefined) {
         result += this.item.text || 'n/a';
       }
       if (this.item.type === CardRenderItemType.NO_TAGS || this.item.type === CardRenderItemType.MULTIPLIER_WHITE) {
         result = 'X';
-      } else if (this.item.type === CardRenderItemType.PROJECT_REQUIREMENTS) {
+      } else if (this.item.type === CardRenderItemType.PROJECT_REQUIREMENTS || this.item.type === CardRenderItemType.IGNORE_GLOBAL_REQUIREMENTS) {
         result += '<div class="card-project-requirements">';
         result += '<div class="card-x">x</div>';
         result += '<div class="card-requirements">Global Requirements</div>';
@@ -353,9 +353,17 @@ export default Vue.extend({
       if (this.item.type === CardRenderItemType.PRELUDE) {
         result = '<div class="card-prelude-container"><span class="card-prelude-icon">prel</span></div>';
       }
+      if (this.item.type === CardRenderItemType.CORPORATION) {
+        result = '<div class="card-corporation-icon"></div>';
+      }
+      if (this.item.type === CardRenderItemType.FIRST_PLAYER) {
+        result = '<div class="card-first-player-icon"></div>';
+      }
+      if (this.item.type === CardRenderItemType.RULING_PARTY) {
+        result = '<div class="card-party-icon"></div>';
+      }
       if (this.item.type === CardRenderItemType.AWARD) {
-        // iconography on card shows plural (awards)
-        result = '<span class="card-award-icon">awards</span>';
+        result = '<span class="card-award-icon">award</span>';
       }
       if (this.item.type === CardRenderItemType.VP) {
         result = '<div class="card-resource points-big card-vp-questionmark">?</div>';
@@ -374,6 +382,9 @@ export default Vue.extend({
       // TODO(chosta): abstract once another case of cancel (X) on top of an item is needed
       if (this.item.type === CardRenderItemType.TR && this.item.cancelled === true) {
         result = '<div class="card-x">x</div>';
+      }
+      if (this.item.type === CardRenderItemType.WILD && this.item.cancelled === true) {
+        result = '<div class="card-x">✕</div>';
       }
 
       return result;

@@ -1,19 +1,23 @@
 import {expect} from 'chai';
-import {IProjectCard} from '../../src/cards/IProjectCard';
-import {Pluto} from '../../src/colonies/Pluto';
-import {Game} from '../../src/Game';
-import {SelectCard} from '../../src/inputs/SelectCard';
-import {Player} from '../../src/Player';
-import {TestPlayers} from '../TestPlayers';
+import {cast} from '../TestingUtils';
+import {IProjectCard} from '../../src/server/cards/IProjectCard';
+import {Pluto} from '../../src/server/colonies/Pluto';
+import {Game} from '../../src/server/Game';
+import {SelectCard} from '../../src/server/inputs/SelectCard';
+import {Player} from '../../src/server/Player';
+import {TestPlayer} from '../TestPlayer';
 import {runAllActions} from '../TestingUtils';
 
 describe('Pluto', function() {
-  let pluto: Pluto; let player: Player; let player2: Player; let game: Game;
+  let pluto: Pluto;
+  let player: Player;
+  let player2: Player;
+  let game: Game;
 
   beforeEach(function() {
     pluto = new Pluto();
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
     game = Game.newInstance('gameid', [player, player2], player);
     game.gameOptions.coloniesExtension = true;
     game.colonies.push(pluto);
@@ -38,8 +42,7 @@ describe('Pluto', function() {
 
     runAllActions(game);
 
-    const input = player.getWaitingFor() as SelectCard<IProjectCard>;
-    expect(input).to.be.an.instanceof(SelectCard);
+    const input = cast(player.getWaitingFor(), SelectCard<IProjectCard>);
     input.cb([input.cards[0]]); // Discard a card
 
     expect(player.cardsInHand).has.lengthOf(2);

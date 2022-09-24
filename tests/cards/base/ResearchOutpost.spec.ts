@@ -1,34 +1,34 @@
 import {expect} from 'chai';
-import {ResearchOutpost} from '../../../src/cards/base/ResearchOutpost';
-import {Game} from '../../../src/Game';
-import {SelectSpace} from '../../../src/inputs/SelectSpace';
-import {Player} from '../../../src/Player';
-import {TestPlayers} from '../../TestPlayers';
+import {cast} from '../../TestingUtils';
+import {ResearchOutpost} from '../../../src/server/cards/base/ResearchOutpost';
+import {Game} from '../../../src/server/Game';
+import {SelectSpace} from '../../../src/server/inputs/SelectSpace';
+import {Player} from '../../../src/server/Player';
+import {TestPlayer} from '../../TestPlayer';
 
 describe('ResearchOutpost', function() {
-  let card : ResearchOutpost; let player : Player; let game : Game;
+  let card: ResearchOutpost;
+  let player: Player;
+  let game: Game;
 
   beforeEach(function() {
     card = new ResearchOutpost();
-    player = TestPlayers.BLUE.newPlayer();
-    const redPlayer = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    const redPlayer = TestPlayer.RED.newPlayer();
     game = Game.newInstance('gameid', [player, redPlayer], player);
   });
 
   it('Should play', function() {
-    const action = card.play(player) as SelectSpace;
-    expect(action).is.not.undefined;
+    const action = cast(card.play(player), SelectSpace);
 
     action.cb(action.availableSpaces[0]);
     expect(game.getCitiesCount()).to.eq(1);
     expect(card.getCardDiscount()).to.eq(1);
   });
 
-  it('Can\'t play if no spaces available', function() {
+  it('Can not play if no spaces available', function() {
     const lands = game.board.getAvailableSpacesOnLand(player);
-    for (let i = 0; i < lands.length; i++) {
-      game.addGreenery(player, lands[i].id);
-    }
+    lands.forEach((land) => game.addGreenery(player, land.id));
 
     expect(card.canPlay(player)).is.not.true;
   });

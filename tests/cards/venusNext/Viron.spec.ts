@@ -1,19 +1,17 @@
 import {expect} from 'chai';
-import {RestrictedArea} from '../../../src/cards/base/RestrictedArea';
-import {Viron} from '../../../src/cards/venusNext/Viron';
-import {Game} from '../../../src/Game';
-import {SelectCard} from '../../../src/inputs/SelectCard';
-import {TestPlayers} from '../../TestPlayers';
+import {RestrictedArea} from '../../../src/server/cards/base/RestrictedArea';
+import {Viron} from '../../../src/server/cards/venusNext/Viron';
+import {getTestPlayer, newTestGame} from '../../TestGame';
+import {SelectCard} from '../../../src/server/inputs/SelectCard';
 
 describe('Viron', function() {
   it('Should act', function() {
     const card = new Viron();
-    const player = TestPlayers.BLUE.newPlayer();
-    const player2 = TestPlayers.RED.newPlayer();
-    Game.newInstance('gameid', [player, player2], player);
-    const action = card.play();
+    const game = newTestGame(1);
+    const player = getTestPlayer(game, 0);
+    const action = card.play(player);
     expect(action).is.undefined;
-    player.corporationCard = card;
+    player.setCorporationForTest(card);
     player.playedCards.push(new RestrictedArea());
     player.addActionThisGeneration(new RestrictedArea().name);
     expect(card.canAct(player)).is.not.true;

@@ -1,32 +1,31 @@
 import {expect} from 'chai';
-import {Leavitt} from '../../../src/cards/community/Leavitt';
-import {Vitor} from '../../../src/cards/prelude/Vitor';
-import {Game} from '../../../src/Game';
-import {Player} from '../../../src/Player';
-import {TestPlayers} from '../../TestPlayers';
-import {Tags} from '../../../src/common/cards/Tags';
+import {Leavitt} from '../../../src/server/cards/community/Leavitt';
+import {Vitor} from '../../../src/server/cards/prelude/Vitor';
+import {Game} from '../../../src/server/Game';
+import {TestPlayer} from '../../TestPlayer';
+import {Tag} from '../../../src/common/cards/Tag';
 
 describe('Leavitt', function() {
   let leavitt: Leavitt;
-  let player: Player;
-  let player2: Player;
+  let player: TestPlayer;
+  let player2: TestPlayer;
   let game: Game;
 
   beforeEach(function() {
     leavitt = new Leavitt();
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
     game = Game.newInstance('gameid', [player, player2], player);
     game.gameOptions.coloniesExtension = true;
     game.colonies.push(leavitt);
   });
 
   it('Should build', function() {
-    expect(player.getTagCount(Tags.SCIENCE)).to.eq(0);
+    expect(player.tags.count(Tag.SCIENCE)).to.eq(0);
     leavitt.addColony(player);
-    expect(player.getTagCount(Tags.SCIENCE)).to.eq(1);
+    expect(player.tags.count(Tag.SCIENCE)).to.eq(1);
     leavitt.addColony(player);
-    expect(player.getTagCount(Tags.SCIENCE)).to.eq(2);
+    expect(player.tags.count(Tag.SCIENCE)).to.eq(2);
   });
 
   // TODO(kberg): add trade and trade bonus tests.
@@ -50,9 +49,9 @@ describe('Leavitt', function() {
     // This test verifies that a regression doesn't reoccur.
     // Merely completing these is sufficient because
     // it doesn't throw an Error.
-    player.corporationCard = new Vitor();
-    expect(player.getTagCount(Tags.SCIENCE)).to.eq(0);
+    player.setCorporationForTest(new Vitor());
+    expect(player.tags.count(Tag.SCIENCE)).to.eq(0);
     leavitt.addColony(player);
-    expect(player.getTagCount(Tags.SCIENCE)).to.eq(1);
+    expect(player.tags.count(Tag.SCIENCE)).to.eq(1);
   });
 });

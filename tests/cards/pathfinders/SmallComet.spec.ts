@@ -1,10 +1,11 @@
 import {expect} from 'chai';
-import {SmallComet} from '../../../src/cards/pathfinders/SmallComet';
-import {Game} from '../../../src/Game';
+import {SmallComet} from '../../../src/server/cards/pathfinders/SmallComet';
+import {Game} from '../../../src/server/Game';
 import {TestPlayer} from '../../TestPlayer';
-import {TestPlayers} from '../../TestPlayers';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
 import {TileType} from '../../../src/common/TileType';
+import {SelectSpace} from '../../../src/server/inputs/SelectSpace';
+import {cast} from '../../TestingUtils';
 
 describe('SmallComet', function() {
   let card: SmallComet;
@@ -14,9 +15,9 @@ describe('SmallComet', function() {
 
   beforeEach(function() {
     card = new SmallComet();
-    player = TestPlayers.BLUE.newPlayer();
-    player2 = TestPlayers.RED.newPlayer();
-    player3 = TestPlayers.GREEN.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
+    player2 = TestPlayer.RED.newPlayer();
+    player3 = TestPlayer.GREEN.newPlayer();
     Game.newInstance('gameid', [player, player2, player3], player);
   });
 
@@ -27,7 +28,7 @@ describe('SmallComet', function() {
     player2.plants = 15;
     player3.plants = 400;
 
-    const action = card.play(player);
+    const action = cast(card.play(player), SelectSpace);
 
     expect(player.getTerraformRating()).eq(22);
     expect(player.game.getTemperature()).eq(-28);
@@ -37,8 +38,8 @@ describe('SmallComet', function() {
     expect(player3.plants).eq(398);
     expect(player.titanium).eq(1);
 
-    const space = action!.availableSpaces[0];
-    expect(action!.availableSpaces.some((space) => space.spaceType !== SpaceType.LAND)).is.false;
+    const space = action.availableSpaces[0];
+    expect(action.availableSpaces.some((space) => space.spaceType !== SpaceType.LAND)).is.false;
     expect(space.tile).is.undefined;
 
     action?.cb(space);

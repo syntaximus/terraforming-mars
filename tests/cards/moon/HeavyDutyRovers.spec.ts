@@ -1,14 +1,11 @@
-import {Game} from '../../../src/Game';
-import {setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {TestPlayer} from '../../TestPlayer';
-import {HeavyDutyRovers} from '../../../src/cards/moon/HeavyDutyRovers';
 import {expect} from 'chai';
-import {IMoonData} from '../../../src/moon/IMoonData';
-import {MoonExpansion} from '../../../src/moon/MoonExpansion';
+import {Game} from '../../../src/server/Game';
+import {testGameOptions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {HeavyDutyRovers} from '../../../src/server/cards/moon/HeavyDutyRovers';
+import {IMoonData} from '../../../src/server/moon/IMoonData';
+import {MoonExpansion} from '../../../src/server/moon/MoonExpansion';
 import {TileType} from '../../../src/common/TileType';
-
-const MOON_OPTIONS = setCustomGameOptions({moonExpansion: true});
 
 describe('HeavyDutyRovers', () => {
   let player: TestPlayer;
@@ -16,8 +13,8 @@ describe('HeavyDutyRovers', () => {
   let moonData: IMoonData;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
-    const game = Game.newInstance('gameid', [player], player, MOON_OPTIONS);
+    player = TestPlayer.BLUE.newPlayer();
+    const game = Game.newInstance('gameid', [player], player, testGameOptions({moonExpansion: true}));
     card = new HeavyDutyRovers();
     moonData = MoonExpansion.moonData(game);
   });

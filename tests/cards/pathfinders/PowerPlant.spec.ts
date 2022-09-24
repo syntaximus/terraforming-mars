@@ -1,8 +1,7 @@
 import {expect} from 'chai';
-import {PowerPlant} from '../../../src/cards/pathfinders/PowerPlant';
-import {Game} from '../../../src/Game';
+import {PowerPlant} from '../../../src/server/cards/pathfinders/PowerPlant';
+import {Game} from '../../../src/server/Game';
 import {TestPlayer} from '../../TestPlayer';
-import {TestPlayers} from '../../TestPlayers';
 import {Units} from '../../../src/common/Units';
 
 describe('PowerPlant', function() {
@@ -11,7 +10,7 @@ describe('PowerPlant', function() {
 
   beforeEach(function() {
     card = new PowerPlant();
-    player = TestPlayers.BLUE.newPlayer();
+    player = TestPlayer.BLUE.newPlayer();
     Game.newInstance('gameid', [player], player);
     player.playedCards.push(card);
   });
@@ -19,6 +18,6 @@ describe('PowerPlant', function() {
   it('play', function() {
     const action = card.play(player);
     expect(action).is.undefined;
-    expect(player.getProductionForTest()).deep.eq(Units.of({heat: 2, energy: 1}));
+    expect(player.production.asUnits()).deep.eq(Units.of({heat: 2, energy: 1}));
   });
 });

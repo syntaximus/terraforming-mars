@@ -1,16 +1,13 @@
-import {Game} from '../../../src/Game';
-import {IMoonData} from '../../../src/moon/IMoonData';
-import {MoonExpansion} from '../../../src/moon/MoonExpansion';
-import {Player} from '../../../src/Player';
-import {setCustomGameOptions} from '../../TestingUtils';
-import {TestPlayers} from '../../TestPlayers';
-import {MomentumViriumHabitat} from '../../../src/cards/moon/MomentumViriumHabitat';
+import {Game} from '../../../src/server/Game';
+import {IMoonData} from '../../../src/server/moon/IMoonData';
+import {MoonExpansion} from '../../../src/server/moon/MoonExpansion';
+import {Player} from '../../../src/server/Player';
+import {testGameOptions} from '../../TestingUtils';
+import {TestPlayer} from '../../TestPlayer';
+import {MomentumViriumHabitat} from '../../../src/server/cards/moon/MomentumViriumHabitat';
 import {expect} from 'chai';
-import {Resources} from '../../../src/common/Resources';
-import {MoonSpaces} from '../../../src/moon/MoonSpaces';
+import {MoonSpaces} from '../../../src/common/moon/MoonSpaces';
 import {TileType} from '../../../src/common/TileType';
-
-const MOON_OPTIONS = setCustomGameOptions({moonExpansion: true});
 
 describe('MomentumViriumHabitat', () => {
   let game: Game;
@@ -19,8 +16,8 @@ describe('MomentumViriumHabitat', () => {
   let card: MomentumViriumHabitat;
 
   beforeEach(() => {
-    player = TestPlayers.BLUE.newPlayer();
-    game = Game.newInstance('gameid', [player], player, MOON_OPTIONS);
+    player = TestPlayer.BLUE.newPlayer();
+    game = Game.newInstance('gameid', [player], player, testGameOptions({moonExpansion: true}));
     moonData = MoonExpansion.moonData(game);
     card = new MomentumViriumHabitat();
   });
@@ -38,16 +35,16 @@ describe('MomentumViriumHabitat', () => {
 
   it('play', () => {
     player.titanium = 1;
-    expect(player.getProduction(Resources.MEGACREDITS)).eq(0);
-    expect(player.getProduction(Resources.HEAT)).eq(0);
+    expect(player.production.megacredits).eq(0);
+    expect(player.production.heat).eq(0);
     expect(player.getTerraformRating()).eq(14);
     expect(moonData.colonyRate).eq(0);
 
     card.play(player);
 
     expect(player.titanium).eq(0);
-    expect(player.getProduction(Resources.MEGACREDITS)).eq(3);
-    expect(player.getProduction(Resources.HEAT)).eq(2);
+    expect(player.production.megacredits).eq(3);
+    expect(player.production.heat).eq(2);
 
     const momentumVirium = moonData.moon.getSpace(MoonSpaces.MOMENTUM_VIRIUM);
     expect(momentumVirium.player).eq(player);
