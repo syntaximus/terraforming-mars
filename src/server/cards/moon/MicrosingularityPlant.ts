@@ -12,16 +12,16 @@ export class MicrosingularityPlant extends Card implements IProjectCard {
     super({
       name: CardName.MICROSINGULARITY_PLANT,
       cardType: CardType.AUTOMATED,
-      tags: [Tag.ENERGY],
+      tags: [Tag.POWER],
       cost: 10,
-      requirements: CardRequirements.builder((b) => b.colonyTiles(2, {all})),
+      requirements: CardRequirements.builder((b) => b.habitatTiles(2, {all})),
 
       behavior: {
         production: {energy: 2},
       },
 
       metadata: {
-        description: 'Requires 2 colonies on The Moon. Increase your energy production 2 steps.',
+        description: 'Requires 2 habitats on The Moon. Increase your energy production 2 steps.',
         cardNumber: 'M40',
         renderData: CardRenderer.builder((b) => {
           b.production((pb) => pb.energy(2));

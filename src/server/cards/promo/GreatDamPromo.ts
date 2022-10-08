@@ -17,7 +17,7 @@ export class GreatDamPromo extends Card implements IProjectCard {
       cardType: CardType.AUTOMATED,
       name: CardName.GREAT_DAM_PROMO,
       cost: 15,
-      tags: [Tag.ENERGY, Tag.BUILDING],
+      tags: [Tag.POWER, Tag.BUILDING],
 
       behavior: {
         production: {energy: 2},
@@ -31,7 +31,7 @@ export class GreatDamPromo extends Card implements IProjectCard {
         renderData: CardRenderer.builder((b) => {
           b.production((pb) => pb.energy(2)).tile(TileType.GREAT_DAM, true, false).asterix();
         }),
-        description: 'Requires 4 ocean tiles. Increase your Energy production 2 steps. Place this tile ADJACENT TO an ocean tile.',
+        description: 'Requires 4 ocean tiles. Increase your energy production 2 steps. Place this tile ADJACENT TO an ocean tile.',
       },
     });
   }

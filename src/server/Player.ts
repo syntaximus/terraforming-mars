@@ -2,7 +2,6 @@ import * as constants from '../common/constants';
 import {PlayerId} from '../common/Types';
 import {DEFAULT_FLOATERS_VALUE, DEFAULT_MICROBES_VALUE, MILESTONE_COST, REDS_RULING_POLICY_COST} from '../common/constants';
 import {Aridor} from './cards/colonies/Aridor';
-import {Aurorai} from './cards/pathfinders/Aurorai';
 import {Board} from './boards/Board';
 import {CardFinder} from './CardFinder';
 import {CardName} from '../common/cards/CardName';
@@ -47,7 +46,7 @@ import {GameCards} from './GameCards';
 import {DrawCards} from './deferredActions/DrawCards';
 import {Units} from '../common/Units';
 import {MoonExpansion} from './moon/MoonExpansion';
-import {StandardProjectCard} from './cards/StandardProjectCard';
+import {IStandardProjectCard} from './cards/IStandardProjectCard';
 import {ConvertPlants} from './cards/base/standardActions/ConvertPlants';
 import {ConvertHeat} from './cards/base/standardActions/ConvertHeat';
 import {LunaProjectOffice} from './cards/moon/LunaProjectOffice';
@@ -67,7 +66,7 @@ import {Tags} from './player/Tags';
 import {Colonies} from './player/Colonies';
 import {Production} from './player/Production';
 import {Merger} from './cards/promo/Merger';
-import {Behaviors} from './behavior/Behaviors';
+import {getBehaviorExecutor} from './behavior/BehaviorExecutor';
 
 /**
  * Behavior when playing a card:
@@ -110,6 +109,8 @@ export class Player {
   private steelValue: number = 2;
   // Helion
   public canUseHeatAsMegaCredits: boolean = false;
+  // Luna Trade Federation
+  public canUseTitaniumAsMegacredits: boolean = false;
 
   // This generation / this round
   public actionsTakenThisRound: number = 0;
@@ -264,9 +265,11 @@ export class Player {
       if (opts.log === true) {
         this.game.log('${0} gained ${1} TR', (b) => b.player(this).number(steps));
       }
-      // Aurori hook
-      const aurorai = <Aurorai> this.getCorporation(CardName.AURORAI);
-      aurorai?.onIncreaseTerraformRating(this, steps);
+      this.game.getPlayersInGenerationOrder().forEach((player) => {
+        player.corporations.forEach((corp) => {
+          corp.onIncreaseTerraformRating?.(this, player, steps);
+        });
+      });
     };
 
     if (PartyHooks.shouldApplyPolicy(this, PartyName.REDS)) {
@@ -835,10 +838,10 @@ export class Player {
     }
 
     MoonExpansion.ifMoon(game, (moonData) => {
-      if (moonData.colonyRate < constants.MAXIMUM_COLONY_RATE) {
+      if (moonData.colonyRate < constants.MAXIMUM_HABITAT_RATE) {
         action.options.push(
-          new SelectOption('Increase the Moon colony rate', 'Increase', () => {
-            MoonExpansion.raiseColonyRate(this, 1);
+          new SelectOption('Increase the Moon habitat rate', 'Increase', () => {
+            MoonExpansion.raiseHabitatRate(this, 1);
             return undefined;
           }),
         );
@@ -961,7 +964,10 @@ export class Player {
    * plus any units of heat available thanks to Helion (and Stormcraft, by proxy).
    */
   public spendableMegacredits(): number {
-    return this.megaCredits + (this.canUseHeatAsMegaCredits ? this.availableHeat() : 0);
+    let total = this.megaCredits;
+    if (this.canUseHeatAsMegaCredits) total += this.availableHeat();
+    if (this.canUseTitaniumAsMegacredits) total += this.titanium * (this.titaniumValue - 1);
+    return total;
   }
 
   public runResearchPhase(draftVariant: boolean): void {
@@ -1476,7 +1482,7 @@ export class Player {
   // TODO(kberg): After migration, see if this can become private again.
   // Or perhaps moved into card?
   public canAffordCard(card: IProjectCard): boolean {
-    const trSource: TRSource | DynamicTRSource | undefined = card.tr || (card.behavior !== undefined ? Behaviors.toTRSource(card.behavior) : undefined);
+    const trSource: TRSource | DynamicTRSource | undefined = card.tr || (card.behavior !== undefined ? getBehaviorExecutor().toTRSource(card.behavior) : undefined);
     return this.canAfford(
       this.getCardCost(card),
       {
@@ -1562,6 +1568,12 @@ export class Player {
       data: options?.data ?? false,
     };
 
+    // HOOK: Luna Trade Federation
+    if (usable.titanium === false && payment.titanium > 0 && this.isCorporation(CardName.LUNA_TRADE_FEDERATION)) {
+      usable.titanium = true;
+      multiplier.titanium -= 1;
+    }
+
     let totalToPay = 0;
     for (const key of PAYMENT_KEYS) {
       if (usable[key]) totalToPay += payment[key] * multiplier[key];
@@ -1570,8 +1582,10 @@ export class Player {
     return totalToPay;
   }
 
-  // Checks if the player can afford to pay `cost` mc (possibly replaceable with steel, titanium etc.)
-  // and additionally pay the reserveUnits (no replaces here)
+  /**
+   * Returns `true` if the player can afford to pay `cost` mc (possibly replaceable with steel, titanium etc.)
+   * and additionally pay the reserveUnits (no replaces here)
+   */
   public canAfford(cost: number, options?: CanAffordOptions) {
     const reserveUnits = options?.reserveUnits ?? Units.EMPTY;
     if (!this.hasUnits(reserveUnits)) {
@@ -1592,7 +1606,7 @@ export class Player {
     return cost + redsCost <= usable;
   }
 
-  private getStandardProjects(): Array<StandardProjectCard> {
+  private getStandardProjects(): Array<IStandardProjectCard> {
     const gameOptions = this.game.gameOptions;
     return new GameCards(gameOptions)
       .getStandardProjects()
@@ -1608,7 +1622,7 @@ export class Player {
           return gameOptions.altVenusBoard === false;
         case CardName.AIR_SCRAPPING_STANDARD_PROJECT_VARIANT:
           return gameOptions.altVenusBoard === true;
-        case CardName.MOON_COLONY_STANDARD_PROJECT_V2:
+        case CardName.MOON_HABITAT_STANDARD_PROJECT_V2:
         case CardName.MOON_MINE_STANDARD_PROJECT_V2:
         case CardName.MOON_ROAD_STANDARD_PROJECT_V2:
           return gameOptions.moonStandardProjectVariant === true;
@@ -1620,8 +1634,8 @@ export class Player {
   }
 
   // Public for testing.
-  public getStandardProjectOption(): SelectCard<StandardProjectCard> {
-    const standardProjects: Array<StandardProjectCard> = this.getStandardProjects();
+  public getStandardProjectOption(): SelectCard<IStandardProjectCard> {
+    const standardProjects: Array<IStandardProjectCard> = this.getStandardProjects();
 
     return new SelectCard(
       'Standard projects',
@@ -1931,6 +1945,7 @@ export class Player {
       steelValue: this.steelValue,
       // Helion
       canUseHeatAsMegaCredits: this.canUseHeatAsMegaCredits,
+      canUseTitaniumAsMegacredits: this.canUseTitaniumAsMegacredits,
       // This generation / this round
       actionsTakenThisRound: this.actionsTakenThisRound,
       actionsThisGeneration: Array.from(this.actionsThisGeneration),
@@ -1992,6 +2007,8 @@ export class Player {
     player.actionsTakenThisGame = d.actionsTakenThisGame;
     player.actionsTakenThisRound = d.actionsTakenThisRound;
     player.canUseHeatAsMegaCredits = d.canUseHeatAsMegaCredits;
+    // TODO(kberg): remove ?? false by 2022-12-01
+    player.canUseTitaniumAsMegacredits = d.canUseTitaniumAsMegacredits ?? false;
     player.cardCost = d.cardCost;
     player.colonies.cardDiscount = d.cardDiscount;
     player.colonies.tradeDiscount = d.colonyTradeDiscount;

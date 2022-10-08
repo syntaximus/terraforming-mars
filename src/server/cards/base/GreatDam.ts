@@ -11,7 +11,7 @@ export class GreatDam extends Card implements IProjectCard {
     super({
       cardType: CardType.AUTOMATED,
       name: CardName.GREAT_DAM,
-      tags: [Tag.ENERGY, Tag.BUILDING],
+      tags: [Tag.POWER, Tag.BUILDING],
       cost: 12,
 
       behavior: {
@@ -25,7 +25,7 @@ export class GreatDam extends Card implements IProjectCard {
         renderData: CardRenderer.builder((b) => {
           b.production((pb) => pb.energy(2));
         }),
-        description: 'Requires 4 ocean tiles. Increase your Energy production 2 steps.',
+        description: 'Requires 4 ocean tiles. Increase your energy production 2 steps.',
       },
     });
   }

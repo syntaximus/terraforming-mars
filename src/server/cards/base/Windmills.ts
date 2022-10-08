@@ -11,7 +11,7 @@ export class Windmills extends Card implements IProjectCard {
     super({
       cardType: CardType.AUTOMATED,
       name: CardName.WINDMILLS,
-      tags: [Tag.ENERGY, Tag.BUILDING],
+      tags: [Tag.POWER, Tag.BUILDING],
       cost: 6,
 
       behavior: {
@@ -25,7 +25,7 @@ export class Windmills extends Card implements IProjectCard {
         renderData: CardRenderer.builder((b) => {
           b.production((pb) => pb.energy(1));
         }),
-        description: 'Requires 7% oxygen. Increase your Energy production 1 step.',
+        description: 'Requires 7% oxygen. Increase your energy production 1 step.',
       },
     });
   }

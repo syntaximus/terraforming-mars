@@ -27,13 +27,13 @@ export class Decomposers extends Card implements IProjectCard {
         cardNumber: '131',
         description: 'Requires 3% oxygen.',
         renderData: CardRenderer.builder((b) => {
-          b.effect('When you play an Animal, Plant, or Microbe tag, including this, add a Microbe to this card.', (be) => {
+          b.effect('When you play an animal, plant, or microbe tag, including this, add a microbe to this card.', (be) => {
             be.animals(1, {played}).slash();
             be.plants(1, {played}).slash();
             be.microbes(1, {played});
             be.startEffect.microbes(1);
           }).br;
-          b.vpText('1 VP per 3 Microbes on this card.');
+          b.vpText('1 VP per 3 microbes on this card.');
         }),
       },
     });

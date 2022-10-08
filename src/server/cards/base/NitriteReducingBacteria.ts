@@ -27,16 +27,16 @@ export class NitriteReducingBacteria extends Card implements IActionCard, IProje
       metadata: {
         cardNumber: '157',
         renderData: CardRenderer.builder((b) => {
-          b.action('Add 1 Microbe to this card.', (eb) => {
+          b.action('Add 1 microbe to this card.', (eb) => {
             eb.empty().startAction.microbes(1);
           }).br;
           b.or().br;
-          b.action('Remove 3 Microbes to increase your TR 1 step.', (eb) => {
+          b.action('Remove 3 microbes to increase your TR 1 step.', (eb) => {
             eb.microbes(3).startAction.tr(1);
           }).br;
           b.microbes(3);
         }),
-        description: 'Add 3 Microbes to this card.',
+        description: 'Add 3 microbes to this card.',
       },
     });
   }

@@ -17,18 +17,18 @@ export class ThoriumRush extends Card implements IProjectCard {
 
       behavior: {
         moon: {
-          colonyTile: {},
+          habitatTile: {},
           mineTile: {},
           roadTile: {},
         },
       },
 
       metadata: {
-        description: 'Place 1 colony tile, 1 mining tile and 1 road tile on The Moon. ' +
-        'Raise the Colony Rate, Mining Rate and Logistic Rate 1 step.',
+        description: 'Place 1 habitat tile, 1 mining tile and 1 road tile on The Moon. ' +
+        'Raise the habitat rate, mining rate and logistic rate 1 step.',
         cardNumber: 'M56',
         renderData: CardRenderer.builder((b) => {
-          b.moonColony({secondaryTag: AltSecondaryTag.MOON_COLONY_RATE})
+          b.moonHabitat({secondaryTag: AltSecondaryTag.MOON_HABITAT_RATE})
             .moonMine({secondaryTag: AltSecondaryTag.MOON_MINING_RATE})
             .moonRoad({secondaryTag: AltSecondaryTag.MOON_LOGISTICS_RATE});
         }),

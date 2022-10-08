@@ -14,7 +14,7 @@ export class LTFHeadquarters extends Card implements IProjectCard {
       cost: 31,
 
       behavior: {
-        moon: {colonyRate: 1},
+        moon: {habitatRate: 1},
         colonies: {
           buildColony: {},
           addTradeFleet: 1,
@@ -22,10 +22,10 @@ export class LTFHeadquarters extends Card implements IProjectCard {
       },
 
       metadata: {
-        description: 'Raise the Colony Rate 1 step. Place a colony. Gain 1 trade fleet.',
+        description: 'Raise the habitat rate 1 step. Place a colony. Gain 1 Trade Fleet.',
         cardNumber: 'M79',
         renderData: CardRenderer.builder((b) => {
-          b.moonColonyRate().colonies(1).tradeFleet();
+          b.moonHabitatRate().colonies(1).tradeFleet();
         }),
       },
     });

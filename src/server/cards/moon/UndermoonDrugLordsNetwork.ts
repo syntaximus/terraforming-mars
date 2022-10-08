@@ -15,16 +15,16 @@ export class UndermoonDrugLordsNetwork extends Card implements IProjectCard {
       victoryPoints: -1,
 
       behavior: {
-        production: {megacredits: {moon: {colonyRate: {}}, per: 2}},
+        production: {megacredits: {moon: {habitatRate: {}}, per: 2}},
       },
 
       metadata: {
-        description: 'Increase your M€ production 1 step per 2 steps of Colony Rate.',
+        description: 'Increase your M€ production 1 step per 2 steps of habitat rate.',
         cardNumber: 'M81',
         renderData: CardRenderer.builder((b) => {
           b.production((pb) => {
             pb.megacredits(1);
-          }).slash().moonColonyRate({amount: 2});
+          }).slash().moonHabitatRate({amount: 2});
         }),
       },
     });

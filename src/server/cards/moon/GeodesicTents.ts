@@ -17,22 +17,22 @@ export class GeodesicTents extends Card {
 
       behavior: {
         production: {energy: -1, plants: 1},
-        moon: {colonyTile: {}},
+        moon: {habitatTile: {}},
       },
 
       metadata: {
         description: 'Decrease your energy production 1 step and increase your plant production 1 step. ' +
-        'Spend 1 titanium. Place a colony tile on The Moon and raise the Colony Rate 1 step.',
+        'Spend 1 titanium. Place a habitat tile on The Moon and raise the habitat rate 1 step.',
         cardNumber: 'M06',
         renderData: CardRenderer.builder((b) => {
           b.production((pb) => {
             pb.minus().energy(1).nbsp.plants(1);
           }).br;
           b.minus().titanium(1).br;
-          b.moonColony({secondaryTag: AltSecondaryTag.MOON_COLONY_RATE});
+          b.moonHabitat({secondaryTag: AltSecondaryTag.MOON_HABITAT_RATE});
         }),
       },
-      tilesBuilt: [TileType.MOON_COLONY],
+      tilesBuilt: [TileType.MOON_HABITAT],
     });
   }
 }

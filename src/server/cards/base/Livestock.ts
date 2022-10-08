@@ -29,16 +29,16 @@ export class Livestock extends Card implements IActionCard, IProjectCard {
       metadata: {
         cardNumber: '184',
         renderData: CardRenderer.builder((b) => {
-          b.action('Add 1 Animal to this card.', (eb) => {
+          b.action('Add 1 animal to this card.', (eb) => {
             eb.empty().startAction.animals(1);
           }).br;
           b.production((pb) => {
             pb.minus().plants(1).nbsp.plus().megacredits(2);
           }).br;
-          b.vpText('1 VP for each Animal on this card.');
+          b.vpText('1 VP for each animal on this card.');
         }),
         description: {
-          text: 'Requires 9% oxygen. Decrease your Plant production 1 step and increase your M€ production 2 steps',
+          text: 'Requires 9% oxygen. Decrease your plant production 1 step and increase your M€ production 2 steps',
           align: 'left',
         },
       },

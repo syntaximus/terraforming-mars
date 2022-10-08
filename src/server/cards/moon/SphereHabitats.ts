@@ -17,19 +17,19 @@ export class SphereHabitats extends Card {
 
       behavior: {
         moon: {
-          colonyTile: {},
+          habitatTile: {},
         },
       },
 
       metadata: {
-        description: 'Spend 1 titanium. Place a colony tile on The Moon and raise the Colony Rate 1 step.',
+        description: 'Spend 1 titanium. Place a habitat tile on The Moon and raise the habitat rate 1 step.',
         cardNumber: 'M07',
         renderData: CardRenderer.builder((b) => {
           b.minus().titanium(1).br;
-          b.moonColony({secondaryTag: AltSecondaryTag.MOON_COLONY_RATE});
+          b.moonHabitat({secondaryTag: AltSecondaryTag.MOON_HABITAT_RATE});
         }),
       },
-      tilesBuilt: [TileType.MOON_COLONY],
+      tilesBuilt: [TileType.MOON_HABITAT],
     });
   }
 }

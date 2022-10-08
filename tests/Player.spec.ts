@@ -180,7 +180,7 @@ describe('Player', function() {
       GlobalParameter.TEMPERATURE,
       GlobalParameter.OCEANS,
       GlobalParameter.MOON_MINING_RATE,
-      GlobalParameter.MOON_COLONY_RATE,
+      GlobalParameter.MOON_HABITAT_RATE,
       GlobalParameter.MOON_LOGISTICS_RATE]);
   });
 
@@ -222,6 +222,7 @@ describe('Player', function() {
       titaniumValue: 13,
       steelValue: 14,
       canUseHeatAsMegaCredits: false,
+      canUseTitaniumAsMegacredits: false,
       actionsTakenThisRound: 15,
       actionsTakenThisGame: 30,
       actionsThisGeneration: [CardName.FACTORUM, CardName.GHG_PRODUCING_BACTERIA],
@@ -784,8 +785,8 @@ function titlesToGlobalParameter(title: string): GlobalParameter {
   if (title.includes('Venus')) {
     return GlobalParameter.VENUS;
   }
-  if (title.includes('colony')) {
-    return GlobalParameter.MOON_COLONY_RATE;
+  if (title.includes('habitat')) {
+    return GlobalParameter.MOON_HABITAT_RATE;
   }
   if (title.includes('mining')) {
     return GlobalParameter.MOON_MINING_RATE;

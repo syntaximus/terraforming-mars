@@ -12,7 +12,7 @@ export class LightningHarvest extends Card implements IProjectCard {
       cardType: CardType.AUTOMATED,
       name: CardName.LIGHTNING_HARVEST,
       cost: 8,
-      tags: [Tag.ENERGY],
+      tags: [Tag.POWER],
       victoryPoints: 1,
 
       behavior: {
@@ -25,7 +25,7 @@ export class LightningHarvest extends Card implements IProjectCard {
         renderData: CardRenderer.builder((b) => {
           b.production((pb) => pb.energy(1).megacredits(1));
         }),
-        description: 'Requires 3 Science tags. Increase your Energy production and your M€ production one step each.',
+        description: 'Requires 3 science tags. Increase your energy production and your M€ production one step each.',
       },
     });
   }

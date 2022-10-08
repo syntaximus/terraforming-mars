@@ -59,7 +59,7 @@ describe('Turmoil', function() {
   });
 
   it('Correctly send delegate from the lobby', function() {
-    const greens = turmoil.getPartyByName(PartyName.GREENS)!;
+    const greens = turmoil.getPartyByName(PartyName.GREENS);
     greens.delegates = [];
 
     expect(turmoil.lobby).contains(player.id);
@@ -72,7 +72,7 @@ describe('Turmoil', function() {
   });
 
   it('Correctly send delegate from the reserve', function() {
-    const greens = turmoil.getPartyByName(PartyName.GREENS)!;
+    const greens = turmoil.getPartyByName(PartyName.GREENS);
     greens.delegates = [];
     expect(turmoil.lobby).contains(player.id);
 
@@ -85,7 +85,7 @@ describe('Turmoil', function() {
 
 
   it('Do not send delegate from reserve when reserve is empty', function() {
-    const greens = turmoil.getPartyByName(PartyName.GREENS)!;
+    const greens = turmoil.getPartyByName(PartyName.GREENS);
     greens.delegates = [];
     turmoil.delegateReserve = [];
 
@@ -96,7 +96,7 @@ describe('Turmoil', function() {
   it('Counts influence correctly for dominant party', function() {
     turmoil.parties.forEach((party) => party.delegates = []);
 
-    const greens = turmoil.getPartyByName(PartyName.GREENS)!;
+    const greens = turmoil.getPartyByName(PartyName.GREENS);
     turmoil.sendDelegateToParty(player.id, PartyName.GREENS, game);
     expect(greens.delegates).has.lengthOf(1);
 
@@ -119,8 +119,8 @@ describe('Turmoil', function() {
   });
 
   it('Correctly set dominant party', function() {
-    const greens = turmoil.getPartyByName(PartyName.GREENS)!;
-    const reds = turmoil.getPartyByName(PartyName.REDS)!;
+    const greens = turmoil.getPartyByName(PartyName.GREENS);
+    const reds = turmoil.getPartyByName(PartyName.REDS);
     greens.delegates = [];
     reds.delegates = [];
 
@@ -139,7 +139,7 @@ describe('Turmoil', function() {
   });
 
   it('Correctly set party leader', function() {
-    const party = turmoil.getPartyByName(PartyName.GREENS)!;
+    const party = turmoil.getPartyByName(PartyName.GREENS);
     turmoil.sendDelegateToParty(player.id, party.name, game);
     turmoil.sendDelegateToParty(player.id, party.name, game);
     turmoil.sendDelegateToParty(player.id, party.name, game);
@@ -478,7 +478,7 @@ describe('Turmoil', function() {
     expect(player.canPlay(card)).is.true;
   });
 
-  it('canPlay: reds tax applies by default when raising moon colony rate', function() {
+  it('canPlay: reds tax applies by default when raising moon habitat rate', function() {
     // Raises the colony rate two steps.
     const card = new WaterTreatmentComplex();
     const player = TestPlayer.BLUE.newPlayer();
@@ -488,7 +488,7 @@ describe('Turmoil', function() {
     game.phase = Phase.ACTION;
 
     // Card requirements.
-    moonData.moon.getAvailableSpacesOnLand(player)[0].tile = {tileType: TileType.MOON_COLONY};
+    moonData.moon.getAvailableSpacesOnLand(player)[0].tile = {tileType: TileType.MOON_HABITAT};
     player.titanium = 1;
 
     turmoil.rulingParty = new Greens();
@@ -698,7 +698,7 @@ describe('Turmoil', function() {
     expect(t.comingGlobalEvent!.revealedDelegate).eq('Unity');
     expect(t.delegateReserve).deep.eq(['blue-id', 'red-id', 'green-id', 'NEUTRAL', 'NEUTRAL']);
     expect(t.rulingParty!.description).eq('Want to see a new Earth as soon as possible.');
-    expect(t.getPartyByName(PartyName.KELVINISTS)!.description).eq('Pushes for rapid terraforming, usually employing a heat-first strategy.');
+    expect(t.getPartyByName(PartyName.KELVINISTS).description).eq('Pushes for rapid terraforming, usually employing a heat-first strategy.');
   });
 
   function setRulingParty(turmoil: Turmoil, game: Game, party: IParty) {

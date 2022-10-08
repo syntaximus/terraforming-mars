@@ -15,13 +15,13 @@ export class EnergyTapping extends Card implements IProjectCard {
     super({
       cardType: CardType.AUTOMATED,
       name: CardName.ENERGY_TAPPING,
-      tags: [Tag.ENERGY],
+      tags: [Tag.POWER],
       cost: 3,
       victoryPoints: -1,
 
       metadata: {
         cardNumber: '201',
-        description: 'Decrease any Energy production 1 step and increase your own 1 step.',
+        description: 'Decrease any energy production 1 step and increase your own 1 step.',
         renderData: CardRenderer.builder((b) => {
           b.production((pb) => {
             pb.minus().energy(1, {all}).br;

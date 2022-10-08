@@ -10,7 +10,7 @@ export class PeroxidePower extends Card implements IProjectCard {
     super({
       cardType: CardType.AUTOMATED,
       name: CardName.PEROXIDE_POWER,
-      tags: [Tag.ENERGY, Tag.BUILDING],
+      tags: [Tag.POWER, Tag.BUILDING],
       cost: 7,
 
       behavior: {
@@ -25,7 +25,7 @@ export class PeroxidePower extends Card implements IProjectCard {
             pb.plus().energy(2);
           });
         }),
-        description: 'Decrease your M€ production 1 step and increase your Energy production 2 steps.',
+        description: 'Decrease your M€ production 1 step and increase your energy production 2 steps.',
       },
     });
   }

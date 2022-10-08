@@ -60,7 +60,7 @@ import {LunaSenate} from './LunaSenate';
 import {LunaStagingStation} from './LunaStagingStation';
 import {LunaTradeStation} from './LunaTradeStation';
 import {LunaTrainStation} from './LunaTrainStation';
-// import {LunaTradeFederation} from './LunaTradeFederation';
+import {LunaTradeFederation} from './LunaTradeFederation';
 import {MareImbriumMine} from './MareImbriumMine';
 import {MareNectarisMine} from './MareNectarisMine';
 import {MareNubiumMine} from './MareNubiumMine';
@@ -70,8 +70,8 @@ import {MicrosingularityPlant} from './MicrosingularityPlant';
 import {MiningComplex} from './MiningComplex';
 import {MiningRobotsManufCenter} from './MiningRobotsManufCenter';
 import {MomentumViriumHabitat} from './MomentumViriumHabitat';
-import {MoonColonyStandardProject} from './MoonColonyStandardProject';
-import {MoonColonyStandardProjectVariant2} from './MoonStandardProjectVariants';
+import {MoonHabitatStandardProject} from './MoonHabitatStandardProject';
+import {MoonHabitatStandardProjectVariant2} from './MoonStandardProjectVariants';
 import {MooncrateBlockFactory} from './MooncrateBlockFactory';
 import {MooncrateConvoysToMars} from './MooncrateConvoysToMars';
 import {MoonMineStandardProject} from './MoonMineStandardProject';
@@ -216,12 +216,12 @@ export const MOON_CARD_MANIFEST = new ModuleManifest({
     [CardName.LUNA_FIRST_INCORPORATED]: {Factory: LunaFirstIncorporated, compatibility: 'moon'},
     [CardName.THE_GRAND_LUNA_CAPITAL_GROUP]: {Factory: TheGrandLunaCapitalGroup, compatibility: 'moon'},
     [CardName.INTRAGEN_SANCTUARY_HEADQUARTERS]: {Factory: IntragenSanctuaryHeadquarters, compatibility: 'moon'},
-    // [CardName.LUNA_TRADE_FEDERATION]: {Factory: LunaTradeFederation},
+    [CardName.LUNA_TRADE_FEDERATION]: {Factory: LunaTradeFederation, compatibility: 'moon'},
     [CardName.THE_ARCHAIC_FOUNDATION_INSTITUTE]: {Factory: TheArchaicFoundationInstitute, compatibility: 'moon'},
   },
   standardProjects: {
-    [CardName.MOON_COLONY_STANDARD_PROJECT]: {Factory: MoonColonyStandardProject},
-    [CardName.MOON_COLONY_STANDARD_PROJECT_V2]: {Factory: MoonColonyStandardProjectVariant2},
+    [CardName.MOON_HABITAT_STANDARD_PROJECT]: {Factory: MoonHabitatStandardProject},
+    [CardName.MOON_HABITAT_STANDARD_PROJECT_V2]: {Factory: MoonHabitatStandardProjectVariant2},
     [CardName.MOON_MINE_STANDARD_PROJECT]: {Factory: MoonMineStandardProject},
     [CardName.MOON_MINE_STANDARD_PROJECT_V2]: {Factory: MoonMineStandardProjectVariant2},
     [CardName.MOON_ROAD_STANDARD_PROJECT]: {Factory: MoonRoadStandardProject},
