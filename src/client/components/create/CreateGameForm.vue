@@ -1118,7 +1118,7 @@ export default (Vue as WithRefs<Refs>).extend({
       if (dataToSend === undefined) return;
       const onSuccess = (json: any) => {
         if (json.players.length === 1) {
-          window.location.href = 'player?id=' + json.players[0].id;
+          window.location.href = 'terraforming/player?id=' + json.players[0].id;
           return;
         } else {
           window.history.replaceState(json, `${constants.APP_NAME} - Game`, 'game?id=' + json.id);
