@@ -44,7 +44,6 @@ export class EcologicalZone extends Card implements IProjectCard {
       resourceType: CardResource.ANIMAL,
       adjacencyBonus,
       victoryPoints: VictoryPoints.resource(1, 2),
-
       requirements: CardRequirements.builder((b) => b.greeneries()),
       metadata,
     });
@@ -59,7 +58,7 @@ export class EcologicalZone extends Card implements IProjectCard {
     return this.getAvailableSpaces(player).length > 0;
   }
   public onCardPlayed(player: Player, card: IProjectCard): void {
-    const qty = card.tags.filter((tag) => tag === Tag.ANIMAL || tag === Tag.PLANT).length;
+    const qty = player.tags.cardTagCount(card, [Tag.ANIMAL, Tag.PLANT]);
     player.addResourceTo(this, {qty, log: true});
   }
   public override bespokePlay(player: Player) {
@@ -72,7 +71,7 @@ export class EcologicalZone extends Card implements IProjectCard {
       'Select space next to greenery for special tile',
       this.getAvailableSpaces(player),
       (requestedSpace: ISpace) => {
-        player.game.addTile(player, requestedSpace.spaceType, requestedSpace, {
+        player.game.addTile(player, requestedSpace, {
           tileType: TileType.ECOLOGICAL_ZONE,
         });
         requestedSpace.adjacency = this.adjacencyBonus;

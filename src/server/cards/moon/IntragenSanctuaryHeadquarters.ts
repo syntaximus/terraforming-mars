@@ -6,7 +6,6 @@ import {ICorporationCard} from '../corporation/ICorporationCard';
 import {CardRenderer} from '../render/CardRenderer';
 import {IProjectCard} from '../IProjectCard';
 import {CardResource} from '../../../common/CardResource';
-import {PlaceMoonHabitatTile} from '../../moon/PlaceMoonHabitatTile';
 import {Card} from '../Card';
 import {VictoryPoints} from '../ICard';
 import {all, played} from '../Options';
@@ -20,12 +19,16 @@ export class IntragenSanctuaryHeadquarters extends Card implements ICorporationC
       tags: [Tag.ANIMAL, Tag.MOON],
       startingMegaCredits: 38,
       resourceType: CardResource.ANIMAL,
-      initialActionText: 'Place a habitat tile on The Moon.',
       victoryPoints: VictoryPoints.resource(1, 2),
 
       behavior: {
         // Gains the initial resource from its own tag.
         addResources: 1,
+      },
+
+      firstAction: {
+        text: 'Place a habitat tile on The Moon.',
+        moon: {habitatTile: {}},
       },
 
       metadata: {
@@ -42,18 +45,13 @@ export class IntragenSanctuaryHeadquarters extends Card implements ICorporationC
     });
   }
 
-  public initialAction(player: Player) {
-    player.game.defer(new PlaceMoonHabitatTile(player));
-    return undefined;
-  }
-
   public onCorpCardPlayed(player: Player, card: ICorporationCard) {
     this.onCardPlayed(player, card);
     return undefined;
   }
 
   public onCardPlayed(player: Player, card: IProjectCard | ICorporationCard) {
-    const count = card.tags.filter((tag) => tag === Tag.ANIMAL).length;
+    const count = player.tags.cardTagCount(card, Tag.ANIMAL);
     player.addResourceTo(this, count);
     return undefined;
   }

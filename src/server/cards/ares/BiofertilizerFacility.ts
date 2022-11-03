@@ -1,11 +1,7 @@
 import {Card} from '../Card';
 import {CardName} from '../../../common/cards/CardName';
-import {SelectSpace} from '../../inputs/SelectSpace';
-import {ISpace} from '../../boards/ISpace';
-import {Player} from '../../Player';
 import {CardResource} from '../../../common/CardResource';
 import {SpaceBonus} from '../../../common/boards/SpaceBonus';
-import {SpaceType} from '../../../common/boards/SpaceType';
 import {TileType} from '../../../common/TileType';
 import {CardType} from '../../../common/cards/CardType';
 import {IProjectCard} from '../IProjectCard';
@@ -24,6 +20,12 @@ export class BiofertilizerFacility extends Card implements IProjectCard {
       behavior: {
         production: {plants: 1},
         addResourcesToAnyCard: {count: 2, type: CardResource.MICROBE},
+        tile: {
+          type: TileType.BIOFERTILIZER_FACILITY,
+          on: 'land',
+          adjacencyBonus: {bonus: [SpaceBonus.PLANT, SpaceBonus.MICROBE]},
+          title: 'Select space for Biofertilizer Facility tile',
+        },
       },
 
       requirements: CardRequirements.builder((b) => b.tag(Tag.SCIENCE)),
@@ -40,22 +42,5 @@ export class BiofertilizerFacility extends Card implements IProjectCard {
         }),
       },
     });
-  }
-
-  public override bespokePlay(player: Player) {
-    return new SelectSpace(
-      'Select space for Biofertilizer Facility tile',
-      player.game.board.getAvailableSpacesOnLand(player),
-      (space: ISpace) => {
-        player.game.addTile(player, SpaceType.LAND, space, {
-          tileType: TileType.BIOFERTILIZER_FACILITY,
-          card: this.name,
-        });
-        space.adjacency = {
-          bonus: [SpaceBonus.PLANT, SpaceBonus.MICROBE],
-        };
-        return undefined;
-      },
-    );
   }
 }

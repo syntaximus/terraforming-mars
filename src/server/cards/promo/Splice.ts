@@ -20,7 +20,11 @@ export class Splice extends Card implements ICorporationCard {
       name: CardName.SPLICE,
       tags: [Tag.MICROBE],
       startingMegaCredits: 48, // 44 + 4 as card resolution when played
-      initialActionText: 'Draw a card with a microbe tag',
+
+      firstAction: {
+        text: 'Draw a card with a microbe tag',
+        drawCard: {count: 1, tag: Tag.MICROBE},
+      },
 
       metadata: {
         cardNumber: 'R28',
@@ -44,11 +48,6 @@ export class Splice extends Card implements ICorporationCard {
     });
   }
 
-  public initialAction(player: Player) {
-    player.drawCard(1, {tag: Tag.MICROBE});
-    return undefined;
-  }
-
   public onCardPlayed(player: Player, card: IProjectCard) {
     return this._onCardPlayed(player, card);
   }
@@ -62,7 +61,7 @@ export class Splice extends Card implements ICorporationCard {
       return undefined;
     }
     const gainPerMicrobe = 2;
-    const microbeTagsCount = card.tags.filter((tag) => tag === Tag.MICROBE).length;
+    const microbeTagsCount = player.tags.cardTagCount(card, Tag.MICROBE);
     const megacreditsGain = microbeTagsCount * gainPerMicrobe;
 
     const addResource = new SelectOption('Add a microbe resource to this card', 'Add microbe', () => {

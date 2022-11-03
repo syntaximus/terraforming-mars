@@ -7,12 +7,12 @@ import {TileType} from '../../../src/common/TileType';
 import {SpaceBonus} from '../../../src/common/boards/SpaceBonus';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
 import {TestPlayer} from '../../TestPlayer';
-import {addOcean, cast} from '../../TestingUtils';
+import {addOcean, cast, runAllActions} from '../../TestingUtils';
 import {SelectSpace} from '../../../src/server/inputs/SelectSpace';
 
 describe('OceanFarm', () => {
   let card: OceanFarm;
-  let player: Player;
+  let player: TestPlayer;
   let otherPlayer: Player;
   let game: Game;
 
@@ -42,7 +42,9 @@ describe('OceanFarm', () => {
     expect(player.production.plants).eq(0);
 
     const oceanSpace = addOcean(player);
-    const action = cast(card.play(player), SelectSpace);
+    card.play(player);
+    runAllActions(game);
+    const action = cast(player.popWaitingFor(), SelectSpace);
 
     expect(player.production.heat).eq(1);
     expect(player.production.plants).eq(1);
@@ -56,13 +58,15 @@ describe('OceanFarm', () => {
 
   it('Ocean Farm counts as ocean for adjacency', () => {
     const oceanSpace = addOcean(player);
-    const action = cast(card.play(player), SelectSpace);
+    card.play(player);
+    runAllActions(game);
+    const action = cast(player.popWaitingFor(), SelectSpace);
     action.cb(oceanSpace);
     const greenery = game.board.getAdjacentSpaces(oceanSpace).filter((space) => space.spaceType === SpaceType.LAND)[0];
 
     expect(otherPlayer.megaCredits).eq(0);
 
-    game.addGreenery(otherPlayer, greenery.id);
+    game.addGreenery(otherPlayer, greenery);
 
     expect(otherPlayer.megaCredits).eq(2);
   });
@@ -73,10 +77,12 @@ describe('OceanFarm', () => {
     })[0];
 
     player.plants = 0;
-    game.addOceanTile(player, oceanSpace.id);
+    game.addOceanTile(player, oceanSpace);
     expect(player.plants).eq(1);
 
-    const action = cast(card.play(player), SelectSpace);
+    card.play(player);
+    runAllActions(game);
+    const action = cast(player.popWaitingFor(), SelectSpace);
 
     expect(player.plants).eq(1);
 

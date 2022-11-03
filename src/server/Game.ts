@@ -26,7 +26,7 @@ import {ALL_AWARDS} from './awards/Awards';
 import {PartyHooks} from './turmoil/parties/PartyHooks';
 import {Phase} from '../common/Phase';
 import {Player} from './Player';
-import {PlayerId, GameId, SpectatorId, SpaceId} from '../common/Types';
+import {PlayerId, GameId, SpectatorId} from '../common/Types';
 import {PlayerInput} from './PlayerInput';
 import {CardResource} from '../common/CardResource';
 import {Resources} from '../common/Resources';
@@ -54,7 +54,7 @@ import {IMoonData} from './moon/IMoonData';
 import {MoonExpansion} from './moon/MoonExpansion';
 import {TurmoilHandler} from './turmoil/TurmoilHandler';
 import {SeededRandom} from './Random';
-import {MilestoneAwardSelector} from './MilestoneAwardSelector';
+import {chooseMilestonesAndAwards} from './MilestoneAwardSelector';
 import {BoardType} from './boards/BoardType';
 import {MultiSet} from 'mnemonist';
 import {GrantVenusAltTrackBonusDeferred} from './venusNext/GrantVenusAltTrackBonusDeferred';
@@ -219,7 +219,7 @@ export class Game implements Logger {
       game.aresData = AresSetup.initialData(gameOptions.aresHazards, players);
     }
 
-    const milestonesAwards = MilestoneAwardSelector.chooseMilestonesAndAwards(gameOptions);
+    const milestonesAwards = chooseMilestonesAndAwards(gameOptions);
     game.milestones = milestonesAwards.milestones;
     game.awards = milestonesAwards.awards;
 
@@ -1169,7 +1169,7 @@ export class Game implements Logger {
 
     // BONUS FOR OCEAN TILE AT 0
     if (this.temperature < 0 && this.temperature + steps * 2 >= 0) {
-      this.defer(new PlaceOceanTile(player, 'Select space for ocean from temperature increase'));
+      this.defer(new PlaceOceanTile(player, {title: 'Select space for ocean from temperature increase'}));
     }
 
     this.temperature += steps * 2;
@@ -1235,8 +1235,9 @@ export class Game implements Logger {
   // addTile applies to the Mars board, but not the Moon board, see MoonExpansion.addTile for placing
   // a tile on The Moon.
   public addTile(
-    player: Player, spaceType: SpaceType,
-    space: ISpace, tile: Tile): void {
+    player: Player,
+    space: ISpace,
+    tile: Tile): void {
     // Part 1, basic validation checks.
 
     if (space.tile !== undefined && !(this.gameOptions.aresExtension || this.gameOptions.pathfindersExpansion)) {
@@ -1246,15 +1247,6 @@ export class Game implements Logger {
     // Land claim a player can claim land for themselves
     if (space.player !== undefined && space.player !== player) {
       throw new Error('This space is land claimed by ' + space.player.name);
-    }
-
-    let validSpaceType = space.spaceType === spaceType;
-    if (space.spaceType === SpaceType.COVE && (spaceType === SpaceType.LAND || spaceType === SpaceType.OCEAN)) {
-      // Cove is a valid type for land and also ocean.
-      validSpaceType = true;
-    }
-    if (!validSpaceType) {
-      throw new Error(`Select a valid location: ${space.spaceType} is not ${spaceType}`);
     }
 
     if (!AresHandler.canCover(space, tile)) {
@@ -1279,7 +1271,7 @@ export class Game implements Logger {
         this.canAddOcean() &&
         this.gameOptions.boardName === BoardName.HELLAS) {
       if (player.color !== Color.NEUTRAL) {
-        this.defer(new PlaceOceanTile(player, 'Select space for ocean from placement bonus'));
+        this.defer(new PlaceOceanTile(player, {title: 'Select space for ocean from placement bonus'}));
         this.defer(new SelectPaymentDeferred(player, constants.HELLAS_BONUS_OCEAN_COST, {title: 'Select how to pay for placement bonus ocean'}));
       }
     }
@@ -1310,7 +1302,7 @@ export class Game implements Logger {
         AresHandler.earnAdjacencyBonuses(aresData, player, space);
       });
 
-      TurmoilHandler.resolveTilePlacementBonuses(player, spaceType);
+      TurmoilHandler.resolveTilePlacementBonuses(player, space.spaceType);
 
       if (arcadianCommunityBonus) {
         this.defer(new GainResources(player, Resources.MEGACREDITS, {count: 3}));
@@ -1403,24 +1395,22 @@ export class Game implements Logger {
   }
 
   public addGreenery(
-    player: Player, spaceId: SpaceId,
-    spaceType: SpaceType = SpaceType.LAND,
+    player: Player, space: ISpace,
     shouldRaiseOxygen: boolean = true): undefined {
-    this.addTile(player, spaceType, this.board.getSpace(spaceId), {
+    this.addTile(player, space, {
       tileType: TileType.GREENERY,
     });
     // Turmoil Greens ruling policy
-    PartyHooks.applyGreensRulingPolicy(player, this.board.getSpace(spaceId));
+    PartyHooks.applyGreensRulingPolicy(player, space);
 
     if (shouldRaiseOxygen) this.increaseOxygenLevel(player, 1);
     return undefined;
   }
 
   public addCityTile(
-    player: Player, spaceId: SpaceId, spaceType: SpaceType = SpaceType.LAND,
+    player: Player, space: ISpace,
     cardName: CardName | undefined = undefined): void {
-    const space = this.board.getSpace(spaceId);
-    this.addTile(player, spaceType, space, {
+    this.addTile(player, space, {
       tileType: TileType.CITY,
       card: cardName,
     });
@@ -1435,12 +1425,10 @@ export class Game implements Logger {
     return count > 0 && count < constants.MAX_OCEAN_TILES;
   }
 
-  public addOceanTile(
-    player: Player, spaceId: SpaceId,
-    spaceType: SpaceType = SpaceType.OCEAN): void {
+  public addOceanTile(player: Player, space: ISpace): void {
     if (this.canAddOcean() === false) return;
 
-    this.addTile(player, spaceType, this.board.getSpace(spaceId), {
+    this.addTile(player, space, {
       tileType: TileType.OCEAN,
     });
     if (this.phase !== Phase.SOLAR) {
@@ -1636,7 +1624,7 @@ export class Game implements Logger {
 
     // Reload turmoil elements if needed
     if (d.turmoil && gameOptions.turmoilExtension) {
-      game.turmoil = Turmoil.deserialize(d.turmoil);
+      game.turmoil = Turmoil.deserialize(d.turmoil, players);
     }
 
     // Reload moon elements if needed
