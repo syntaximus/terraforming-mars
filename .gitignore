@@ -16,7 +16,6 @@ pid
 *.log
 .eslintcache
 tsconfig.tsbuildinfo
-assets/locales
 
 bin/
 Bin/
