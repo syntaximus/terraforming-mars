@@ -64,6 +64,7 @@ import {Colonies} from './player/Colonies';
 import {Production} from './player/Production';
 import {Merger} from './cards/promo/Merger';
 import {getBehaviorExecutor} from './behavior/BehaviorExecutor';
+import {Warmonger} from './awards/terraCimmeria/Warmonger';
 
 /**
  * Behavior when playing a card:
@@ -583,6 +584,10 @@ export class Player {
     noTagsCount += this.playedCards.filter((card) => card.cardType !== CardType.EVENT && card.tags.every((tag) => tag === Tag.WILD)).length;
 
     return noTagsCount;
+  }
+
+  public getBetrayalPoints() {
+    return new Warmonger().getScore(this);
   }
 
   /**
