@@ -13,6 +13,7 @@ import {Server} from '../models/ServerModel';
 import {ServeAsset} from './ServeAsset';
 import {NewGameConfig} from '../../common/game/NewGameConfig';
 import {GameId, PlayerId, SpectatorId} from '../../common/Types';
+import {generateRandomId} from '../server-ids';
 
 // Oh, this could be called Game, but that would introduce all kinds of issues.
 
@@ -24,18 +25,13 @@ export class GameHandler extends Handler {
     super();
   }
 
-  public generateRandomId(prefix: string): string {
-    // 281474976710656 possible values.
-    return prefix + Math.floor(Math.random() * Math.pow(16, 12)).toString(16);
-  }
-
   public static boardOptions(board: RandomBoardOption | BoardName): Array<BoardName> {
     const allBoards = Object.values(BoardName);
 
     if (board === RandomBoardOption.ALL) return allBoards;
     if (board === RandomBoardOption.OFFICIAL) {
       return allBoards.filter((name) => {
-        return name === BoardName.ORIGINAL ||
+        return name === BoardName.THARSIS ||
           name === BoardName.HELLAS ||
           name === BoardName.ELYSIUM;
       });
@@ -59,15 +55,15 @@ export class GameHandler extends Handler {
       req.once('end', async () => {
         try {
           const gameReq: NewGameConfig = JSON.parse(body);
-          const gameId = this.generateRandomId('g') as GameId;
-          const spectatorId = this.generateRandomId('s') as SpectatorId;
+          const gameId = generateRandomId('g') as GameId;
+          const spectatorId = generateRandomId('s') as SpectatorId;
           const players = gameReq.players.map((obj: any) => {
             return new Player(
               obj.name,
               obj.color,
               obj.beginner,
               Number(obj.handicap), // For some reason handicap is coming up a string.
-              this.generateRandomId('p') as PlayerId,
+              generateRandomId('p') as PlayerId,
             );
           });
           let firstPlayerIdx = 0;
@@ -126,6 +122,7 @@ export class GameHandler extends Handler {
             escapeVelocityThreshold: gameReq.escapeVelocityThreshold,
             escapeVelocityPeriod: gameReq.escapeVelocityPeriod,
             escapeVelocityPenalty: gameReq.escapeVelocityPenalty,
+            twoCorpsVariant: gameReq.twoCorpsVariant,
           };
 
           let game: Game;

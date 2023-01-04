@@ -1,4 +1,5 @@
 import * as http from 'http';
+import * as paths from '../common/app/paths';
 
 import {ApiCloneableGame} from './routes/ApiCloneableGame';
 import {ApiGameLogs} from './routes/ApiGameLogs';
@@ -20,45 +21,45 @@ import {Route} from './routes/Route';
 import {PlayerInput} from './routes/PlayerInput';
 import {ServeApp} from './routes/ServeApp';
 import {ServeAsset} from './routes/ServeAsset';
+import {serverId, statsId} from './server-ids';
 
 const handlers: Map<string, IHandler> = new Map(
   [
     ['/terraforming/', ServeApp.INSTANCE],
-    ['/terraforming/admin', ServeApp.INSTANCE],
-    ['/terraforming/api/cloneablegame', ApiCloneableGame.INSTANCE],
-    ['/terraforming/api/game', ApiGame.INSTANCE],
-    ['/terraforming/api/game/history', ApiGameHistory.INSTANCE],
-    ['/terraforming/api/game/logs', ApiGameLogs.INSTANCE],
-    ['/terraforming/api/games', ApiGames.INSTANCE],
-    ['/terraforming/api/metrics', ApiMetrics.INSTANCE],
-    ['/terraforming/api/player', ApiPlayer.INSTANCE],
-    ['/terraforming/api/stats', ApiStats.INSTANCE],
-    ['/terraforming/api/spectator', ApiSpectator.INSTANCE],
-    ['/terraforming/api/waitingfor', ApiWaitingFor.INSTANCE],
-    ['/terraforming/cards', ServeApp.INSTANCE],
+    [paths.ADMIN, ServeApp.INSTANCE],
+    [paths.API_CLONEABLEGAME, ApiCloneableGame.INSTANCE],
+    [paths.API_GAME, ApiGame.INSTANCE],
+    [paths.API_GAME_HISTORY, ApiGameHistory.INSTANCE],
+    [paths.API_GAME_LOGS, ApiGameLogs.INSTANCE],
+    [paths.API_GAMES, ApiGames.INSTANCE],
+    [paths.API_METRICS, ApiMetrics.INSTANCE],
+    [paths.API_PLAYER, ApiPlayer.INSTANCE],
+    [paths.API_STATS, ApiStats.INSTANCE],
+    [paths.API_SPECTATOR, ApiSpectator.INSTANCE],
+    [paths.API_WAITING_FOR, ApiWaitingFor.INSTANCE],
+    [paths.CARDS, ServeApp.INSTANCE],
     ['/terraforming/favicon.ico', ServeAsset.INSTANCE],
-    ['/terraforming/game', GameHandler.INSTANCE],
-    ['/terraforming/games-overview', GamesOverview.INSTANCE],
-    ['/terraforming/help', ServeApp.INSTANCE],
-    ['/terraforming/load', Load.INSTANCE],
-    ['/terraforming/load_game', LoadGame.INSTANCE],
+    [paths.GAME, GameHandler.INSTANCE],
+    [paths.GAMES_OVERVIEW, GamesOverview.INSTANCE],
+    [paths.HELP, ServeApp.INSTANCE],
+    [paths.LOAD, Load.INSTANCE],
+    [paths.LOAD_GAME, LoadGame.INSTANCE],
     ['/terraforming/main.js', ServeAsset.INSTANCE],
     ['/terraforming/main.js.map', ServeAsset.INSTANCE],
-    ['/terraforming/new-game', ServeApp.INSTANCE],
-    ['/terraforming/player', ServeApp.INSTANCE],
-    ['/terraforming/player/input', PlayerInput.INSTANCE],
-    ['/terraforming/spectator', ServeApp.INSTANCE],
+    [paths.NEW_GAME, ServeApp.INSTANCE],
+    [paths.PLAYER, ServeApp.INSTANCE],
+    [paths.PLAYER_INPUT, PlayerInput.INSTANCE],
+    [paths.SPECTATOR, ServeApp.INSTANCE],
     ['/terraforming/styles.css', ServeAsset.INSTANCE],
     ['/terraforming/sw.js', ServeAsset.INSTANCE],
-    ['/terraforming/the-end', ServeApp.INSTANCE],
+    [paths.THE_END, ServeApp.INSTANCE],
   ],
 );
 
 export function processRequest(
   req: http.IncomingMessage,
   res: http.ServerResponse,
-  route: Route,
-  serverId: string): void {
+  route: Route): void {
   if (req.method === 'HEAD') {
     res.end();
     return;
@@ -69,7 +70,7 @@ export function processRequest(
   }
 
   const url = new URL(req.url, `http://${req.headers.host}`);
-  const ctx = {url, route, serverId, gameLoader: GameLoader.getInstance()};
+  const ctx = {url, route, gameLoader: GameLoader.getInstance(), ids: {serverId, statsId}};
   const handler: IHandler | undefined = handlers.get(url.pathname);
 
   if (handler !== undefined) {

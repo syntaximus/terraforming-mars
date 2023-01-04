@@ -64,6 +64,7 @@ import {Colonies} from './player/Colonies';
 import {Production} from './player/Production';
 import {Merger} from './cards/promo/Merger';
 import {getBehaviorExecutor} from './behavior/BehaviorExecutor';
+import {Warmonger} from './awards/terraCimmeria/Warmonger';
 
 /**
  * Behavior when playing a card:
@@ -585,6 +586,10 @@ export class Player {
     return noTagsCount;
   }
 
+  public getBetrayalPoints() {
+    return new Warmonger().getScore(this);
+  }
+
   /**
    * In the multiplayer game, after an attack, the attacked player makes a claim
    * for insurance. If Mons Insurance is in the game, the claimant will receive
@@ -741,15 +746,6 @@ export class Player {
 
   public deferInputCb(result: PlayerInput | undefined): void {
     this.defer(result, Priority.DEFAULT);
-  }
-
-  public checkInputLength(input: InputResponse, length: number, firstOptionLength?: number) {
-    if (input.length !== length) {
-      throw new Error('Incorrect options provided');
-    }
-    if (firstOptionLength !== undefined && input[0].length !== firstOptionLength) {
-      throw new Error('Incorrect options provided (nested)');
-    }
   }
 
   public runInput(input: InputResponse, pi: PlayerInput): void {
@@ -1117,7 +1113,7 @@ export class Player {
     }
   }
 
-  public playCard(selectedCard: IProjectCard, payment?: Payment, cardAction: 'add' | 'discard' | 'nothing' = 'add'): undefined {
+  public playCard(selectedCard: IProjectCard, payment?: Payment, cardAction: 'add' | 'discard' | 'nothing' | 'action-only' = 'add'): undefined {
     if (payment !== undefined) {
       this.pay(payment);
     }
@@ -1169,10 +1165,13 @@ export class Player {
     // Do nothing. Good for fake cards.
     case 'nothing':
       break;
+    // Do nothing, used for Double Down.
+    case 'action-only':
+      break;
     }
 
     // See DeclareCloneTag for why.
-    if (!selectedCard.tags.includes(Tag.CLONE)) {
+    if (!selectedCard.tags.includes(Tag.CLONE) && cardAction !== 'action-only') {
       this.onCardPlayed(selectedCard);
     }
 
@@ -1671,6 +1670,7 @@ export class Player {
 
       // If no playable prelude card in hand, end player turn
       if (this.getPlayablePreludeCards().length === 0) {
+        LogHelper.logDiscardedCards(game, this.preludeCardsInHand);
         this.preludeCardsInHand = [];
         game.playerIsFinishedTakingActions();
         return;

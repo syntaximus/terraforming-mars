@@ -71,6 +71,8 @@ export class GameCards {
         return gameOptions.coloniesExtension;
       case 'turmoil':
         return gameOptions.turmoilExtension;
+      case 'prelude':
+        return gameOptions.preludeExtension;
       case 'moon':
         return gameOptions.moonExpansion;
       case 'pathfinders':
@@ -106,7 +108,15 @@ export class GameCards {
     if (preludes.length === 0) {
       preludes = this.instantiate(PRELUDE_CARD_MANIFEST.preludeCards);
     }
-    return this.addCustomCards(preludes, this.gameOptions.customPreludes);
+    preludes = this.addCustomCards(preludes, this.gameOptions.customPreludes);
+
+    if (this.gameOptions.twoCorpsVariant) {
+      // As each player who doesn't have Merger is dealt Merger in SelectInitialCards.ts,
+      // remove it from the deck to avoid possible conflicts (e.g. Valley Trust / New Partner)
+      preludes = preludes.filter((c) => c.name !== CardName.MERGER);
+    }
+
+    return preludes;
   }
 
   private addCustomCards<T extends ICard>(cards: Array<T>, customList: Array<CardName> = []): Array<T> {
