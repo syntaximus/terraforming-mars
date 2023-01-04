@@ -187,9 +187,9 @@ export const mainAppSettings = {
     if (!windowHasHTMLDialogElement()) dialogPolyfill.default.registerDialog(document.getElementById('alert-dialog'));
     const currentPathname = window.location.pathname;
     const app = this as unknown as (MainAppData) & (typeof mainAppSettings.methods);
-    if (currentPathname === '/player') {
+    if (currentPathname.replace('terraforming/', '') === '/player') {
       app.updatePlayer();
-    } else if (currentPathname === '/the-end') {
+    } else if (currentPathname.replace('terraforming/', '') === '/the-end') {
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get('id') || '';
       if (isPlayerId(id)) {
@@ -199,7 +199,7 @@ export const mainAppSettings = {
       } else {
         alert('Bad id URL parameter.');
       }
-    } else if (currentPathname === '/game') {
+    } else if (currentPathname.replace('terraforming/', '') === '/game') {
       app.screen = 'game-home';
       const xhr = new XMLHttpRequest();
       xhr.open('GET', '/terraforming/api/game' + window.location.search);

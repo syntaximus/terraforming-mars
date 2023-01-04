@@ -20,7 +20,7 @@
       </div>
       <div class="source-code">
         <a href="https://github.com/terraforming-mars/terraforming-mars" target="_blank" class="source-code-text">
-        <img src="/assets/misc/github.png" class="source-code-img">
+        <img src="/terraforming/assets/misc/github.png" class="source-code-img">
           source code
         </a>
       </div>

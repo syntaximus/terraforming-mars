@@ -26,7 +26,7 @@ export default Vue.extend({
       const gameId = this.$data.gameId;
       const rollbackCount = this.$data.rollbackCount;
       const xhr = new XMLHttpRequest();
-      xhr.open('PUT', 'paths.LOAD_GAME');
+      xhr.open('PUT', paths.LOAD_GAME);
       xhr.onerror = function() {
         alert('Error loading game');
       };
@@ -34,7 +34,7 @@ export default Vue.extend({
         if (xhr.status === HTTPResponseCode.OK) {
           const response = xhr.response as SimpleGameModel;
           if (response.players.length === 1) {
-            window.location.href = 'terraforming/player?id=' + response.players[0].id;
+            window.location.href = '/terraforming/player?id=' + response.players[0].id;
             return;
           } else {
             window.history.replaceState(response, `${constants.APP_NAME} - Game`, '/terraforming/game?id=' + response.id);
