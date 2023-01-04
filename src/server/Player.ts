@@ -748,15 +748,6 @@ export class Player {
     this.defer(result, Priority.DEFAULT);
   }
 
-  public checkInputLength(input: InputResponse, length: number, firstOptionLength?: number) {
-    if (input.length !== length) {
-      throw new Error('Incorrect options provided');
-    }
-    if (firstOptionLength !== undefined && input[0].length !== firstOptionLength) {
-      throw new Error('Incorrect options provided (nested)');
-    }
-  }
-
   public runInput(input: InputResponse, pi: PlayerInput): void {
     this.deferInputCb(pi.process(input, this));
   }
@@ -1122,7 +1113,7 @@ export class Player {
     }
   }
 
-  public playCard(selectedCard: IProjectCard, payment?: Payment, cardAction: 'add' | 'discard' | 'nothing' = 'add'): undefined {
+  public playCard(selectedCard: IProjectCard, payment?: Payment, cardAction: 'add' | 'discard' | 'nothing' | 'action-only' = 'add'): undefined {
     if (payment !== undefined) {
       this.pay(payment);
     }
@@ -1174,10 +1165,13 @@ export class Player {
     // Do nothing. Good for fake cards.
     case 'nothing':
       break;
+    // Do nothing, used for Double Down.
+    case 'action-only':
+      break;
     }
 
     // See DeclareCloneTag for why.
-    if (!selectedCard.tags.includes(Tag.CLONE)) {
+    if (!selectedCard.tags.includes(Tag.CLONE) && cardAction !== 'action-only') {
       this.onCardPlayed(selectedCard);
     }
 
@@ -1676,6 +1670,7 @@ export class Player {
 
       // If no playable prelude card in hand, end player turn
       if (this.getPlayablePreludeCards().length === 0) {
+        LogHelper.logDiscardedCards(game, this.preludeCardsInHand);
         this.preludeCardsInHand = [];
         game.playerIsFinishedTakingActions();
         return;
