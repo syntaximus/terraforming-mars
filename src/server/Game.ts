@@ -11,7 +11,6 @@ import {IColony} from './colonies/IColony';
 import {Color} from '../common/Color';
 import {ICorporationCard} from './cards/corporation/ICorporationCard';
 import {Database} from './database/Database';
-import {Dealer} from './Dealer';
 import {FundedAward, serializeFundedAwards, deserializeFundedAwards} from './awards/FundedAward';
 import {IAward} from './awards/IAward';
 import {IMilestone} from './milestones/IMilestone';
@@ -605,13 +604,14 @@ export class Game implements Logger {
     this.players.forEach((player) => {
       player.needsToDraft = true;
       if (this.draftRound === 1 && !preludeDraft) {
-        player.runDraftPhase(initialDraft, this.giveDraftCardsTo(player).name);
+        player.askPlayerToDraft(initialDraft, this.giveDraftCardsTo(player).name);
       } else if (this.draftRound === 1 && preludeDraft) {
-        player.runDraftPhase(initialDraft, this.giveDraftCardsTo(player).name, player.dealtPreludeCards);
+        player.askPlayerToDraft(initialDraft, this.giveDraftCardsTo(player).name, player.dealtPreludeCards);
       } else {
-        const cards = this.unDraftedCards.get(this.getDraftCardsFrom(player));
-        this.unDraftedCards.delete(this.getDraftCardsFrom(player));
-        player.runDraftPhase(initialDraft, this.giveDraftCardsTo(player).name, cards);
+        const draftCardsFrom = this.getDraftCardsFrom(player).id;
+        const cards = this.unDraftedCards.get(draftCardsFrom);
+        this.unDraftedCards.delete(draftCardsFrom);
+        player.askPlayerToDraft(initialDraft, this.giveDraftCardsTo(player).name, cards);
       }
     });
   }
@@ -746,6 +746,15 @@ export class Game implements Logger {
     this.gotoEndGeneration();
   }
 
+  private allPlayersHavePassed(): boolean {
+    for (const player of this.players) {
+      if (!this.hasPassedThisActionPhase(player)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public playerHasPassed(player: Player): void {
     this.passedPlayers.add(player.id);
   }
@@ -806,7 +815,7 @@ export class Game implements Logger {
 
     // Push last card for each player
     this.players.forEach((player) => {
-      const lastCards = this.unDraftedCards.get(this.getDraftCardsFrom(player));
+      const lastCards = this.unDraftedCards.get(this.getDraftCardsFrom(player).id);
       if (lastCards !== undefined) {
         player.draftedCards.push(...lastCards);
       }
@@ -872,25 +881,22 @@ export class Game implements Logger {
     this.gotoInitialPhase();
   }
 
-  private getDraftCardsFrom(player: Player): PlayerId {
-    let nextPlayer = this.generation % 2 === 0 ? this.getPlayerAfter(player) : this.getPlayerBefore(player);
-
-    // Change initial draft direction on second iteration
+  private getDraftCardsFrom(player: Player): Player {
+    // Special-case for the initial draft direction on second iteration
     if (this.generation === 1 && this.initialDraftIteration === 2) {
-      nextPlayer = this.getPlayerBefore(player);
+      return this.getPlayerBefore(player);
     }
 
-    return nextPlayer.id;
+    return this.generation % 2 === 0 ? this.getPlayerBefore(player) : this.getPlayerAfter(player);
   }
 
   private giveDraftCardsTo(player: Player): Player {
-    let nextPlayer = this.generation % 2 === 0 ? this.getPlayerAfter(player) : this.getPlayerBefore(player);
-
-    // Change initial draft direction on second iteration
+    // Special-case for the initial draft direction on second iteration
     if (this.initialDraftIteration === 2 && this.generation === 1) {
-      nextPlayer = this.getPlayerAfter(player);
+      return this.getPlayerAfter(player);
     }
-    return nextPlayer;
+
+    return this.generation % 2 === 0 ? this.getPlayerAfter(player) : this.getPlayerBefore(player);
   }
 
   private getPlayerBefore(player: Player): Player {
@@ -921,20 +927,21 @@ export class Game implements Logger {
       return;
     }
 
-    const activePlayer = this.getPlayerById(this.activePlayer);
-    let nextPlayer = activePlayer;
-    do {
-      nextPlayer = this.getPlayerAfter(nextPlayer);
-      if (!this.hasPassedThisActionPhase(nextPlayer)) {
-        this.startActionsForPlayer(nextPlayer);
-        return;
-      }
-    } while (nextPlayer !== activePlayer);
+    if (this.allPlayersHavePassed()) {
+      this.gotoProductionPhase();
+      return;
+    }
 
-    // All players have passed.
-    this.gotoProductionPhase();
+    const nextPlayer = this.getPlayerAfter(this.getPlayerById(this.activePlayer));
+
+    if (!this.hasPassedThisActionPhase(nextPlayer)) {
+      this.startActionsForPlayer(nextPlayer);
+    } else {
+      // Recursively find the next player
+      this.activePlayer = nextPlayer.id;
+      this.playerIsFinishedTakingActions();
+    }
   }
-
 
   private gotoEndGame(): void {
     // Log id or cloned game id
@@ -948,9 +955,9 @@ export class Game implements Logger {
 
     const scores: Array<Score> = [];
     this.players.forEach((player) => {
-      const corpname = player.corporations.length > 0 ? player.corporations[0].name : '';
+      const corporation = player.corporations.map((c) => c.name).join('|');
       const vpb = player.getVictoryPoints();
-      scores.push({corporation: corpname, playerScore: vpb.total});
+      scores.push({corporation: corporation, playerScore: vpb.total});
     });
 
     Database.getInstance().saveGameResults(this.id, this.players.length, this.generation, this.gameOptions, scores);
@@ -1523,24 +1530,9 @@ export class Game implements Logger {
 
     const rng = new SeededRandom(d.seed, d.currentSeed);
 
-    let projectDeck: ProjectDeck;
-    let corporationDeck: CorporationDeck;
-    let preludeDeck: PreludeDeck;
-    // Rebuild dealer object to be sure that cards are in the same order
-    if (d.dealer !== undefined) {
-      const dealer = Dealer.deserialize(d.dealer);
-      projectDeck = new ProjectDeck(dealer.deck, dealer.discarded, rng);
-      corporationDeck = new CorporationDeck(dealer.corporationCards, [], rng);
-      preludeDeck = new PreludeDeck(dealer.preludeDeck, [], rng);
-    } else {
-      // TODO(kberg): Delete this conditional when `d.dealer` is removed.
-      if (d.projectDeck === undefined || d.corporationDeck === undefined || d.preludeDeck === undefined) {
-        throw new Error('Wow');
-      }
-      projectDeck = ProjectDeck.deserialize(d.projectDeck, rng);
-      corporationDeck = CorporationDeck.deserialize(d.corporationDeck, rng);
-      preludeDeck = PreludeDeck.deserialize(d.preludeDeck, rng);
-    }
+    const projectDeck = ProjectDeck.deserialize(d.projectDeck, rng);
+    const corporationDeck = CorporationDeck.deserialize(d.corporationDeck, rng);
+    const preludeDeck = PreludeDeck.deserialize(d.preludeDeck, rng);
 
     const game = new Game(d.id, players, first, d.activePlayer, gameOptions, rng, board, projectDeck, corporationDeck, preludeDeck);
     game.spectatorId = d.spectatorId;
@@ -1606,8 +1598,7 @@ export class Game implements Logger {
       game.unDraftedCards.set(unDraftedCard[0], cardFinder.cardsFromJSON(unDraftedCard[1]));
     });
 
-    // TODO(kberg): remove `?? []` by 2022-09-01
-    game.corporationsToDraft = cardFinder.corporationCardsFromJSON(d.corporationsToDraft ?? []);
+    game.corporationsToDraft = cardFinder.corporationCardsFromJSON(d.corporationsToDraft);
     game.corporationsDraftDirection = d.corporationsDraftDirection ?? false;
 
     game.lastSaveId = d.lastSaveId;

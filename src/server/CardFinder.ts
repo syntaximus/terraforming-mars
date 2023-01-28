@@ -4,6 +4,7 @@ import {CardManifest, ModuleManifest} from './cards/ModuleManifest';
 import {CardName} from '../common/cards/CardName';
 import {ICorporationCard} from './cards/corporation/ICorporationCard';
 import {IPreludeCard} from './cards/prelude/IPreludeCard';
+import {ILeaderCard} from './cards/leaders/ILeaderCard';
 import {ALL_MODULE_MANIFESTS} from './cards/AllCards';
 
 const CARD_RENAMES = new Map<string, CardName>([
@@ -12,13 +13,6 @@ const CARD_RENAMES = new Map<string, CardName>([
 
   // TODO(yournamehere): remove after 2021-04-05
   // ['Earth Embasy', CardName.EARTH_EMBASSY],
-
-  // TODO(kberg): remove after 2022-11-01
-  ['Designed Micro-organisms', CardName.DESIGNED_MICROORGANISMS],
-  ['Refugee Camp', CardName.REFUGEE_CAMPS],
-  ['Allied Banks', CardName.ALLIED_BANK],
-  ['Inventors Guild', CardName.INVENTORS_GUILD],
-  ['Cryo Sleep', CardName.CRYO_SLEEP],
 ]);
 
 export class CardFinder {
@@ -39,7 +33,7 @@ export class CardFinder {
   }
 
   public getCardByName(cardName: CardName): ICard | undefined {
-    return this.getCard(cardName, ['corporationCards', 'projectCards', 'preludeCards']);
+    return this.getCard(cardName, ['corporationCards', 'projectCards', 'preludeCards', 'leaderCards']);
   }
 
   public getCorporationCardByName(cardName: CardName): ICorporationCard | undefined {
@@ -58,6 +52,10 @@ export class CardFinder {
     return this.getCard(cardName, ['preludeCards']);
   }
 
+  public getLeaderByName(cardName: CardName): ILeaderCard | undefined {
+    return this.getCard(cardName, ['leaderCards']);
+  }
+
   public preludesFromJSON(cards: Array<CardName>): Array<IPreludeCard> {
     if (cards === undefined) {
       console.warn('missing cards calling cardsFromJSON');
@@ -66,6 +64,23 @@ export class CardFinder {
     const result: Array<IPreludeCard> = [];
     cards.forEach((element: CardName) => {
       const card = this.getPreludeByName(element);
+      if (card !== undefined) {
+        result.push(card);
+      } else {
+        console.warn(`card ${element} not found while loading game.`);
+      }
+    });
+    return result;
+  }
+
+  public leadersFromJSON(cards: Array<CardName>): Array<ILeaderCard> {
+    if (cards === undefined) {
+      console.warn('missing cards calling leadersFromJSON');
+      return [];
+    }
+    const result: Array<ILeaderCard> = [];
+    cards.forEach((element: CardName) => {
+      const card = this.getLeaderByName(element);
       if (card !== undefined) {
         result.push(card);
       } else {
