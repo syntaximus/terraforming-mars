@@ -26,6 +26,7 @@ import {Reset} from './routes/Reset';
 
 const handlers: Map<string, IHandler> = new Map(
   [
+    ['/terraforming', ServeApp.INSTANCE],
     ['/terraforming/', ServeApp.INSTANCE],
     [paths.ADMIN, ServeApp.INSTANCE],
     [paths.API_CLONEABLEGAME, ApiCloneableGame.INSTANCE],
@@ -72,7 +73,11 @@ export function processRequest(
   }
 
   const url = new URL(req.url, `http://${req.headers.host}`);
-  const ctx = {url, route, gameLoader: GameLoader.getInstance(), ids: {serverId, statsId}};
+  const ctx = { url, route, gameLoader: GameLoader.getInstance(), ids: { serverId, statsId } };
+  if (url.pathname === '/terraforming') {
+    res.writeHead(302, { 'Location': '/terraforming/' });
+    res.end();
+  }
   const handler: IHandler | undefined = handlers.get(url.pathname);
 
   if (handler !== undefined) {
