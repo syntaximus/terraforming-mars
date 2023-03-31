@@ -72,9 +72,8 @@ export function processRequest(
   }
 
   const url = new URL(req.url, `http://${req.headers.host}`);
-  const pathname = url.pathname.substring(1); // Remove leading '/'
   const ctx = {url, route, gameLoader: GameLoader.getInstance(), ids: {serverId, statsId}};
-  const handler: IHandler | undefined = handlers.get(pathname);
+  const handler: IHandler | undefined = handlers.get(url.pathname);
 
   if (handler !== undefined) {
     handler.processRequest(req, res, ctx);

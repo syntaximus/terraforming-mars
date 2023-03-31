@@ -3,7 +3,7 @@ import Vue from 'vue';
 import AppButton from '@/client/components/common/AppButton.vue';
 import {LoadGameFormModel} from '@/common/models/LoadGameFormModel';
 import {SimpleGameModel} from '@/common/models/SimpleGameModel';
-import {vueRoot} from '@/client/components/vueRoot';
+import { MainAppData } from '@/client/components/App';
 import * as constants from '@/common/constants';
 import * as paths from '@/common/app/paths';
 import * as HTTPResponseCode from '@/client/utils/HTTPResponseCode';
