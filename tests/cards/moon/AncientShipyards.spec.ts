@@ -1,69 +1,61 @@
-import {Game} from '../../../src/server/Game';
-import {Player} from '../../../src/server/Player';
-import {cast, testGameOptions} from '../../TestingUtils';
+import {churnAction} from '../../TestingUtils';
 import {TestPlayer} from '../../TestPlayer';
 import {AncientShipyards} from '../../../src/server/cards/moon/AncientShipyards';
 import {expect} from 'chai';
-import {OrOptions} from '../../../src/server/inputs/OrOptions';
+import {testGame} from '../../TestGame';
 
 describe('AncientShipyards', () => {
-  let game: Game;
-  let bluePlayer: Player;
-  let redPlayer: Player;
+  let player: TestPlayer;
+  let player2: TestPlayer;
+  let player3: TestPlayer;
   let card: AncientShipyards;
 
   beforeEach(() => {
-    bluePlayer = TestPlayer.BLUE.newPlayer();
-    redPlayer = TestPlayer.RED.newPlayer();
-    game = Game.newInstance('gameid', [bluePlayer, redPlayer], bluePlayer, testGameOptions({moonExpansion: true}));
+    [/* skipped */, player, player2, player3] = testGame(3, {moonExpansion: true});
     card = new AncientShipyards();
   });
 
   it('can play', () => {
-    bluePlayer.cardsInHand = [card];
-    bluePlayer.titanium = 2;
-    bluePlayer.megaCredits = card.cost;
-    expect(bluePlayer.getPlayableCards()).does.not.include(card);
-    bluePlayer.titanium = 3;
-    expect(bluePlayer.getPlayableCards()).does.include(card);
+    player.cardsInHand = [card];
+    player.titanium = 2;
+    player.megaCredits = card.cost;
+    expect(player.getPlayableCards()).does.not.include(card);
+    player.titanium = 3;
+    expect(player.getPlayableCards()).does.include(card);
   });
 
   it('play', () => {
-    bluePlayer.titanium = 3;
-    expect(bluePlayer.production.steel).eq(0);
+    player.titanium = 3;
+    expect(player.production.steel).eq(0);
 
-    card.play(bluePlayer);
+    card.play(player);
 
-    expect(bluePlayer.titanium).eq(0);
+    expect(player.titanium).eq(0);
   });
 
   it('act', () => {
     expect(card.resourceCount).eq(0);
-    bluePlayer.megaCredits = 0;
-    redPlayer.megaCredits = 10;
+    player.megaCredits = 0;
+    player2.megaCredits = 10;
+    player3.megaCredits = 7;
 
-    card.action(bluePlayer);
-    const orOptions = cast(game.deferredActions.pop()!.execute(), OrOptions);
-    // Steal from red.
-    orOptions.options[0].cb();
+    expect(churnAction(card, player)).is.undefined;
 
-    expect(bluePlayer.megaCredits).eq(8);
-    expect(redPlayer.megaCredits).eq(2);
+    expect(player.megaCredits).eq(4);
+    expect(player2.megaCredits).eq(8);
+    expect(player3.megaCredits).eq(5);
     expect(card.resourceCount).eq(1);
   });
 
   it('act solo', () => {
-    redPlayer = TestPlayer.RED.newPlayer();
-    game = Game.newInstance('gameid', [redPlayer], redPlayer, testGameOptions({moonExpansion: true}));
+    [/* skipped */, player] = testGame(1, {moonExpansion: true});
 
     expect(card.resourceCount).eq(0);
-    redPlayer.megaCredits = 10;
+    player.megaCredits = 10;
 
-    card.action(redPlayer);
-    const options = game.deferredActions.pop()!.execute();
-    expect(options).to.be.undefined;
+    expect(churnAction(card, player)).is.undefined;
 
-    expect(redPlayer.megaCredits).eq(18);
+    expect(player.megaCredits).eq(12);
     expect(card.resourceCount).eq(1);
   });
 

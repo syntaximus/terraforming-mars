@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {getTestPlayer, newTestGame} from '../../TestGame';
+import {testGame} from '../../TestGame';
 import {TestPlayer} from '../../TestPlayer';
 import {Predators} from '../../../src/server/cards/base/Predators';
 import {ResearchOutpost} from '../../../src/server/cards/base/ResearchOutpost';
@@ -13,6 +13,7 @@ import {cast, runAllActions} from '../../TestingUtils';
 import {SelectColony} from '../../../src/server/inputs/SelectColony';
 import {InputResponse} from '../../../src/common/inputs/InputResponse';
 import {ColonyName} from '../../../src/common/colonies/ColonyName';
+import {GHGProducingBacteria} from '../../../src/server/cards/base/GHGProducingBacteria';
 
 let card: Aridor;
 let game: Game;
@@ -23,21 +24,28 @@ describe('Aridor', function() {
   beforeEach(() => {
     card = new Aridor();
     // 2-player so as to not bother with pre-game action that drops a colony.
-    game = newTestGame(2, {coloniesExtension: true});
-    player = getTestPlayer(game, 0);
-    player2 = getTestPlayer(game, 1);
+    [game, player, player2] = testGame(2, {coloniesExtension: true});
+
     player.setCorporationForTest(card);
   });
 
   it('Should play', function() {
     const play = card.play(player);
     expect(play).is.undefined;
+
+    // Predators has an Animal tag
     card.onCardPlayed(player, new Predators());
     expect(player.production.megacredits).to.eq(1);
+
+    // Research Outpost has a Science tag, City tag, and Building tag
     card.onCardPlayed(player2, new ResearchOutpost());
     expect(player2.production.megacredits).to.eq(0);
     card.onCardPlayed(player, new ResearchOutpost());
     expect(player.production.megacredits).to.eq(4);
+
+    // GHG Producing Bacteria has a Science tag and a Microbe tag.
+    card.onCardPlayed(player, new GHGProducingBacteria());
+    expect(player.production.megacredits).to.eq(5);
   });
 
   // A test that directly calls initialAction is also good, but this

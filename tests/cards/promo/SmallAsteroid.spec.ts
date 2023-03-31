@@ -5,17 +5,17 @@ import {OrOptions} from '../../../src/server/inputs/OrOptions';
 import {Resources} from '../../../src/common/Resources';
 import {TestPlayer} from '../../TestPlayer';
 import {cast} from '../../TestingUtils';
+import {testGame} from '../../TestGame';
 
 describe('SmallAsteroid', function() {
   let card: SmallAsteroid;
   let player: TestPlayer;
   let player2: TestPlayer;
+  let player3: TestPlayer;
 
   beforeEach(function() {
     card = new SmallAsteroid();
-    player = TestPlayer.BLUE.newPlayer();
-    player2 = TestPlayer.RED.newPlayer();
-    Game.newInstance('gameid', [player, player2], player);
+    [/* skipped */, player, player2, player3] = testGame(3);
   });
 
   it('Should play', function() {
@@ -36,12 +36,10 @@ describe('SmallAsteroid', function() {
     player.addResource(Resources.PLANTS, 3);
     Game.newInstance('gameid', [player], player);
     card.play(player);
-    expect(player.getResource(Resources.PLANTS)).to.eq(3);
+    expect(player.plants).to.eq(3);
   });
 
   it('Works correctly with multiple targets', function() {
-    const player3 = TestPlayer.YELLOW.newPlayer();
-    Game.newInstance('gameid', [player, player2, player3], player);
     player2.addResource(Resources.PLANTS, 3);
     player3.addResource(Resources.PLANTS, 5);
 

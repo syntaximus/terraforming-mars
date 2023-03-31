@@ -11,7 +11,7 @@ import {TileType} from '../../../src/common/TileType';
 import {OrOptions} from '../../../src/server/inputs/OrOptions';
 import {RoboticWorkforce} from '../../../src/server/cards/base/RoboticWorkforce';
 import {SelectCard} from '../../../src/server/inputs/SelectCard';
-import {getTestPlayer, newTestGame} from '../../TestGame';
+import {testGame} from '../../TestGame';
 
 describe('SpecializedSettlement', function() {
   let card: SpecializedSettlement;
@@ -20,8 +20,7 @@ describe('SpecializedSettlement', function() {
 
   beforeEach(function() {
     card = new SpecializedSettlement();
-    game = newTestGame(1, {aresExtension: true, pathfindersExpansion: true});
-    player = getTestPlayer(game, 0);
+    [game, player] = testGame(1, {aresExtension: true, pathfindersExpansion: true});
     game.board = EmptyBoard.newInstance();
     player.popWaitingFor(); // Clears out the default waiting for (selecting initial cards)
   });
@@ -77,7 +76,7 @@ describe('SpecializedSettlement', function() {
     singleResourceTest(
       SpaceBonus.ENERGY,
       {energy: 1},
-      {energy: 0, megacredits: 3});
+      {energy: 1, megacredits: 3});
     expect(player.popWaitingFor()).is.undefined;
   });
 
@@ -155,7 +154,7 @@ describe('SpecializedSettlement', function() {
     expect(player.production.asUnits()).deep.eq(Units.of({megacredits: 3}));
   });
 
-  function singleResourceTest(spaceBonus: SpaceBonus | Array<SpaceBonus>, resources: Partial<Units>, production: Partial<Units>) {
+  function singleResourceTest(spaceBonus: SpaceBonus | Array<SpaceBonus>, stock: Partial<Units>, production: Partial<Units>) {
     player.production.override({energy: 1});
     const action = card.play(player);
 
@@ -168,7 +167,7 @@ describe('SpecializedSettlement', function() {
 
     expect(space.tile?.tileType).eq(TileType.CITY);
     expect(space.player).eq(player);
-    expect(player.getResourcesForTest()).deep.eq(Units.of(resources));
+    expect(player.getResourcesForTest()).deep.eq(Units.of(stock));
 
     runAllActions(game);
 

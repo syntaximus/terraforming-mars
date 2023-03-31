@@ -12,6 +12,7 @@ import {CardRenderer} from '../render/CardRenderer';
 import {Size} from '../../../common/cards/render/Size';
 import {MoonExpansion} from '../../moon/MoonExpansion';
 import {all} from '../Options';
+import {SpecialDesignProxy} from './SpecialDesignProxy';
 
 export class Playwrights extends Card implements ICorporationCard {
   constructor() {
@@ -19,7 +20,7 @@ export class Playwrights extends Card implements ICorporationCard {
       name: CardName.PLAYWRIGHTS,
       tags: [Tag.POWER],
       startingMegaCredits: 38,
-      cardType: CardType.CORPORATION,
+      type: CardType.CORPORATION,
 
       behavior: {
         production: {energy: 1},
@@ -32,7 +33,7 @@ export class Playwrights extends Card implements ICorporationCard {
           b.br.br;
           b.megacredits(38).production((pb) => pb.energy(1));
           b.corpBox('action', (cb) => {
-            cb.action('Replay a played event from any player by paying its cost ONLY in M€ (discounts and rebates apply), then REMOVE IT FROM PLAY.', (eb) => {
+            cb.action('Replay a played event from any player (INCLUDING events that place special tiles) by paying its cost ONLY in M€ (discounts and rebates apply), then REMOVE IT FROM PLAY.', (eb) => {
               // TODO(chosta): find a reasonable way to represent "?" (alphanumeric maybe)
               // use 1000 as an id to tell Vue to render the '?'
               eb.megacredits(1000).startAction;
@@ -78,11 +79,13 @@ export class Playwrights extends Card implements ICorporationCard {
             afterPay: () => {
               player.playCard(selectedCard, undefined, 'nothing'); // Play the card but don't add it to played cards
               player.removedFromPlayCards.push(selectedCard); // Remove card from the game
-              if (selectedCard.name === CardName.LAW_SUIT) {
+              if (selectedCard.name === CardName.SPECIAL_DESIGN) {
+                player.playedCards.push(new SpecialDesignProxy());
+              } else if (selectedCard.name === CardName.LAW_SUIT) {
                 /*
-                   * If the card played is Law Suit we need to remove it from the newly sued player's played cards.
-                   * Needs to be deferred to happen after Law Suit's `play()` method.
-                   */
+                 * If the card played is Law Suit we need to remove it from the newly sued player's played cards.
+                 * Needs to be deferred to happen after Law Suit's `play()` method.
+                 */
                 player.game.defer(new SimpleDeferredAction(player, () => {
                   player.game.getPlayers().some((p) => {
                     const card = p.playedCards[p.playedCards.length - 1];
@@ -114,7 +117,7 @@ export class Playwrights extends Card implements ICorporationCard {
     try {
       player.game.getPlayers().forEach((p) => {
         playedEvents.push(...p.playedCards.filter((card) => {
-          return card.cardType === CardType.EVENT &&
+          return card.type === CardType.EVENT &&
           // Can player.canPlay(card) replace this?
           player.canAfford(player.getCardCost(card), {
             reserveUnits: MoonExpansion.adjustedReserveCosts(player, card),

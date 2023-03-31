@@ -18,5 +18,6 @@ export const LOAD_GAME = '/terraforming/load_game' as const;
 export const NEW_GAME = '/terraforming/new-game' as const;
 export const PLAYER = '/terraforming/player' as const;
 export const PLAYER_INPUT = '/terraforming/player/input' as const;
+export const RESET = '/terraforming/reset' as const;
 export const SPECTATOR = '/terraforming/spectator' as const;
 export const THE_END = '/terraforming/the-end' as const;

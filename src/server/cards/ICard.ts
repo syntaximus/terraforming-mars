@@ -17,8 +17,16 @@ import {TileType} from '../../common/TileType';
 import {Behavior} from '../behavior/Behavior';
 import {TRSource} from '../../common/cards/TRSource';
 
+/*
+ * Represents a card which has an action that itself allows a player
+ * to replay a card. Those cards can evaluate card playability recursively.
+ * which consumes the entire call stack.
+ *
+ * Cards like that keep track of the number of times they're called as a
+ * loop check.
+ */
 export interface IHasCheckLoops {
-    getCheckLoops(): number;
+  getCheckLoops(): number;
 }
 
 export function isIHasCheckLoops(object: any): object is IHasCheckLoops {
@@ -69,9 +77,8 @@ export interface ICard {
      */
     onResourceAdded?: (player: Player, playedCard: ICard, count: number) => void;
 
-    /** Used with IProjectCard only, I think. */
-    cost?: number;
-    cardType: CardType;
+    cost?: number; /** Used with IProjectCard and PreludeCard. */
+    type: CardType;
     requirements?: CardRequirements;
     metadata: ICardMetadata;
     warning?: string | Message;
@@ -85,8 +92,8 @@ export interface ICard {
 }
 
 export interface IActionCard {
-  action: (player: Player) => PlayerInput | undefined;
-  canAct: (player: Player) => boolean;
+  action(player: Player): PlayerInput | undefined;
+  canAct(player: Player): boolean;
 }
 
 export function isIActionCard(object: any): object is IActionCard {

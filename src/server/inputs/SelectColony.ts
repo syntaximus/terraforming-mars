@@ -1,18 +1,22 @@
 import {Message} from '../../common/logs/Message';
-import {PlayerInput} from '../PlayerInput';
+import {BasePlayerInput, PlayerInput} from '../PlayerInput';
 import {PlayerInputType} from '../../common/input/PlayerInputType';
 import {IColony} from '../colonies/IColony';
 import {InputResponse, isSelectColonyResponse} from '../../common/inputs/InputResponse';
 
-export class SelectColony implements PlayerInput {
-  public readonly inputType = PlayerInputType.SELECT_COLONY;
+export class SelectColony extends BasePlayerInput {
+  // When true, show just the tile, and none of the cubes on top.
+  // Used for tiles that are not yet in the game, or for a clearer
+  // visualziation when necesary.
+  public showTileOnly = false;
 
   constructor(
-        public title: string | Message,
-        public buttonLabel: string = 'Save',
-        public colonies: Array<IColony>,
-        public cb: (colony: IColony) => PlayerInput | undefined,
+    title: string | Message,
+    buttonLabel: string = 'Save',
+    public colonies: Array<IColony>,
+    public cb: (colony: IColony) => PlayerInput | undefined,
   ) {
+    super(PlayerInputType.SELECT_COLONY, title);
     this.buttonLabel = buttonLabel;
   }
 

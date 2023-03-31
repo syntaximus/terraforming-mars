@@ -7,7 +7,7 @@
             <span class="turn-order" v-i18n>{{getTurnOrder(index)}}</span>
             <span :class="'color-square ' + getPlayerCubeColorClass(player.color)"></span>
             <span class="player-name"><a :href="getHref(player.id)">{{player.name}}</a></span>
-            <Button title="copy" size="tiny" @click="copyUrl(player.id)"/>
+            <AppButton title="copy" size="tiny" @click="copyUrl(player.id)"/>
             <span v-if="isPlayerUrlCopied(player.id)" class="copied-notice"><span v-i18n>Copied!</span></span>
           </li>
           <li v-if="game !== undefined && game.spectatorId">
@@ -15,9 +15,13 @@
             <span class="turn-order"></span>
             <span class="color-square"></span>
             <span class="player-name"><a :href="getHref(game.spectatorId)" v-i18n>Spectator</a></span>
-            <Button title="copy" size="tiny" @click="copyUrl(game.spectatorId)"/>
+            <AppButton title="copy" size="tiny" @click="copyUrl(game.spectatorId)"/>
           </li>
         </ul>
+
+        <div class="spacing-setup"></div>
+
+        <purge-warning :expectedPurgeTimeMs="game.expectedPurgeTimeMs"></purge-warning>
 
         <div class="spacing-setup"></div>
         <div v-if="game !== undefined">
@@ -31,10 +35,11 @@
 
 import Vue from 'vue';
 import {SimpleGameModel} from '@/common/models/SimpleGameModel';
-import Button from '@/client/components/common/Button.vue';
+import AppButton from '@/client/components/common/AppButton.vue';
+import PurgeWarning from '@/client/components/common/PurgeWarning.vue';
 import {playerColorClass} from '@/common/utils/utils';
 import GameSetupDetail from '@/client/components/GameSetupDetail.vue';
-import {SpectatorId, PlayerId} from '@/common/Types';
+import {ParticipantId} from '@/common/Types';
 
 // taken from https://stackoverflow.com/a/46215202/83336
 // The solution to copying to the clipboard in this case is
@@ -61,8 +66,9 @@ export default Vue.extend({
     },
   },
   components: {
-    Button,
+    AppButton,
     'game-setup-detail': GameSetupDetail,
+    PurgeWarning,
   },
   data() {
     return {
@@ -93,15 +99,18 @@ export default Vue.extend({
     getPlayerCubeColorClass(color: string): string {
       return playerColorClass(color.toLowerCase(), 'bg');
     },
-    getHref(playerId: PlayerId | SpectatorId | undefined): string {
+    getHref(playerId: ParticipantId): string {
       if (playerId === this.game.spectatorId) {
         return `spectator?id=${playerId}`;
       }
       return `player?id=${playerId}`;
     },
-    copyUrl(playerId: PlayerId | SpectatorId | undefined): void {
-      copyToClipboard(window.location.origin + '/terraforming/' + this.getHref(playerId));
-      this.urlCopiedPlayerId = playerId as (PlayerId | SpectatorId);
+    copyUrl(playerId: ParticipantId | undefined): void {
+      if (playerId === undefined) return;
+      // Get current location path without game?id=xxxxxxx
+      const path = window.location.href.replace(/game\?id=.*/, '');
+      copyToClipboard(path + this.getHref(playerId));
+      this.urlCopiedPlayerId = playerId;
     },
     isPlayerUrlCopied(playerId: string): boolean {
       return playerId === this.urlCopiedPlayerId;

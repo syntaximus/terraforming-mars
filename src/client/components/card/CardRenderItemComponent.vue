@@ -203,6 +203,20 @@ export default Vue.extend({
         }
       } else if (type === CardRenderItemType.GLOBAL_EVENT) {
         classes.push('turmoil-global-event');
+
+        // CEO Extension:
+      } else if (type === CardRenderItemType.ARROW_OPG) {
+        classes.push('card-arrow-opg');
+      } else if (type === CardRenderItemType.REDS) {
+        classes.push('card-reds');
+      } else if (type === CardRenderItemType.REDS_DEACTIVATED) {
+        classes.push('card-reds-deactivated');
+      } else if (type === CardRenderItemType.HAZARD_TILE) {
+        if (this.item.size !== undefined && this.item.size !== Size.MEDIUM) {
+          classes.push(`card-hazard-tile--${this.item.size}`);
+        } else {
+          classes.push('card-hazard-tile');
+        }
       }
 
       function sized(clazz: string, size: string | undefined) {
@@ -338,7 +352,7 @@ export default Vue.extend({
       }
       if (this.item.type === CardRenderItemType.NO_TAGS || this.item.type === CardRenderItemType.MULTIPLIER_WHITE) {
         result = 'X';
-      } else if (this.item.type === CardRenderItemType.PROJECT_REQUIREMENTS || this.item.type === CardRenderItemType.IGNORE_GLOBAL_REQUIREMENTS) {
+      } else if (this.item.type === CardRenderItemType.IGNORE_GLOBAL_REQUIREMENTS) {
         result += '<div class="card-project-requirements">';
         result += '<div class="card-x">x</div>';
         result += '<div class="card-requirements">Global Requirements</div>';

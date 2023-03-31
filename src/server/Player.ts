@@ -14,7 +14,6 @@ import {ICard, isIActionCard, IActionCard, DynamicTRSource} from './cards/ICard'
 import {TRSource} from '../common/cards/TRSource';
 import {IMilestone} from './milestones/IMilestone';
 import {IProjectCard} from './cards/IProjectCard';
-import {LogMessageDataType} from '../common/logs/LogMessageDataType';
 import {OrOptions} from './inputs/OrOptions';
 import {PartyHooks} from './turmoil/parties/PartyHooks';
 import {PartyName} from '../common/turmoil/PartyName';
@@ -65,6 +64,11 @@ import {Production} from './player/Production';
 import {Merger} from './cards/promo/Merger';
 import {getBehaviorExecutor} from './behavior/BehaviorExecutor';
 import {Warmonger} from './awards/terraCimmeria/Warmonger';
+import {CeoExtension} from './CeoExtension';
+import {ICeoCard, isCeoCard} from './cards/ceos/ICeoCard';
+import {AwardScorer} from './awards/AwardScorer';
+import {FundedAward} from './awards/FundedAward';
+import {MessageBuilder} from './logs/MessageBuilder';
 
 /**
  * Behavior when playing a card:
@@ -118,10 +122,12 @@ export class Player {
 
   // Cards
   public dealtCorporationCards: Array<ICorporationCard> = [];
-  public dealtProjectCards: Array<IProjectCard> = [];
   public dealtPreludeCards: Array<IProjectCard> = [];
+  public dealtCeoCards: Array<ICeoCard> = [];
+  public dealtProjectCards: Array<IProjectCard> = [];
   public cardsInHand: Array<IProjectCard> = [];
   public preludeCardsInHand: Array<IProjectCard> = [];
+  public ceoCardsInHand: Array<IProjectCard> = [];
   public playedCards: Array<IProjectCard> = [];
   public draftedCards: Array<IProjectCard> = [];
   public draftedCorporations: Array<ICorporationCard> = [];
@@ -201,6 +207,11 @@ export class Player {
     return this.corporations.find((c) => c.name === corporationName);
   }
 
+  public getCeo(ceoName: CardName): ICeoCard | undefined {
+    const card = this.playedCards.find((c) => c.name === ceoName);
+    return (card !== undefined && isCeoCard(card)) ? card : undefined;
+  }
+
   public getCorporationOrThrow(corporationName: CardName): ICorporationCard {
     const corporation = this.getCorporation(corporationName);
     if (corporation === undefined) {
@@ -266,6 +277,9 @@ export class Player {
       this.game.getPlayersInGenerationOrder().forEach((player) => {
         player.corporations.forEach((corp) => {
           corp.onIncreaseTerraformRating?.(this, player, steps);
+        });
+        player.playedCards.filter((card: IProjectCard) => card.type === CardType.CEO).forEach((ceo) => {
+          ceo.onIncreaseTerraformRating?.(this, player, steps);
         });
       });
     };
@@ -415,6 +429,18 @@ export class Player {
     }
   }
 
+  /**
+   * Steal up to `qty` units of `resource` from `from`. Or, at least as
+   * much as possible.
+   */
+  public stealResource(resource: Resources, qty: number, from: Player) {
+    const qtyToSteal = Math.min(this.getResource(resource), qty);
+    if (qtyToSteal > 0) {
+      this.deductResource(resource, qtyToSteal, {log: true, from: from, stealing: true});
+      from.addResource(resource, qtyToSteal);
+    }
+  }
+
   // Returns true when the player has the supplied units in its inventory.
   public hasUnits(units: Units): boolean {
     return this.megaCredits - units.megacredits >= 0 &&
@@ -509,6 +535,7 @@ export class Player {
     this.colonies.calculateVictoryPoints(victoryPointsBreakdown);
     MoonExpansion.calculateVictoryPoints(this, victoryPointsBreakdown);
     PathfindersExpansion.calculateVictoryPoints(this, victoryPointsBreakdown);
+    CeoExtension.calculateVictoryPoints(this, victoryPointsBreakdown);
 
     // Escape velocity VP penalty
     if (this.game.gameOptions.escapeVelocityMode) {
@@ -580,8 +607,8 @@ export class Player {
   public getNoTagsCount() {
     let noTagsCount = 0;
 
-    noTagsCount += this.corporations.filter((card) => card.cardType !== CardType.EVENT && card.tags.every((tag) => tag === Tag.WILD)).length;
-    noTagsCount += this.playedCards.filter((card) => card.cardType !== CardType.EVENT && card.tags.every((tag) => tag === Tag.WILD)).length;
+    noTagsCount += this.corporations.filter((card) => card.type !== CardType.EVENT && card.tags.every((tag) => tag === Tag.WILD)).length;
+    noTagsCount += this.playedCards.filter((card) => card.type !== CardType.EVENT && card.tags.every((tag) => tag === Tag.WILD)).length;
 
     return noTagsCount;
   }
@@ -644,7 +671,7 @@ export class Player {
    * Legend Milestone, Media Archives, and NOT Media Group.
    */
   public getPlayedEventsCount(): number {
-    let count = this.playedCards.filter((card) => card.cardType === CardType.EVENT).length;
+    let count = this.playedCards.filter((card) => card.type === CardType.EVENT).length;
     if (this.getCorporation(CardName.PHARMACY_UNION)?.isDisabled) count++;
 
     return count;
@@ -741,7 +768,7 @@ export class Player {
   }
 
   public getCardsByCardType(cardType: CardType) {
-    return this.playedCards.filter((card) => card.cardType === cardType);
+    return this.playedCards.filter((card) => card.type === cardType);
   }
 
   public deferInputCb(result: PlayerInput | undefined): void {
@@ -759,7 +786,17 @@ export class Player {
   public getPlayableActionCards(): Array<ICard & IActionCard> {
     const result: Array<ICard & IActionCard> = [];
     for (const playedCard of this.tableau) {
-      if (isIActionCard(playedCard) && !this.actionsThisGeneration.has(playedCard.name) && playedCard.canAct(this)) {
+      if (isIActionCard(playedCard) && !this.actionsThisGeneration.has(playedCard.name) && !isCeoCard(playedCard) && playedCard.canAct(this)) {
+        result.push(playedCard);
+      }
+    }
+    return result;
+  }
+
+  public getUsableOPGCeoCards(): Array<ICeoCard> {
+    const result: Array<ICeoCard> = [];
+    for (const playedCard of this.tableau) {
+      if (isCeoCard(playedCard) && playedCard.canAct(this) ) {
         result.push(playedCard);
       }
     }
@@ -781,6 +818,12 @@ export class Player {
     this.plants += this.production.plants;
 
     this.corporations.forEach((card) => card.onProductionPhase?.(this));
+    // Turn off CEO OPG actions that were activated this generation
+    for (const card of this.playedCards) {
+      if (isCeoCard(card)) {
+        card.opgActionIsActive = false;
+      }
+    }
   }
 
   private doneWorldGovernmentTerraforming(): void {
@@ -872,13 +915,15 @@ export class Player {
     }
   }
 
-  /*
+  /**
+   * Ask the player to draft from a set of cards.
+   *
    * @param initialDraft when true, this is part of the first generation draft.
    * @param playerName  The player _this_ player passes remaining cards to.
    * @param passedCards The cards received from the draw, or from the prior player. If empty, it's the first
    *   step in the draft, and cards have to be dealt.
    */
-  public runDraftPhase(initialDraft: boolean, playerName: string, passedCards?: Array<IProjectCard>): void {
+  public askPlayerToDraft(initialDraft: boolean, playerName: string, passedCards?: Array<IProjectCard>): void {
     let cardsToKeep = 1;
 
     let cards: Array<IProjectCard> = [];
@@ -903,23 +948,20 @@ export class Player {
       'Select two cards to keep and pass the rest to ${0}';
 
     this.setWaitingFor(
-      new SelectCard({
-        message: message,
-        data: [{
-          type: LogMessageDataType.RAW_STRING,
-          value: playerName,
-        }],
-      },
-      'Keep',
-      cards,
-      (selected) => {
-        selected.forEach((card) => {
-          this.draftedCards.push(card);
-          cards = cards.filter((c) => c !== card);
-        });
-        this.game.playerIsFinishedWithDraftingPhase(initialDraft, this, cards);
-        return undefined;
-      }, {min: cardsToKeep, max: cardsToKeep, played: false}),
+      new SelectCard(
+        new MessageBuilder(message)
+          .rawString(playerName) // TODO(kberg): replace with player?`
+          .getMessage(),
+        'Keep',
+        cards,
+        (selected) => {
+          selected.forEach((card) => {
+            this.draftedCards.push(card);
+            cards = cards.filter((c) => c !== card);
+          });
+          this.game.playerIsFinishedWithDraftingPhase(initialDraft, this, cards);
+          return undefined;
+        }, {min: cardsToKeep, max: cardsToKeep, played: false}),
     );
   }
 
@@ -930,27 +972,22 @@ export class Player {
   public runDraftCorporationPhase(playerName: string, passedCards: Array<ICorporationCard>): void {
     let cards: Array<ICorporationCard> = passedCards;
 
-    const message = 'Select a corporation to keep and pass the rest to ${0}';
-
     this.setWaitingFor(
-      new SelectCard({
-        message: message,
-        data: [{
-          type: LogMessageDataType.RAW_STRING,
-          value: playerName,
-        }],
-      },
-      'Keep',
-      cards,
-      (foundCards: Array<ICorporationCard>) => {
-        foundCards.forEach((card) => {
-          this.draftedCorporations.push(card);
-          this.game.log('${0} kept ${1}', (b) => b.player(this).card(card));
-          cards = cards.filter((c) => c !== card);
-        });
-        this.game.playerIsFinishedWithDraftingCorporationPhase(this, cards);
-        return undefined;
-      }, {min: 1, max: 1, played: false}),
+      new SelectCard(
+        new MessageBuilder('Select a corporation to keep and pass the rest to ${0}')
+          .rawString(playerName) // TODO(kberg): replace with player?`
+          .getMessage(),
+        'Keep',
+        cards,
+        (foundCards: Array<ICorporationCard>) => {
+          foundCards.forEach((card) => {
+            this.draftedCorporations.push(card);
+            this.game.log('${0} kept ${1}', (b) => b.player(this).card(card));
+            cards = cards.filter((c) => c !== card);
+          });
+          this.game.playerIsFinishedWithDraftingCorporationPhase(this, cards);
+          return undefined;
+        }, {min: 1, max: 1, played: false}),
     );
   }
 
@@ -1021,7 +1058,7 @@ export class Player {
       microbes: card.tags.includes(Tag.PLANT),
       science: card.tags.includes(Tag.MOON),
       // TODO(kberg): add this.corporation.name === CardName.AURORAI
-      data: card.cardType === CardType.STANDARD_PROJECT,
+      data: card.type === CardType.STANDARD_PROJECT,
     };
   }
 
@@ -1120,7 +1157,7 @@ export class Player {
 
     ColoniesHandler.onCardPlayed(this.game, selectedCard);
 
-    if (selectedCard.cardType !== CardType.PROXY) {
+    if (selectedCard.type !== CardType.PROXY) {
       this.lastCardPlayed = selectedCard.name;
       this.game.log('${0} played ${1}', (b) => b.player(this).card(selectedCard));
     }
@@ -1190,7 +1227,7 @@ export class Player {
   }
 
   public onCardPlayed(card: IProjectCard) {
-    if (card.cardType === CardType.PROXY) {
+    if (card.type === CardType.PROXY) {
       return;
     }
     for (const playedCard of this.playedCards) {
@@ -1234,6 +1271,21 @@ export class Player {
             () => action,
           ));
         }
+        this.actionsThisGeneration.add(card.name);
+        return undefined;
+      }, {selectBlueCardAction: true},
+    );
+  }
+
+  private playCeoOPGAction(): PlayerInput {
+    return new SelectCard<ICeoCard>(
+      'Use CEO once per game action',
+      'Take action',
+      this.getUsableOPGCeoCards(),
+      ([card]) => {
+        this.game.log('${0} used ${1} action', (b) => b.player(this).card(card));
+        const action = card.action?.(this);
+        this.defer(action);
         this.actionsThisGeneration.add(card.name);
         return undefined;
       }, {selectBlueCardAction: true},
@@ -1330,7 +1382,12 @@ export class Player {
         player: this,
         milestone: milestone,
       });
-      this.game.defer(new SelectPaymentDeferred(this, MILESTONE_COST, {title: 'Select how to pay for milestone'}));
+      // VanAllen CEO Hook for Milestones
+      if (this.cardIsInEffect(CardName.VANALLEN)) {
+        this.addResource(Resources.MEGACREDITS, 3, {log: true});
+      } else {
+        this.game.defer(new SelectPaymentDeferred(this, MILESTONE_COST, {title: 'Select how to pay for milestone'}));
+      }
       this.game.log('${0} claimed ${1} milestone', (b) => b.player(this).milestone(milestone));
       return undefined;
     });
@@ -1345,40 +1402,48 @@ export class Player {
   }
 
   private giveAwards(vpb: VictoryPointsBreakdown): void {
+    // Awards are disabled for 1 player games
+    if (this.game.isSoloMode()) return;
+
+    const maybeSetVP = (player: Player, fundedAward: FundedAward, vps: number, place: '1st' | '2nd') => {
+      if (player.id === this.id) {
+        vpb.setVictoryPoints(
+          'awards',
+          vps,
+          `${place} place for ${fundedAward.award.name} award (funded by ${fundedAward.player.name})`);
+      }
+    };
+
     this.game.fundedAwards.forEach((fundedAward) => {
-      // Awards are disabled for 1 player games
-      if (this.game.isSoloMode()) return;
-
+      const award = fundedAward.award;
+      const scorer = new AwardScorer(this.game, award);
       const players: Array<Player> = this.game.getPlayers().slice();
-      players.sort(
-        (p1, p2) => fundedAward.award.getScore(p2) - fundedAward.award.getScore(p1),
-      );
+      players.sort((p1, p2) => scorer.get(p2) - scorer.get(p1));
 
-      // We have one rank 1 player
-      if (fundedAward.award.getScore(players[0]) > fundedAward.award.getScore(players[1])) {
-        if (players[0].id === this.id) vpb.setVictoryPoints('awards', 5, '1st place for '+fundedAward.award.name+' award (funded by '+fundedAward.player.name+')');
+      // There is one rank 1 player
+      if (scorer.get(players[0]) > scorer.get(players[1])) {
+        maybeSetVP(players[0], fundedAward, 5, '1st');
         players.shift();
 
         if (players.length > 1) {
-          // We have one rank 2 player
-          if (fundedAward.award.getScore(players[0]) > fundedAward.award.getScore(players[1])) {
-            if (players[0].id === this.id) vpb.setVictoryPoints('awards', 2, '2nd place for '+fundedAward.award.name+' award (funded by '+fundedAward.player.name+')');
-
-          // We have at least two rank 2 players
+          // There is one rank 2 player
+          if (scorer.get(players[0]) > scorer.get(players[1])) {
+            maybeSetVP(players[0], fundedAward, 2, '2nd');
           } else {
-            const score = fundedAward.award.getScore(players[0]);
-            while (players.length > 0 && fundedAward.award.getScore(players[0]) === score) {
-              if (players[0].id === this.id) vpb.setVictoryPoints('awards', 2, '2nd place for '+fundedAward.award.name+' award (funded by '+fundedAward.player.name+')');
+            // There are at least two rank 2 players
+            const score = scorer.get(players[0]);
+            while (players.length > 0 && scorer.get(players[0]) === score) {
+              maybeSetVP(players[0], fundedAward, 2, '2nd');
               players.shift();
             }
           }
         }
 
-      // We have at least two rank 1 players
+      // There are at least two rank 1 players
       } else {
-        const score = fundedAward.award.getScore(players[0]);
-        while (players.length > 0 && fundedAward.award.getScore(players[0]) === score) {
-          if (players[0].id === this.id) vpb.setVictoryPoints('awards', 5, '1st place for '+fundedAward.award.name+' award (funded by '+fundedAward.player.name+')');
+        const score = scorer.get(players[0]);
+        while (players.length > 0 && scorer.get(players[0]) === score) {
+          maybeSetVP(players[0], fundedAward, 5, '1st');
           players.shift();
         }
       }
@@ -1446,7 +1511,7 @@ export class Player {
           return undefined;
         }),
       );
-      this.setWaitingFor(action);
+      this.setWaitingForSafely(action);
       return;
     }
 
@@ -1459,6 +1524,10 @@ export class Player {
 
   private getPlayablePreludeCards(): Array<IProjectCard> {
     return this.preludeCardsInHand.filter((card) => card.canPlay === undefined || card.canPlay(this));
+  }
+
+  private getPlayableCeoCards(): Array<IProjectCard> {
+    return this.ceoCardsInHand.filter((card) => card.canPlay?.(this) === true);
   }
 
   public getPlayableCards(): Array<IProjectCard> {
@@ -1659,8 +1728,6 @@ export class Player {
       return;
     }
 
-    const allOtherPlayersHavePassed = this.allOtherPlayersHavePassed();
-
     if (this.actionsTakenThisRound === 0 || game.gameOptions.undoOption) game.save();
     // if (saveBeforeTakingAction) game.save();
 
@@ -1684,12 +1751,26 @@ export class Player {
         }
       });
       return;
+    } else if (this.ceoCardsInHand.length > 0) {
+      // The CEO phase occurs between the Prelude phase and before the Action phase.
+      // All CEO cards are played before players take their first normal actions.
+      game.phase = Phase.CEOS;
+      const playableCeoCards = this.getPlayableCeoCards();
+      for (let i = playableCeoCards.length - 1; i >= 0; i--) {
+        // start from the end of the list and work backwards, we're removing items as we go.
+        const card = this.ceoCardsInHand[i];
+        this.playCard(card);
+      }
+      // Null out ceoCardsInHand, anything left was unplayable.
+      this.ceoCardsInHand = [];
+      this.takeAction(); // back to top
     } else {
       game.phase = Phase.ACTION;
     }
 
-    if (game.hasPassedThisActionPhase(this) || (allOtherPlayersHavePassed === false && this.actionsTakenThisRound >= 2)) {
+    if (game.hasPassedThisActionPhase(this) || (this.allOtherPlayersHavePassed() === false && this.actionsTakenThisRound >= 2)) {
       this.actionsTakenThisRound = 0;
+      game.resettable = true;
       game.playerIsFinishedTakingActions();
       return;
     }
@@ -1710,13 +1791,10 @@ export class Player {
 
       this.pendingInitialActions.forEach((corp) => {
         const option = new SelectOption(
-          {
-            message: 'Take first action of ${0} corporation',
-            data: [{
-              type: LogMessageDataType.RAW_STRING,
-              value: corp.name,
-            }],
-          },
+          new MessageBuilder('Take first action of ${0} corporation')
+            .rawString(corp.name) // TODO(kberg): replace with card or cardName?]
+            .getMessage(),
+
           corp.initialActionText, () => {
             this.runInitialAction(corp);
             this.pendingInitialActions.splice(this.pendingInitialActions.indexOf(corp), 1);
@@ -1743,7 +1821,7 @@ export class Player {
     });
   }
 
-  // TODO(kberg): move to Card
+  // TODO(kberg): perhaps move to Card
   public runInitialAction(corp: ICorporationCard) {
     this.game.defer(new SimpleDeferredAction(this, () => {
       if (corp.initialAction) {
@@ -1767,7 +1845,8 @@ export class Player {
       'Take your first action' : 'Take your next action';
     action.buttonLabel = 'Take action';
 
-    if (this.canAfford(MILESTONE_COST) && !this.game.allMilestonesClaimed()) {
+    // VanAllen can claim milestones for free:
+    if ((this.canAfford(MILESTONE_COST) || this.cardIsInEffect(CardName.VANALLEN)) && !this.game.allMilestonesClaimed() ) {
       const remainingMilestones = new OrOptions();
       remainingMilestones.title = 'Claim a milestone';
       remainingMilestones.options = this.game.milestones
@@ -1798,15 +1877,16 @@ export class Player {
     TurmoilHandler.addPlayerAction(this, action.options);
 
     if (this.getPlayableActionCards().length > 0) {
-      action.options.push(
-        this.playActionCard(),
-      );
+      action.options.push(this.playActionCard());
+    }
+
+    if (CeoExtension.ceoActionIsUsable(this)) {
+      action.options.push(this.playCeoOPGAction());
     }
 
     const playableCards = this.getPlayableCards();
     if (playableCards.length !== 0) {
-      action.options.push(
-        new SelectProjectCardToPlay(this, playableCards));
+      action.options.push(new SelectProjectCardToPlay(this, playableCards));
     }
 
     const coloniesTradeAction = this.colonies.coloniesTradeAction();
@@ -1838,21 +1918,13 @@ export class Player {
       this.actionsTakenThisRound > 0 &&
       !this.game.gameOptions.fastModeOption &&
       this.allOtherPlayersHavePassed() === false) {
-      action.options.push(
-        this.endTurnOption(),
-      );
+      action.options.push(this.endTurnOption());
     }
 
     const fundingCost = this.game.getAwardFundingCost();
     if (this.canAfford(fundingCost) && !this.game.allAwardsFunded()) {
       const remainingAwards = new OrOptions();
-      remainingAwards.title = {
-        data: [{
-          type: LogMessageDataType.RAW_STRING,
-          value: String(fundingCost),
-        }],
-        message: 'Fund an award (${0} M€)',
-      };
+      remainingAwards.title = new MessageBuilder('Fund an award (${0} M€)').number(fundingCost).getMessage(),
       remainingAwards.buttonLabel = 'Confirm';
       remainingAwards.options = this.game.awards
         .filter((award: IAward) => this.game.hasBeenFunded(award) === false)
@@ -1908,9 +1980,30 @@ export class Player {
     return this.waitingFor;
   }
   public setWaitingFor(input: PlayerInput, cb: () => void = () => {}): void {
+    if (this.waitingFor !== undefined) {
+      // Add a metric.
+      console.error('Overwriting a waitingFor: ' + this.waitingFor);
+    }
     this.timer.start();
     this.waitingFor = input;
     this.waitingForCb = cb;
+    this.game.inputsThisRound++;
+  }
+
+  // This was only built for the Philares/Final Greenery case. Might not work elsewhere.
+  public setWaitingForSafely(input: PlayerInput, cb: () => void = () => {}): void {
+    if (this.waitingFor === undefined) {
+      this.setWaitingFor(input, cb);
+    } else {
+      const oldcb = this.waitingForCb;
+      this.waitingForCb =
+        oldcb === undefined ?
+          cb :
+          () => {
+            oldcb();
+            this.setWaitingForSafely(input, cb);
+          };
+    }
   }
 
   public serialize(): SerializedPlayer {
@@ -1954,13 +2047,14 @@ export class Player {
       actionsTakenThisRound: this.actionsTakenThisRound,
       actionsThisGeneration: Array.from(this.actionsThisGeneration),
       pendingInitialActions: this.pendingInitialActions.map((c) => c.name),
-      corporationInitialActionDone: undefined,
       // Cards
       dealtCorporationCards: this.dealtCorporationCards.map((c) => c.name),
-      dealtProjectCards: this.dealtProjectCards.map((c) => c.name),
       dealtPreludeCards: this.dealtPreludeCards.map((c) => c.name),
+      dealtCeoCards: this.dealtCeoCards.map((c) => c.name),
+      dealtProjectCards: this.dealtProjectCards.map((c) => c.name),
       cardsInHand: this.cardsInHand.map((c) => c.name),
       preludeCardsInHand: this.preludeCardsInHand.map((c) => c.name),
+      ceoCardsInHand: this.ceoCardsInHand.map((c) => c.name),
       playedCards: this.playedCards.map(serializeProjectCard),
       draftedCards: this.draftedCards.map((c) => c.name),
       cardCost: this.cardCost,
@@ -2011,8 +2105,7 @@ export class Player {
     player.actionsTakenThisGame = d.actionsTakenThisGame;
     player.actionsTakenThisRound = d.actionsTakenThisRound;
     player.canUseHeatAsMegaCredits = d.canUseHeatAsMegaCredits;
-    // TODO(kberg): remove ?? false by 2022-12-01
-    player.canUseTitaniumAsMegacredits = d.canUseTitaniumAsMegacredits ?? false;
+    player.canUseTitaniumAsMegacredits = d.canUseTitaniumAsMegacredits;
     player.cardCost = d.cardCost;
     player.colonies.cardDiscount = d.cardDiscount;
     player.colonies.tradeDiscount = d.colonyTradeDiscount;
@@ -2062,8 +2155,7 @@ export class Player {
     }
 
     // Rebuild corporation cards
-    let corporations = d.corporations;
-    if (corporations === undefined && d.corporationCard !== undefined) corporations = [d.corporationCard];
+    const corporations = d.corporations;
 
     // This shouldn't happen
     if (corporations !== undefined) {
@@ -2081,15 +2173,13 @@ export class Player {
     }
 
     player.pendingInitialActions = cardFinder.corporationCardsFromJSON(d.pendingInitialActions ?? []);
-    if (d.corporationInitialActionDone !== undefined) {
-      player.pendingInitialActions = [player.corporations[0]];
-    }
-
     player.dealtCorporationCards = cardFinder.corporationCardsFromJSON(d.dealtCorporationCards);
     player.dealtPreludeCards = cardFinder.cardsFromJSON(d.dealtPreludeCards);
+    player.dealtCeoCards = cardFinder.ceosFromJSON(d.dealtCeoCards);
     player.dealtProjectCards = cardFinder.cardsFromJSON(d.dealtProjectCards);
     player.cardsInHand = cardFinder.cardsFromJSON(d.cardsInHand);
     player.preludeCardsInHand = cardFinder.cardsFromJSON(d.preludeCardsInHand);
+    player.ceoCardsInHand = cardFinder.ceosFromJSON(d.ceoCardsInHand);
     player.playedCards = d.playedCards.map((element: SerializedCard) => deserializeProjectCard(element, cardFinder));
     player.draftedCards = cardFinder.cardsFromJSON(d.draftedCards);
 

@@ -22,6 +22,7 @@ import {PlayerInput} from './routes/PlayerInput';
 import {ServeApp} from './routes/ServeApp';
 import {ServeAsset} from './routes/ServeAsset';
 import {serverId, statsId} from './server-ids';
+import {Reset} from './routes/Reset';
 
 const handlers: Map<string, IHandler> = new Map(
   [
@@ -49,6 +50,7 @@ const handlers: Map<string, IHandler> = new Map(
     [paths.NEW_GAME, ServeApp.INSTANCE],
     [paths.PLAYER, ServeApp.INSTANCE],
     [paths.PLAYER_INPUT, PlayerInput.INSTANCE],
+    [paths.RESET, Reset.INSTANCE],
     [paths.SPECTATOR, ServeApp.INSTANCE],
     ['/terraforming/styles.css', ServeAsset.INSTANCE],
     ['/terraforming/sw.js', ServeAsset.INSTANCE],
@@ -70,8 +72,9 @@ export function processRequest(
   }
 
   const url = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = url.pathname.substring(1); // Remove leading '/'
   const ctx = {url, route, gameLoader: GameLoader.getInstance(), ids: {serverId, statsId}};
-  const handler: IHandler | undefined = handlers.get(url.pathname);
+  const handler: IHandler | undefined = handlers.get(pathname);
 
   if (handler !== undefined) {
     handler.processRequest(req, res, ctx);

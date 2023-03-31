@@ -133,6 +133,12 @@
                                     <span v-i18n>Alt. Venus Board</span> &nbsp;<a href="https://github.com/terraforming-mars/terraforming-mars/wiki/Alternative-Venus-Board" class="tooltip" target="_blank">&#9432;</a>
                                 </label>
                             </template>
+
+                            <input type="checkbox" name="ceo" id="ceo-checkbox" v-model="ceoExtension">
+                            <label for="ceo-checkbox" class="expansion-button">
+                                <div class="create-game-expansion-icon expansion-icon-ceo"></div>
+                                <span v-i18n>CEOs (BETA)</span>&nbsp;<a href="https://github.com/terraforming-mars/terraforming-mars/wiki/CEOs" class="tooltip" target="_blank">&#9432;</a>
+                            </label>
                         </div>
 
                         <div class="create-game-page-column">
@@ -160,6 +166,14 @@
                             <input type="number" class="create-game-corporations-count" value="2" min="1" :max="6" v-model="startingCorporations" id="startingCorpNum-checkbox">
                                 <span v-i18n>Starting Corporations</span>
                             </label>
+
+                            <template v-if="ceoExtension">
+                              <label for="startingCEONum-checkbox">
+                              <div class="create-game-expansion-icon expansion-icon-ceo"></div>
+                              <input type="number" class="create-game-corporations-count" value="3" min="1" :max="6" v-model="startingCeos" id="startingCEONum-checkbox">
+                                  <span v-i18n>Starting CEOs</span>
+                              </label>
+                            </template>
 
                             <input type="checkbox" v-model="solarPhaseOption" id="WGT-checkbox">
                             <label for="WGT-checkbox">
@@ -283,10 +297,6 @@
                                 </label>
                                 </div>
                             </div>
-                            <input type="checkbox" v-model="corporationsDraft" id="corporationsDraft-checkbox">
-                            <label for="corporationsDraft-checkbox">
-                                <span v-i18n>Corporations Draft</span>
-                            </label>
                             <input type="checkbox" v-model="randomFirstPlayer" id="randomFirstPlayer-checkbox">
                             <label for="randomFirstPlayer-checkbox">
                                 <span v-i18n>Random first player</span>
@@ -387,7 +397,7 @@
                         </div>
 
                         <div class="create-game-action">
-                            <Button title="Create game" size="big" @click="createGame"/>
+                            <AppButton title="Create game" size="big" @click="createGame"/>
 
                             <label>
                                 <div class="btn btn-primary btn-action btn-lg"><i class="icon icon-upload"></i></div>
@@ -452,6 +462,9 @@
 </template>
 
 <script lang="ts">
+import * as constants from '@/common/constants';
+import * as json_constants from '@/client/components/create/json';
+
 import Vue from 'vue';
 import {WithRefs} from 'vue-typed-refs';
 import {Color} from '@/common/Color';
@@ -464,7 +477,7 @@ import {translateText, translateTextWithParams} from '@/client/directives/i18n';
 import ColoniesFilter from '@/client/components/create/ColoniesFilter.vue';
 import {ColonyName} from '@/common/colonies/ColonyName';
 import CardsFilter from '@/client/components/create/CardsFilter.vue';
-import Button from '@/client/components/common/Button.vue';
+import AppButton from '@/client/components/common/AppButton.vue';
 import {playerColorClass} from '@/common/utils/utils';
 import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
 import {GameId} from '@/common/Types';
@@ -472,10 +485,8 @@ import {AgendaStyle} from '@/common/turmoil/Types';
 import PreferencesIcon from '@/client/components/PreferencesIcon.vue';
 import {getCard} from '@/client/cards/ClientCardManifest';
 import {GameModule} from '@/common/cards/GameModule';
-
-import * as constants from '@/common/constants';
-import * as json_constants from '@/client/components/create/json';
 import {BoardNameType, NewGameConfig, NewPlayerModel} from '@/common/game/NewGameConfig';
+import {vueRoot} from '@/client/components/vueRoot';
 
 const REVISED_COUNT_ALGORITHM = false;
 
@@ -489,7 +500,6 @@ export interface CreateGameModel {
     prelude: boolean;
     draftVariant: boolean;
     initialDraft: boolean;
-    corporationsDraft: boolean;
     randomMA: RandomMAOptionType;
     randomFirstPlayer: boolean;
     showOtherPlayersVP: boolean;
@@ -534,6 +544,9 @@ export interface CreateGameModel {
     escapeVelocityPeriod: number;
     escapeVelocityPenalty: number;
     twoCorpsVariant: boolean;
+    ceoExtension: boolean;
+    customCeos: Array<CardName>;
+    startingCeos: number;
 }
 
 type Refs = {
@@ -565,7 +578,6 @@ export default (Vue as WithRefs<Refs>).extend({
       prelude: false,
       draftVariant: true,
       initialDraft: false,
-      corporationsDraft: false,
       randomMA: RandomMAOptionType.NONE,
       randomFirstPlayer: true,
       showOtherPlayersVP: false,
@@ -622,10 +634,13 @@ export default (Vue as WithRefs<Refs>).extend({
       escapeVelocityPeriod: constants.DEFAULT_ESCAPE_VELOCITY_PERIOD,
       escapeVelocityPenalty: constants.DEFAULT_ESCAPE_VELOCITY_PENALTY,
       twoCorpsVariant: false,
+      ceoExtension: false,
+      customCeos: [],
+      startingCeos: 3,
     };
   },
   components: {
-    Button,
+    AppButton,
     CardsFilter,
     ColoniesFilter,
     CorporationsFilter,
@@ -688,6 +703,9 @@ export default (Vue as WithRefs<Refs>).extend({
           const readerResults = reader.result;
           if (typeof(readerResults) === 'string') {
             const results = JSON.parse(readerResults);
+            if (results.corporationsDraft !== undefined) {
+              warnings.push('Corporations draft is no longer available. Future versions might just raise an error, so edit your JSON file.');
+            }
 
             const customCorporations = results[json_constants.CUSTOM_CORPORATIONS] || results[json_constants.OLD_CUSTOM_CORPORATIONS] || [];
             const customColonies = results[json_constants.CUSTOM_COLONIES] || results[json_constants.OLD_CUSTOM_COLONIES] || [];
@@ -887,17 +905,14 @@ export default (Vue as WithRefs<Refs>).extend({
       return 'https://github.com/terraforming-mars/terraforming-mars/wiki/Maps#' + options[boardName];
     },
     async serializeSettings() {
-      // TODO(kberg): remove 'component'
-      const component: CreateGameModel = this;
+      let players = this.players.slice(0, this.playersCount);
 
-      let players = component.players.slice(0, component.playersCount);
-
-      if (component.randomFirstPlayer) {
+      if (this.randomFirstPlayer) {
         // Shuffle players array to assign each player a random seat around the table
         players = players.map((a) => ({sort: Math.random(), value: a}))
           .sort((a, b) => a.sort - b.sort)
           .map((a) => a.value);
-        component.firstIndex = Math.floor(component.seed * component.playersCount) + 1;
+        this.firstIndex = Math.floor(this.seed * this.playersCount) + 1;
       }
 
       // Auto assign an available color if there are duplicates
@@ -914,9 +929,9 @@ export default (Vue as WithRefs<Refs>).extend({
       }
 
       // Set player name automatically if not entered
-      const isSoloMode = component.playersCount === 1;
+      const isSoloMode = this.playersCount === 1;
 
-      component.players.forEach((player) => {
+      this.players.forEach((player) => {
         if (player.name === '') {
           if (isSoloMode) {
             player.name = this.$t('You');
@@ -928,50 +943,52 @@ export default (Vue as WithRefs<Refs>).extend({
       });
 
       players.map((player: any) => {
-        player.first = (component.firstIndex === player.index);
+        player.first = (this.firstIndex === player.index);
         return player;
       });
 
-      const corporateEra = component.corporateEra;
-      const prelude = component.prelude;
-      const draftVariant = component.draftVariant;
-      const initialDraft = component.initialDraft;
-      const corporationsDraft = component.corporationsDraft;
-      const randomMA = component.randomMA;
-      const showOtherPlayersVP = component.showOtherPlayersVP;
-      const venusNext = component.venusNext;
-      const colonies = component.colonies;
-      const turmoil = component.turmoil;
+      const corporateEra = this.corporateEra;
+      const prelude = this.prelude;
+      const draftVariant = this.draftVariant;
+      const initialDraft = this.initialDraft;
+      const randomMA = this.randomMA;
+      const showOtherPlayersVP = this.showOtherPlayersVP;
+      const venusNext = this.venusNext;
+      const colonies = this.colonies;
+      const turmoil = this.turmoil;
       const solarPhaseOption = this.solarPhaseOption;
       const shuffleMapOption = this.shuffleMapOption;
-      const customColonies = component.customColonies;
-      const customCorporations = component.customCorporations;
-      const customPreludes = component.customPreludes;
-      const bannedCards = component.bannedCards;
-      const board = component.board;
-      const seed = component.seed;
-      const promoCardsOption = component.promoCardsOption;
-      const communityCardsOption = component.communityCardsOption;
-      const aresExtension = component.aresExtension;
+      const customColonies = this.customColonies;
+      const customCorporations = this.customCorporations;
+      const customPreludes = this.customPreludes;
+      const bannedCards = this.bannedCards;
+      const board = this.board;
+      const seed = this.seed;
+      const promoCardsOption = this.promoCardsOption;
+      const communityCardsOption = this.communityCardsOption;
+      const aresExtension = this.aresExtension;
       const politicalAgendasExtension = this.politicalAgendasExtension;
-      const moonExpansion = component.moonExpansion;
-      const pathfindersExpansion = component.pathfindersExpansion;
-      const undoOption = component.undoOption;
-      const showTimers = component.showTimers;
-      const fastModeOption = component.fastModeOption;
+      const moonExpansion = this.moonExpansion;
+      const pathfindersExpansion = this.pathfindersExpansion;
+      const undoOption = this.undoOption;
+      const showTimers = this.showTimers;
+      const fastModeOption = this.fastModeOption;
       const removeNegativeGlobalEventsOption = this.removeNegativeGlobalEventsOption;
-      const includeVenusMA = component.includeVenusMA;
-      const includeFanMA = component.includeFanMA;
-      const startingCorporations = component.startingCorporations;
-      const soloTR = component.soloTR;
-      // const beginnerOption = component.beginnerOption;
-      const randomFirstPlayer = component.randomFirstPlayer;
-      const requiresVenusTrackCompletion = component.requiresVenusTrackCompletion;
-      const escapeVelocityMode = component.escapeVelocityMode;
-      const escapeVelocityThreshold = component.escapeVelocityMode ? component.escapeVelocityThreshold : undefined;
-      const escapeVelocityPeriod = component.escapeVelocityMode ? component.escapeVelocityPeriod : undefined;
-      const escapeVelocityPenalty = component.escapeVelocityMode ? component.escapeVelocityPenalty : undefined;
-      const twoCorpsVariant = component.twoCorpsVariant;
+      const includeVenusMA = this.includeVenusMA;
+      const includeFanMA = this.includeFanMA;
+      const startingCorporations = this.startingCorporations;
+      const soloTR = this.soloTR;
+      // const beginnerOption = this.beginnerOption;
+      const randomFirstPlayer = this.randomFirstPlayer;
+      const requiresVenusTrackCompletion = this.requiresVenusTrackCompletion;
+      const escapeVelocityMode = this.escapeVelocityMode;
+      const escapeVelocityThreshold = this.escapeVelocityMode ? this.escapeVelocityThreshold : undefined;
+      const escapeVelocityPeriod = this.escapeVelocityMode ? this.escapeVelocityPeriod : undefined;
+      const escapeVelocityPenalty = this.escapeVelocityMode ? this.escapeVelocityPenalty : undefined;
+      const twoCorpsVariant = this.twoCorpsVariant;
+      const ceoExtension = this.ceoExtension;
+      const customCeos = this.customCeos;
+      const startingCeos = this.startingCeos;
       let clonedGamedId: undefined | GameId = undefined;
 
       // Check custom colony count
@@ -997,7 +1014,7 @@ export default (Vue as WithRefs<Refs>).extend({
       }
 
       // Check custom corp count
-      if (component.showCorporationList && customCorporations.length > 0) {
+      if (this.showCorporationList && customCorporations.length > 0) {
         let neededCorpsCount = players.length * startingCorporations;
         if (REVISED_COUNT_ALGORITHM) {
           if (this.twoCorpsVariant) {
@@ -1036,7 +1053,7 @@ export default (Vue as WithRefs<Refs>).extend({
 
       // TODO(kberg): this is a direct copy of the code right above.
       // Check custom prelude count
-      if (component.showPreludesList && customPreludes.length > 0) {
+      if (this.showPreludesList && customPreludes.length > 0) {
         const requiredPreludeCount = players.length * constants.PRELUDE_CARDS_DEALT_PER_PLAYER;
         if (customPreludes.length < requiredPreludeCount) {
           window.alert(translateTextWithParams('Must select at least ${0} Preludes', [requiredPreludeCount.toString()]));
@@ -1061,8 +1078,8 @@ export default (Vue as WithRefs<Refs>).extend({
       }
 
       // Clone game checks
-      if (component.clonedGameId !== undefined && component.seededGame) {
-        const gameData = await fetch('/api/cloneablegame?id=' + component.clonedGameId)
+      if (this.clonedGameId !== undefined && this.seededGame) {
+        const gameData = await fetch('api/cloneablegame?id=' + this.clonedGameId)
           .then((response) => {
             if (response.ok) {
               return response.json();
@@ -1073,20 +1090,20 @@ export default (Vue as WithRefs<Refs>).extend({
             return response.text().then((res) => new Error(res));
           });
         if (gameData === undefined) {
-          alert(this.$t('Game id ' + component.clonedGameId + ' not found'));
+          alert(this.$t('Game id ' + this.clonedGameId + ' not found'));
           return;
         }
         if (gameData instanceof Error) {
           alert(this.$t('Error looking for predefined game ' + gameData.message));
           return;
         }
-        clonedGamedId = component.clonedGameId;
+        clonedGamedId = this.clonedGameId;
         if (gameData.playerCount !== players.length) {
           alert(this.$t('Player count mismatch'));
           this.$data.playersCount = gameData.playerCount;
           return;
         }
-      } else if (!component.seededGame) {
+      } else if (!this.seededGame) {
         clonedGamedId = undefined;
       }
 
@@ -1122,20 +1139,22 @@ export default (Vue as WithRefs<Refs>).extend({
         soloTR,
         clonedGamedId,
         initialDraft,
-        corporationsDraft,
         randomMA,
         shuffleMapOption,
         // beginnerOption,
         randomFirstPlayer,
         requiresVenusTrackCompletion,
-        requiresMoonTrackCompletion: component.requiresMoonTrackCompletion,
-        moonStandardProjectVariant: component.moonStandardProjectVariant,
-        altVenusBoard: component.altVenusBoard,
+        requiresMoonTrackCompletion: this.requiresMoonTrackCompletion,
+        moonStandardProjectVariant: this.moonStandardProjectVariant,
+        altVenusBoard: this.altVenusBoard,
         escapeVelocityMode,
         escapeVelocityThreshold,
         escapeVelocityPeriod,
         escapeVelocityPenalty,
         twoCorpsVariant,
+        ceoExtension,
+        customCeos,
+        startingCeos,
       };
       return JSON.stringify(dataToSend, undefined, 4);
     },
@@ -1149,8 +1168,8 @@ export default (Vue as WithRefs<Refs>).extend({
           return;
         } else {
           window.history.replaceState(json, `${constants.APP_NAME} - Game`, 'game?id=' + json.id);
-          (this as any).$root.$data.game = json;
-          (this as any).$root.$data.screen = 'game-home';
+          vueRoot(this).game = json;
+          vueRoot(this).screen = 'game-home';
         }
       };
 

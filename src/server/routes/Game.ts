@@ -103,7 +103,7 @@ export class GameHandler extends Handler {
             includeVenusMA: gameReq.includeVenusMA,
 
             draftVariant: gameReq.draftVariant,
-            corporationsDraft: gameReq.corporationsDraft,
+            corporationsDraft: false,
             initialDraftVariant: gameReq.initialDraft,
             startingCorporations: gameReq.startingCorporations,
             shuffleMapOption: gameReq.shuffleMapOption,
@@ -123,6 +123,9 @@ export class GameHandler extends Handler {
             escapeVelocityPeriod: gameReq.escapeVelocityPeriod,
             escapeVelocityPenalty: gameReq.escapeVelocityPenalty,
             twoCorpsVariant: gameReq.twoCorpsVariant,
+            ceoExtension: gameReq.ceoExtension,
+            customCeos: gameReq.customCeos,
+            startingCeos: gameReq.startingCeos,
           };
 
           let game: Game;

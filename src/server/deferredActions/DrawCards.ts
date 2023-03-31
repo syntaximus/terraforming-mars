@@ -25,12 +25,13 @@ export class DrawCards<T extends undefined | SelectCard<IProjectCard>> extends D
   }
 
   public execute() : T {
+    this.player.game.resettable = false;
     const game = this.player.game;
     const cards = game.projectDeck.drawByCondition(game, this.count, (card) => {
       if (this.options.resource !== undefined && this.options.resource !== card.resourceType) {
         return false;
       }
-      if (this.options.cardType !== undefined && this.options.cardType !== card.cardType) {
+      if (this.options.cardType !== undefined && this.options.cardType !== card.type) {
         return false;
       }
       if (this.options.tag !== undefined && !this.player.tags.cardHasTag(card, this.options.tag)) {

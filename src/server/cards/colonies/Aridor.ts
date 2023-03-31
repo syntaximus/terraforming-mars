@@ -2,7 +2,6 @@ import {ICorporationCard} from '../corporation/ICorporationCard';
 import {Player} from '../../Player';
 import {Tag} from '../../../common/cards/Tag';
 import {Game} from '../../Game';
-import {IProjectCard} from '../IProjectCard';
 import {Resources} from '../../../common/Resources';
 import {CardType} from '../../../common/cards/CardType';
 import {CardName} from '../../../common/cards/CardName';
@@ -11,14 +10,15 @@ import {SelectColony} from '../../inputs/SelectColony';
 import {Card} from '../Card';
 import {CardRenderer} from '../render/CardRenderer';
 import {ColoniesHandler} from '../../colonies/ColoniesHandler';
-import {SerializedCard} from '@/server/SerializedCard';
+import {SerializedCard} from '../../SerializedCard';
+import {ICard} from '../ICard';
 
 export class Aridor extends Card implements ICorporationCard {
   constructor() {
     super({
       name: CardName.ARIDOR,
       startingMegaCredits: 40,
-      cardType: CardType.CORPORATION,
+      type: CardType.CORPORATION,
       initialActionText: 'Add a colony tile',
 
       metadata: {
@@ -53,6 +53,7 @@ export class Aridor extends Card implements ICorporationCard {
       }
       return undefined;
     });
+    selectColony.showTileOnly = true;
     return selectColony;
   }
 
@@ -68,11 +69,15 @@ export class Aridor extends Card implements ICorporationCard {
     }
   }
 
-  public onCardPlayed(player: Player, card: IProjectCard) {
+  public onCorpCardPlayed(player: Player, card: ICorporationCard) {
+    return this.onCardPlayed(player, card);
+  }
+
+  public onCardPlayed(player: Player, card: ICard) {
     if (
-      card.cardType === CardType.EVENT ||
-        card.tags.filter((tag) => tag !== Tag.WILD).length === 0 ||
-        !player.isCorporation(this.name)) {
+      card.type === CardType.EVENT ||
+      card.tags.filter((tag) => tag !== Tag.WILD).length === 0 ||
+      !player.isCorporation(this.name)) {
       return undefined;
     }
 

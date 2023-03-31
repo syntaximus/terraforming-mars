@@ -15,7 +15,7 @@ import {all} from '../Options';
 export class PublicSponsoredGrant extends Card implements IProjectCard {
   constructor() {
     super({
-      cardType: CardType.EVENT,
+      type: CardType.EVENT,
       name: CardName.PUBLIC_SPONSORED_GRANT,
       cost: 6,
       requirements: CardRequirements.builder((b) => b.party(PartyName.SCIENTISTS)),
@@ -46,8 +46,7 @@ export class PublicSponsoredGrant extends Card implements IProjectCard {
       Tag.POWER,
       Tag.PLANT,
       Tag.MICROBE,
-      Tag.ANIMAL,
-      Tag.EVENT];
+      Tag.ANIMAL];
 
     const options = tags.map((tag) => {
       return new SelectOption(tag, undefined, () => {

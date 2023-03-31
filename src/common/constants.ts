@@ -30,7 +30,7 @@ export const TITANIUM_TRADE_COST = 3;
 
 // Turmoil
 export const DELEGATES_PER_PLAYER = 7;
-export const DELEGATES_FOR_NEUTRAL_PLAYER = 13;
+export const DELEGATES_FOR_NEUTRAL_PLAYER = 14;
 export const REDS_RULING_POLICY_COST = 3;
 export const POLITICAL_AGENDAS_MAX_ACTION_USES = 3;
 
@@ -52,6 +52,9 @@ export const BONUS_SECONDS_PER_ACTION = 2;
 export const DEFAULT_ESCAPE_VELOCITY_THRESHOLD = 30;
 export const DEFAULT_ESCAPE_VELOCITY_PERIOD = 2;
 export const DEFAULT_ESCAPE_VELOCITY_PENALTY = 1;
+
+// Leaders/CEOs
+export const ASIMOV_AWARD_BONUS = 2;
 
 export const LANGUAGES2 = {
   en: 'English',

@@ -13,7 +13,7 @@ import {SelectProjectCardToPlay} from '../../inputs/SelectProjectCardToPlay';
 export class Odyssey extends Card implements ICorporationCard, IActionCard {
   constructor() {
     super({
-      cardType: CardType.CORPORATION,
+      type: CardType.CORPORATION,
       name: CardName.ODYSSEY,
       startingMegaCredits: 33,
 
@@ -25,7 +25,7 @@ export class Odyssey extends Card implements ICorporationCard, IActionCard {
           b.colon().cards(1, {secondaryTag: Tag.EVENT}).asterix().br;
           b.text('(Effect: Your event cards stay face up, and their tags are in use as if those were automated (green) cards.)',
             Size.TINY, false, false).br;
-          b.action('Pay for and play an event card you have already played that has a base cost of 16M€ or less, after which discard that card.', (e) => {
+          b.action('Pay for and play an event card you have already played that has a base cost of 16M€ or less (INCLUDING events that place special tiles,) after which discard that card.', (e) => {
             e.empty().startAction.event({played}).asterix().nbsp.text('≤').nbsp.megacredits(16);
           });
         }),
@@ -45,7 +45,7 @@ export class Odyssey extends Card implements ICorporationCard, IActionCard {
     this.checkLoops++;
     try {
       return player.playedCards.filter((card) => {
-        return card.cardType === CardType.EVENT &&
+        return card.type === CardType.EVENT &&
         card.cost <= 16 &&
         player.canPlay(card);
       });

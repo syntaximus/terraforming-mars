@@ -1,15 +1,10 @@
 import {expect} from 'chai';
-// import {Dealer} from '../../src/server/Dealer';
-import {PreludeDeck} from '../../src/server/cards/Deck';
-// import {setCustomGameOptions} from '../TestingUtils';
+import {PreludeDeck, CeoDeck} from '../../src/server/cards/Deck';
 import {GameCards} from '../../src/server/GameCards';
 import {DEFAULT_GAME_OPTIONS} from '../../src/server/GameOptions';
 import {CardName} from '../../src/common/cards/CardName';
 import {ConstRandom, UnseededRandom} from '../../src/server/Random';
-import {newTestGame} from '../TestGame';
-import {Game} from '../../src/server/Game';
 import {ICard} from '../../src/server/cards/ICard';
-import {Dealer} from '../../src/server/Dealer';
 
 function name(card: ICard): CardName {
   return card.name;
@@ -76,97 +71,43 @@ describe('PreludeDeck', function() {
     expect(deck.drawPile).to.deep.eq(deserialized.drawPile);
     expect(deck.discardPile).to.deep.eq(deserialized.discardPile);
   });
+});
 
-  it('deserializing game with a Dealer', () => {
-    const game = newTestGame(1);
-    const serialized = game.serialize();
-    serialized.projectDeck = undefined;
-    serialized.preludeDeck = undefined;
-    serialized.corporationDeck = undefined;
-    serialized.dealer = {
-      corporationCards: [
-        CardName.CREDICOR,
-        CardName.ECOLINE,
-        CardName.HELION,
-        CardName.INTERPLANETARY_CINEMATICS,
-        CardName.INVENTRIX,
-        CardName.VITOR,
-      ],
-      deck: [
-        CardName.GREAT_DAM,
-        CardName.SUBTERRANEAN_RESERVOIR,
-        CardName.LAKE_MARINERIS,
-        CardName.NOCTIS_CITY,
-        CardName.COMET,
-        CardName.GREENHOUSES,
-        CardName.OPEN_CITY,
-        CardName.MOSS,
-        CardName.BIRDS,
-      ],
-      discarded: [
-        CardName.EOS_CHASMA_NATIONAL_PARK,
-        CardName.SMALL_ANIMALS,
-        CardName.FISH,
-        CardName.BUSINESS_NETWORK,
-        CardName.IO_MINING_INDUSTRIES,
-      ],
-      preludeDeck: [
-        CardName.SMELTING_PLANT,
-        CardName.POLAR_INDUSTRIES,
-        CardName.BIOLAB,
-        CardName.ECOLOGY_EXPERTS,
-        CardName.LOAN,
-        CardName.MOHOLE_EXCAVATION,
-        CardName.SELF_SUFFICIENT_SETTLEMENT,
-      ],
+describe('CeoDeck', function() {
+  const random = new UnseededRandom();
+
+  it('serialization compatibility', () => {
+    const deck = new CeoDeck(new GameCards(
+      {...DEFAULT_GAME_OPTIONS,
+        ceoExtension: true,
+        preludeExtension: true,
+      }).getCeoCards(), [], random);
+
+    const logger = {
+      log: () => {},
     };
-    const game2 = Game.deserialize(serialized);
-    expect(game2.hasOwnProperty('dealer')).is.false;
 
-    expect(game2.projectDeck.drawPile.map(name)).deep.eq([
-      CardName.GREAT_DAM,
-      CardName.SUBTERRANEAN_RESERVOIR,
-      CardName.LAKE_MARINERIS,
-      CardName.NOCTIS_CITY,
-      CardName.COMET,
-      CardName.GREENHOUSES,
-      CardName.OPEN_CITY,
-      CardName.MOSS,
-      CardName.BIRDS,
-    ]);
-    expect(game2.projectDeck.discardPile.map(name)).deep.eq([
-      CardName.EOS_CHASMA_NATIONAL_PARK,
-      CardName.SMALL_ANIMALS,
-      CardName.FISH,
-      CardName.BUSINESS_NETWORK,
-      CardName.IO_MINING_INDUSTRIES,
-    ]);
+    // TODO: Once CEOs is deployed, we can hard-value these deckLength checks.
+    // But while we're constantly adding CEOs we cannot expect the drawPile to have a static length
+    // Instead, I'm getting the length of the deck prior to the draws, and just making sure it shrinks after we draw.
+    const drawCardsCount = 3;
+    const deckLength = deck.drawPile.length - drawCardsCount;
+    for (let i = 0; i < drawCardsCount; i++) {
+      deck.discard(deck.draw(logger));
+    }
 
-    expect(game2.corporationDeck.drawPile.map(name)).deep.eq([
-      CardName.CREDICOR,
-      CardName.ECOLINE,
-      CardName.HELION,
-      CardName.INTERPLANETARY_CINEMATICS,
-      CardName.INVENTRIX,
-      CardName.VITOR]);
-    expect(game2.corporationDeck.discardPile).is.empty;
+    expect(deck.drawPile).has.length(deckLength);
+    expect(deck.discardPile).has.length(drawCardsCount);
 
-    expect(game2.preludeDeck.drawPile.map(name)).deep.eq([
-      CardName.SMELTING_PLANT,
-      CardName.POLAR_INDUSTRIES,
-      CardName.BIOLAB,
-      CardName.ECOLOGY_EXPERTS,
-      CardName.LOAN,
-      CardName.MOHOLE_EXCAVATION,
-      CardName.SELF_SUFFICIENT_SETTLEMENT,
-    ]);
-    expect(game2.preludeDeck.discardPile).is.empty;
+    const serialized = deck.serialize();
+    expect(serialized.drawPile).has.length(deckLength);
+    expect(serialized.discardPile).has.length(drawCardsCount);
 
-    const dealer = Dealer.deserialize(serialized.dealer);
-    expect(dealer.dealCard(game).name).eq(CardName.BIRDS);
-    expect(game2.projectDeck.draw(game).name).eq(CardName.BIRDS);
+    const deserialized = CeoDeck.deserialize(serialized, UnseededRandom.INSTANCE);
+    expect(deserialized.drawPile).has.length(deckLength);
+    expect(deserialized.discardPile).has.length(drawCardsCount);
 
-    expect(dealer.dealPreludeCard().name).eq(CardName.SELF_SUFFICIENT_SETTLEMENT);
-    expect(game2.preludeDeck.draw(game).name).eq(CardName.SELF_SUFFICIENT_SETTLEMENT);
+    expect(deck.drawPile).to.deep.eq(deserialized.drawPile);
+    expect(deck.discardPile).to.deep.eq(deserialized.discardPile);
   });
 });

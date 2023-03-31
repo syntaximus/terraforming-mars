@@ -472,6 +472,8 @@ export enum CardName {
     MERGER = 'Merger',
     CORPORATE_ARCHIVES = 'Corporate Archives',
     DOUBLE_DOWN = 'Double Down',
+    PSYCHE = '16 Psyche',
+    ROBOT_POLLINATORS = 'Robot Pollinators',
 
     // Community corps
     AGRICOLA_INC = 'Agricola Inc',
@@ -496,6 +498,9 @@ export enum CardName {
     // Community colonies
     SCIENCE_TAG_BLANK_CARD = '',
 
+    // For Playwright.
+    SPECIAL_DESIGN_PROXY = 'Special Design:proxy',
+
     // Ares expansion.
     BIOENGINEERING_ENCLOSURE = 'Bioengineering Enclosure',
     BIOFERTILIZER_FACILITY = 'Bio-Fertilizer Facility',
@@ -506,6 +511,7 @@ export enum CardName {
     ECOLOGICAL_SURVEY = 'Ecological Survey',
     ECOLOGICAL_ZONE_ARES = 'Ecological Zone:ares',
     GEOLOGICAL_SURVEY = 'Geological Survey',
+    GREAT_DAM_ARES = 'Great Dam:ares',
     INDUSTRIAL_CENTER_ARES = 'Industrial Center:ares',
     LAVA_FLOWS_ARES = 'Lava Flows:ares',
     MARKETING_EXPERTS = 'Marketing Experts',
@@ -752,4 +758,41 @@ export enum CardName {
     MIND_SET_MARS = 'Mind Set Mars',
     HABITAT_MARTE = 'Habitat Marte',
     ADHAI_HIGH_ORBIT_CONSTRUCTIONS = 'Adhai High Orbit Constructions',
+
+    // CEOs
+    ASIMOV = 'Asimov',
+    BJORN = 'Bjorn',
+    CLARKE = 'Clarke',
+    DUNCAN = 'Duncan',
+    ENDER = 'Ender',
+    FLOYD = 'Floyd',
+    GORDON = 'Gordon',
+    GRETA = 'Greta',
+    HAL9000 = 'HAL 9000',
+    INGRID = 'Ingrid',
+    JANSSON = 'Jansson',
+    KAREN = 'Karen',
+    LOWELL = 'Lowell',
+    MUSK = 'Musk',
+    MARIA = 'Maria',
+    NAOMI = 'Naomi',
+    OSCAR = 'Oscar',
+    PETRA = 'Petra',
+    QUILL = 'Quill',
+    ROGERS = 'Rogers',
+    STEFAN = 'Stefan',
+    TATE = 'Tate',
+    ULRICH = 'Ulrich',
+    VANALLEN = 'Van Allen',
+    WILL = 'Will',
+    XAVIER = 'Xavier',
+    YVONNE = 'Yvonne',
+    ZAN = 'Zan',
+    FARADAY = 'Faraday',
+    HUAN = 'Huan',
+    RYU = 'Ryu',
+    CAESAR = 'Caesar',
+    GAIA = 'Gaia',
+    NEIL = 'Neil',
+    APOLLO = 'Apollo',
 }

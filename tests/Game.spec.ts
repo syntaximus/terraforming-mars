@@ -8,7 +8,7 @@ import * as constants from '../src/common/constants';
 import {Birds} from '../src/server/cards/base/Birds';
 import {WaterImportFromEuropa} from '../src/server/cards/base/WaterImportFromEuropa';
 import {Phase} from '../src/common/Phase';
-import {addCity, addGreenery, addOcean, cast, forceGenerationEnd, maxOutOceans, runAllActions, testGameOptions} from './TestingUtils';
+import {addCity, addGreenery, addOcean, cast, forceGenerationEnd, maxOutOceans, runAllActions, setOxygenLevel, setTemperature, setVenusScaleLevel, testGameOptions} from './TestingUtils';
 import {TestPlayer} from './TestPlayer';
 import {SaturnSystems} from '../src/server/cards/corporation/SaturnSystems';
 import {Resources} from '../src/common/Resources';
@@ -29,6 +29,8 @@ import {SpaceBonus} from '../src/common/boards/SpaceBonus';
 import {TileType} from '../src/common/TileType';
 import {IColony} from '../src/server/colonies/IColony';
 import {IAward} from '../src/server/awards/IAward';
+import {SerializedGame} from '../src/server/SerializedGame';
+import {SelectInitialCards} from '../src/server/inputs/SelectInitialCards';
 
 describe('Game', () => {
   it('should initialize with right defaults', () => {
@@ -120,7 +122,7 @@ describe('Game', () => {
     const player2 = TestPlayer.RED.newPlayer();
     const game = Game.newInstance('game-id', [player, player2], player);
 
-    (game as any).temperature = 6;
+    setTemperature(game, 6);
     let initialTR = player.getTerraformRating();
     game.increaseTemperature(player, 2);
 
@@ -128,7 +130,7 @@ describe('Game', () => {
     expect(player.getTerraformRating()).to.eq(initialTR + 1);
 
     initialTR = player.getTerraformRating();
-    (game as any).temperature = 6;
+    setTemperature(game, 6);
 
     // Try 3 steps increase
     game.increaseTemperature(player, 3);
@@ -141,7 +143,7 @@ describe('Game', () => {
     const player2 = TestPlayer.RED.newPlayer();
     const game = Game.newInstance('game-id', [player, player2], player);
 
-    (game as any).oxygenLevel = 13;
+    setOxygenLevel(game, 13);
     const initialTR = player.getTerraformRating();
     game.increaseOxygenLevel(player, 2);
 
@@ -190,10 +192,10 @@ describe('Game', () => {
     const game = Game.newInstance('game-venusterraform', [player, player2], player);
     game.gameOptions.venusNextExtension = true;
     game.gameOptions.requiresVenusTrackCompletion = true;
-    (game as any).temperature = constants.MAX_TEMPERATURE;
-    (game as any).oxygenLevel = constants.MAX_OXYGEN_LEVEL;
-    // (game as any).venusScaleLevel = constants.MAX_VENUS_SCALE;
-    (game as any).venusScaleLevel = 6;
+    setTemperature(game, constants.MAX_TEMPERATURE);
+    setOxygenLevel(game, constants.MAX_OXYGEN_LEVEL);
+    // setVenusScaleLevel(game, constants.MAX_VENUS_SCALE);
+    setVenusScaleLevel(game, 6);
     maxOutOceans(player);
     // Skip final greenery Phase
     player.plants = 0;
@@ -212,9 +214,9 @@ describe('Game', () => {
     const game = Game.newInstance('game-venusterraform', [player, player2], player);
     game.gameOptions.venusNextExtension = true;
     game.gameOptions.requiresVenusTrackCompletion = true;
-    (game as any).temperature = constants.MAX_TEMPERATURE;
-    (game as any).oxygenLevel = constants.MAX_OXYGEN_LEVEL;
-    (game as any).venusScaleLevel = constants.MAX_VENUS_SCALE;
+    setTemperature(game, constants.MAX_TEMPERATURE);
+    setOxygenLevel(game, constants.MAX_OXYGEN_LEVEL);
+    setVenusScaleLevel(game, constants.MAX_VENUS_SCALE);
     maxOutOceans(player);
     // Skip final greenery Phase
     player.plants = 0;
@@ -239,9 +241,9 @@ describe('Game', () => {
     const game = Game.newInstance('game-venusterraform', [player, player2], player);
     game.gameOptions.venusNextExtension = true;
     game.gameOptions.requiresVenusTrackCompletion = true;
-    (game as any).temperature = 2;
-    (game as any).oxygenLevel = 2;
-    (game as any).venusScaleLevel = constants.MAX_VENUS_SCALE;
+    setTemperature(game, 2);
+    setOxygenLevel(game, 2);
+    setVenusScaleLevel(game, constants.MAX_VENUS_SCALE);
     maxOutOceans(player);
     // Skip final greenery Phase
     player.plants = 0;
@@ -272,8 +274,8 @@ describe('Game', () => {
     game.generation = 10;
 
     // Terraform
-    (game as any).temperature = constants.MAX_TEMPERATURE;
-    (game as any).oxygenLevel = constants.MAX_OXYGEN_LEVEL;
+    setTemperature(game, constants.MAX_TEMPERATURE);
+    setOxygenLevel(game, constants.MAX_OXYGEN_LEVEL);
     maxOutOceans(player);
 
     player.plants = 0; // Skip final greenery Phase
@@ -288,11 +290,13 @@ describe('Game', () => {
   it('Solo player should place final greeneries if victory condition met', () => {
     const player = TestPlayer.BLUE.newPlayer();
     const game = Game.newInstance('game-solo2', [player], player);
+    /* Removes SelectInitialCards. The cast verifies that it's popping the right thing. */
+    cast(player.popWaitingFor(), SelectInitialCards);
 
     // Set up end-game conditions
     game.generation = 14;
-    (game as any).temperature = constants.MAX_TEMPERATURE;
-    (game as any).oxygenLevel = constants.MAX_OXYGEN_LEVEL;
+    setTemperature(game, constants.MAX_TEMPERATURE);
+    setOxygenLevel(game, constants.MAX_OXYGEN_LEVEL);
     maxOutOceans(player);
     player.plants = 9;
 
@@ -312,8 +316,8 @@ describe('Game', () => {
 
     // Set up near end-game conditions
     game.generation = 14;
-    (game as any).temperature = constants.MAX_TEMPERATURE - 2;
-    (game as any).oxygenLevel = constants.MAX_OXYGEN_LEVEL;
+    setTemperature(game, constants.MAX_TEMPERATURE - 2);
+    setOxygenLevel(game, constants.MAX_OXYGEN_LEVEL);
     maxOutOceans(player);
     player.plants = 9;
 
@@ -327,6 +331,8 @@ describe('Game', () => {
   it('Solo player should place final greeneries in TR 63 mode if victory condition is met', () => {
     const player = TestPlayer.BLUE.newPlayer();
     const game = Game.newInstance('game-solo2', [player], player, testGameOptions({soloTR: true}));
+    /* Removes SelectInitialCards. The cast verifies that it's popping the right thing. */
+    cast(player.popWaitingFor(), SelectInitialCards);
 
     // Set up end-game conditions
     game.generation = 14;
@@ -367,8 +373,8 @@ describe('Game', () => {
     game.generation = 14;
 
     // Terraform
-    (game as any).temperature = constants.MAX_TEMPERATURE;
-    (game as any).oxygenLevel = constants.MAX_OXYGEN_LEVEL - 2;
+    setTemperature(game, constants.MAX_TEMPERATURE);
+    setOxygenLevel(game, constants.MAX_OXYGEN_LEVEL - 2);
     maxOutOceans(player);
 
     // Must remove waitingFor or playerIsFinishedTakingActions
@@ -416,7 +422,7 @@ describe('Game', () => {
       p.plants = 8;
     });
 
-    game.gotoFinalGreeneryPlacement();
+    game.takeNextFinalGreeneryAction();
 
     expect(player1.getWaitingFor()).is.undefined;
     expect(player2.getWaitingFor()).is.undefined;
@@ -471,7 +477,7 @@ describe('Game', () => {
     player1.plants = 8;
     player4.plants = 8;
 
-    game.gotoFinalGreeneryPlacement();
+    game.takeNextFinalGreeneryAction();
 
     // Even though player 3 is first player, they have no plants. So player 4 goes.
 
@@ -719,10 +725,33 @@ describe('Game', () => {
     game.pathfindersData = undefined;
     const serialized = game.serialize();
     const serializedKeys = Object.keys(serialized);
-    expect(serializedKeys).not.include('rng');
+
+    const unserializedFieldsInGame: Array<keyof Game> = [
+      'rng',
+      'discardedColonies',
+      'monsInsuranceOwner',
+      'createdTime',
+      'inputsThisRound',
+      'resettable',
+      'tags'];
+    const serializedValuesNotInGame: Array<keyof SerializedGame> = [
+      'seed',
+      'currentSeed',
+      'createdTimeMs'];
+
     const gameKeys = Object.keys(game);
-    expect(serializedKeys.concat('rng', 'discardedColonies', 'monsInsuranceOwner').sort())
-      .deep.eq(gameKeys.concat('seed', 'currentSeed').sort());
+
+    for (const field of unserializedFieldsInGame) {
+      expect(serializedKeys).does.not.include(field);
+      expect(gameKeys).does.include(field);
+    }
+    for (const field of serializedValuesNotInGame) {
+      expect(gameKeys).does.not.include(field);
+      expect(serializedKeys).does.include(field);
+    }
+
+    expect(serializedKeys.concat(...unserializedFieldsInGame).sort())
+      .deep.eq(gameKeys.concat(...serializedValuesNotInGame).sort());
   });
 
   it('deserializing a game without moon data still loads', () => {

@@ -9,6 +9,7 @@ import {IProjectCard} from './IProjectCard';
 import {inplaceShuffle} from '../utils/shuffle';
 import {Logger} from '../logs/Logger';
 import {IPreludeCard} from './prelude/IPreludeCard';
+import {ICeoCard} from './ceos/ICeoCard';
 
 /**
  * A deck of cards to draw from, and also its discard pile.
@@ -105,24 +106,6 @@ export class Deck<T extends ICard> {
     Deck.shuffle(this.discardPile, this.random);
   }
 
-  public moveToTop(customList: Array<CardName> | undefined) {
-    const list = (customList || []).slice();
-    while (list.length > 0) {
-      const cardName = list.pop();
-      if (cardName === undefined) {
-        break;
-      }
-      const idx = this.drawPile.findIndex((c) => c.name === cardName);
-      if (idx > 0) { // If idx === 0 it's already at the front, so athis is a good test.
-        const card = this.drawPile.splice(idx, 1)[0];
-        this.drawPile.unshift(card);
-      }
-      if (idx === -1) {
-        console.error(`Unknown custom card for ${this.type}: ${cardName}`);
-      }
-    }
-  }
-
   public serialize(): SerializedDeck {
     return {
       drawPile: this.drawPile.map((c) => c.name),
@@ -180,5 +163,19 @@ export class PreludeDeck extends Deck<IPreludeCard> {
     const deck = <Array<IPreludeCard>>cardFinder.preludesFromJSON(d.drawPile);
     const discarded = cardFinder.preludesFromJSON(d.discardPile);
     return new PreludeDeck(deck, discarded, random);
+  }
+}
+
+export class CeoDeck extends Deck<ICeoCard> {
+  public constructor(deck: Array<ICeoCard>, discarded: Array<ICeoCard>, random: Random) {
+    super('ceo', deck, discarded, random);
+  }
+
+  public static deserialize(d: SerializedDeck, random: Random): Deck<ICeoCard> {
+    const cardFinder = new CardFinder();
+
+    const deck = cardFinder.ceosFromJSON(d.drawPile);
+    const discarded = cardFinder.ceosFromJSON(d.discardPile);
+    return new CeoDeck(deck, discarded, random);
   }
 }

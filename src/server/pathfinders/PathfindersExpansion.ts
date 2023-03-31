@@ -23,6 +23,11 @@ import {Turmoil} from '../turmoil/Turmoil';
 import {VictoryPointsBreakdown} from '../VictoryPointsBreakdown';
 import {GlobalEventName} from '../../common/turmoil/globalEvents/GlobalEventName';
 
+/**
+ * The possible tags with planetary tracks.
+ *
+ * The order of this list matches the order of the list displayed in the UI.
+ */
 export const PLANETARY_TAGS = [Tag.VENUS, Tag.EARTH, Tag.MARS, Tag.JOVIAN, Tag.MOON] as const;
 export type PlanetaryTag = typeof PLANETARY_TAGS[number];
 
@@ -58,7 +63,7 @@ export class PathfindersExpansion {
     });
 
     // Communication Center hook
-    if (card.cardType === CardType.EVENT) {
+    if (card.type === CardType.EVENT) {
       for (const p of player.game.getPlayers()) {
         for (const c of p.playedCards) {
           if (c.name === CardName.COMMUNICATION_CENTER) {
@@ -102,12 +107,12 @@ export class PathfindersExpansion {
     if (distance === 0) return;
 
     if (from instanceof Player) {
-      game.log('${0} raised the ${1} planetary track ${2} ${3}', (b) => {
-        b.player(from).string(tag).number(distance).string(distance > 1 ? 'steps' : 'step');
+      game.log('${0} raised the ${1} planetary track ${2} step(s)', (b) => {
+        b.player(from).string(tag).number(distance);
       });
     } else {
-      game.log('Global Event ${0} raised the ${1} planetary track ${2} ${3}', (b) => {
-        b.globalEventName(from).string(tag).number(distance).string(distance > 1 ? 'steps' : 'step');
+      game.log('Global Event ${0} raised the ${1} planetary track ${2} step(s)', (b) => {
+        b.globalEventName(from).string(tag).number(distance);
       });
     }
 

@@ -3,7 +3,7 @@ import {CommunicationCenter} from '../../../src/server/cards/pathfinders/Communi
 import {Game} from '../../../src/server/Game';
 import {TestPlayer} from '../../TestPlayer';
 import {fakeCard, runAllActions} from '../../TestingUtils';
-import {getTestPlayer, newTestGame} from '../../TestGame';
+import {testGame} from '../../TestGame';
 import {Resources} from '../../../src/common/Resources';
 import {CardType} from '../../../src/common/cards/CardType';
 
@@ -15,9 +15,7 @@ describe('CommunicationCenter', function() {
 
   beforeEach(function() {
     card = new CommunicationCenter();
-    game = newTestGame(2, {pathfindersExpansion: true});
-    player = getTestPlayer(game, 0);
-    otherPlayer = getTestPlayer(game, 1);
+    [game, player, otherPlayer] = testGame(2, {pathfindersExpansion: true});
     player.playedCards = [card];
   });
 
@@ -45,25 +43,25 @@ describe('CommunicationCenter', function() {
     player.playedCards = [card];
     expect(card.resourceCount).eq(0);
 
-    player.onCardPlayed(fakeCard({cardType: CardType.ACTIVE}));
+    player.onCardPlayed(fakeCard({type: CardType.ACTIVE}));
     expect(card.resourceCount).eq(0);
-    player.onCardPlayed(fakeCard({cardType: CardType.AUTOMATED}));
+    player.onCardPlayed(fakeCard({type: CardType.AUTOMATED}));
     expect(card.resourceCount).eq(0);
-    player.onCardPlayed(fakeCard({cardType: CardType.CORPORATION}));
+    player.onCardPlayed(fakeCard({type: CardType.CORPORATION}));
     expect(card.resourceCount).eq(0);
-    player.onCardPlayed(fakeCard({cardType: CardType.PRELUDE}));
+    player.onCardPlayed(fakeCard({type: CardType.PRELUDE}));
     expect(card.resourceCount).eq(0);
 
-    player.onCardPlayed(fakeCard({cardType: CardType.EVENT}));
+    player.onCardPlayed(fakeCard({type: CardType.EVENT}));
     expect(card.resourceCount).eq(1);
 
-    otherPlayer.onCardPlayed(fakeCard({cardType: CardType.EVENT}));
+    otherPlayer.onCardPlayed(fakeCard({type: CardType.EVENT}));
     expect(card.resourceCount).eq(2);
 
     expect(player.cardsInHand).is.length(0);
     expect(otherPlayer.cardsInHand).is.length(0);
 
-    otherPlayer.onCardPlayed(fakeCard({cardType: CardType.EVENT}));
+    otherPlayer.onCardPlayed(fakeCard({type: CardType.EVENT}));
 
     expect(card.resourceCount).eq(0);
     expect(player.cardsInHand).is.length(1);

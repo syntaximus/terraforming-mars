@@ -10,7 +10,7 @@ import {CardRenderer} from '../../cards/render/CardRenderer';
 export class InterplanetaryTrade extends Card implements IProjectCard {
   constructor() {
     super({
-      cardType: CardType.AUTOMATED,
+      type: CardType.AUTOMATED,
       name: CardName.INTERPLANETARY_TRADE,
       tags: [Tag.SPACE],
       cost: 27,
@@ -28,7 +28,6 @@ export class InterplanetaryTrade extends Card implements IProjectCard {
   }
 
   public override bespokePlay(player: Player) {
-    // This card's tag also counts.
     const distinctTagCount = player.tags.distinctCount('default', Tag.SPACE);
     player.production.add(Resources.MEGACREDITS, distinctTagCount, {log: true});
     return undefined;

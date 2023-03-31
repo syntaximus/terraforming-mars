@@ -24,7 +24,8 @@ import {Helion} from '../../../src/server/cards/corporation/Helion';
 import {ICorporationCard} from '../../../src/server/cards/corporation/ICorporationCard';
 import {Viron} from '../../../src/server/cards/venusNext/Viron';
 import {SeptumTribus} from '../../../src/server/cards/turmoil/SeptumTribus';
-import {getTestPlayer, newTestGame} from '../../TestGame';
+import {testGame} from '../../TestGame';
+import {Aridor} from '../../../src/server/cards/colonies/Aridor';
 
 describe('Merger', function() {
   let card: Merger;
@@ -34,9 +35,7 @@ describe('Merger', function() {
 
   beforeEach(() => {
     card = new Merger();
-    game = newTestGame(2, {preludeExtension: true, turmoilExtension: true});
-    player = getTestPlayer(game, 0);
-    player2 = getTestPlayer(game, 1);
+    [game, player, player2] = testGame(2, {preludeExtension: true, turmoilExtension: true});
 
     // Preset corporation deck for testing
     game.corporationDeck.drawPile = [new ArcadianCommunities(), new SaturnSystems(), new TerralabsResearch(), new Polyphemos()];
@@ -224,7 +223,7 @@ describe('Merger', function() {
     expect(player.megaCredits).eq(helion.startingMegaCredits + tharsis.startingMegaCredits - Merger.mergerCost - 6);
   });
 
-  it('Works Viron and another corporation card', function() {
+  it('Works with Viron and another corporation card', function() {
     const viron = new Viron();
     const septumTribus = new SeptumTribus();
     player.playCorporationCard(viron);
@@ -237,5 +236,16 @@ describe('Merger', function() {
     expect(viron.canAct(player)).is.true;
     const selectCard = cast(viron.action(player), SelectCard);
     expect(selectCard.cards).deep.eq([septumTribus]);
+  });
+
+
+  it('Works with Aridor and another corporation card', function() {
+    player.playCorporationCard(new Aridor());
+    runAllActions(game);
+    expect(player.production.megacredits).eq(0);
+
+    player.playAdditionalCorporationCard(new Viron());
+    runAllActions(game);
+    expect(player.production.megacredits).eq(1);
   });
 });

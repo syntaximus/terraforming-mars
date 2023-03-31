@@ -25,7 +25,6 @@ import {SpaceHighlight, SpaceModel} from '../../common/models/SpaceModel';
 import {TileType} from '../../common/TileType';
 import {Phase} from '../../common/Phase';
 import {Resources} from '../../common/Resources';
-import {CardType} from '../../common/cards/CardType';
 import {
   ClaimedMilestoneModel,
   MilestoneScore,
@@ -49,6 +48,7 @@ import {CardName} from '../../common/cards/CardName';
 import {Tag} from '../../common/cards/Tag';
 import {isICorporationCard} from '../cards/corporation/ICorporationCard';
 import {AresHandler} from '../ares/AresHandler';
+import {AwardScorer} from '../awards/AwardScorer';
 
 export class Server {
   public static getSimpleGameModel(game: Game): SimpleGameModel {
@@ -64,6 +64,7 @@ export class Server {
       spectatorId: game.spectatorId,
       gameOptions: this.getGameOptionsAsModel(game.gameOptions),
       lastSoloGeneration: game.lastSoloGeneration(),
+      expectedPurgeTimeMs: game.expectedPurgeTimeMs(),
     };
   }
 
@@ -75,7 +76,8 @@ export class Server {
       awards: this.getAwards(game),
       colonies: this.getColonies(game, game.colonies),
       deckSize: game.projectDeck.drawPile.length,
-      discardedColonies: this.getColonies(game, game.discardedColonies, /* showTrackPosition */ false),
+      discardedColonies: game.discardedColonies.map((c) => c.name),
+      expectedPurgeTimeMs: game.expectedPurgeTimeMs(),
       gameAge: game.gameAge,
       gameOptions: this.getGameOptionsAsModel(game.gameOptions),
       generation: game.getGeneration(),
@@ -109,8 +111,10 @@ export class Server {
 
     return {
       cardsInHand: this.getCards(player, player.cardsInHand, {showCalculatedCost: true}),
+      ceoCardsInHand: this.getCards(player, player.ceoCardsInHand),
       dealtCorporationCards: this.getCards(player, player.dealtCorporationCards),
       dealtPreludeCards: this.getCards(player, player.dealtPreludeCards),
+      dealtCeoCards: this.getCards(player, player.dealtCeoCards),
       dealtProjectCards: this.getCards(player, player.dealtProjectCards),
       draftedCorporations: this.getCards(player, player.draftedCorporations),
       draftedCards: this.getCards(player, player.draftedCards, {showCalculatedCost: true}),
@@ -140,7 +144,6 @@ export class Server {
         resources: targetCard.resourceCount,
         name: targetCard.card.name,
         calculatedCost: player.getCardCost(targetCard.card),
-        cardType: CardType.ACTIVE,
         isDisabled: false,
         reserveUnits: Units.EMPTY, // I wonder if this could just be removed.
         isSelfReplicatingRobotsCard: true,
@@ -167,8 +170,8 @@ export class Server {
       }
 
       milestoneModels.push({
-        player_name: claimed === undefined ? '' : claimed.player.name,
-        player_color: claimed === undefined ? '' : claimed.player.color,
+        playerName: claimed === undefined ? '' : claimed.player.name,
+        playerColor: claimed === undefined ? '' : claimed.player.color,
         name: milestone.name,
         scores,
       });
@@ -178,25 +181,23 @@ export class Server {
   }
 
   public static getAwards(game: Game): Array<FundedAwardModel> {
-    const allAwards = game.awards;
     const fundedAwards = game.fundedAwards;
     const awardModels: Array<FundedAwardModel> = [];
 
-    for (const award of allAwards) {
-      const funded = fundedAwards.find(
-        (a) => a.award.name === award.name,
-      );
+    for (const award of game.awards) {
+      const funded = fundedAwards.find((a) => a.award.name === award.name);
+      const scorer = new AwardScorer(game, award);
       let scores: Array<AwardScore> = [];
       if (fundedAwards.length < 3 || funded !== undefined) {
         scores = game.getPlayers().map((player) => ({
           playerColor: player.color,
-          playerScore: award.getScore(player),
+          playerScore: scorer.get(player),
         }));
       }
 
       awardModels.push({
-        player_name: funded === undefined ? '' : funded.player.name,
-        player_color: funded === undefined ? '' : funded.player.color,
+        playerName: funded === undefined ? '' : funded.player.name,
+        playerColor: funded === undefined ? '' : funded.player.color,
         name: award.name,
         scores: scores,
       });
@@ -241,6 +242,7 @@ export class Server {
       selectBlueCardAction: false,
       availableParties: undefined,
       turmoil: undefined,
+      showReset: player.game.inputsThisRound > 0 && player.game.resettable === true && player.game.phase === Phase.ACTION,
     };
     switch (waitingFor.inputType) {
     case PlayerInputType.AND_OPTIONS:
@@ -282,7 +284,8 @@ export class Server {
       playerInputModel.showOwner = selectCard.config.showOwner === true;
       break;
     case PlayerInputType.SELECT_COLONY:
-      playerInputModel.coloniesModel = this.getColonyModel(player.game, (waitingFor as SelectColony).colonies);
+      const selectColony = waitingFor as SelectColony;
+      playerInputModel.coloniesModel = this.getColonyModel(player.game, selectColony.colonies, selectColony.showTileOnly);
       break;
     case PlayerInputType.SELECT_PAYMENT:
       const sp = waitingFor as SelectPayment;
@@ -378,7 +381,6 @@ export class Server {
         resources: options.showResources ? card.resourceCount : undefined,
         name: card.name,
         calculatedCost: options.showCalculatedCost ? (isIProjectCard(card) && card.cost !== undefined ? player.getCardCost(card) : undefined) : card.cost,
-        cardType: card.cardType,
         isDisabled: isDisabled,
         warning: card.warning,
         reserveUnits: options.reserveUnits ? options.reserveUnits[index] : Units.EMPTY,
@@ -396,7 +398,7 @@ export class Server {
       actionsTakenThisRound: player.actionsTakenThisRound,
       actionsTakenThisGame: player.actionsTakenThisGame,
       actionsThisGeneration: Array.from(player.getActionsThisGeneration()),
-      availableBlueCardActionCount: player.getPlayableActionCards().length,
+      availableBlueCardActionCount: player.getAvailableBlueActionCount(),
       cardCost: player.cardCost,
       cardDiscount: player.colonies.cardDiscount,
       cardsInHandNbr: player.cardsInHand.length,
@@ -408,7 +410,7 @@ export class Server {
       fleetSize: player.colonies.getFleetSize(),
       heat: player.heat,
       heatProduction: player.production.heat,
-      id: game.phase === Phase.END ? player.id : player.color,
+      id: game.phase === Phase.END ? player.id : undefined,
       influence: Turmoil.ifTurmoilElse(game, (turmoil) => turmoil.getPlayerInfluence(player), () => 0),
       isActive: player.id === game.activePlayer,
       lastCardPlayed: player.lastCardPlayed,
@@ -545,6 +547,7 @@ export class Server {
       aresExtension: options.aresExtension,
       boardName: options.boardName,
       bannedCards: options.bannedCards,
+      ceoExtension: options.ceoExtension,
       coloniesExtension: options.coloniesExtension,
       communityCardsOption: options.communityCardsOption,
       corporateEra: options.corporateEra,
@@ -573,28 +576,29 @@ export class Server {
       requiresMoonTrackCompletion: options.requiresMoonTrackCompletion,
       requiresVenusTrackCompletion: options.requiresVenusTrackCompletion,
       turmoilExtension: options.turmoilExtension,
+      twoCorpsVariant: options.twoCorpsVariant,
       venusNextExtension: options.venusNextExtension,
       undoOption: options.undoOption,
-      twoCorpsVariant: options.twoCorpsVariant,
     };
   }
 
-  private static getColonyModel(game: Game, colonies: Array<IColony>) : Array<ColonyModel> {
+  private static getColonyModel(game: Game, colonies: Array<IColony>, showTileOnly: boolean) : Array<ColonyModel> {
     return colonies.map(
       (colony): ColonyModel => ({
         colonies: colony.colonies.map(
           (playerId): Color => game.getPlayerById(playerId).color,
         ),
-        isActive: colony.isActive,
+        isActive: colony.isActive && showTileOnly === false,
         name: colony.name,
         trackPosition: colony.trackPosition,
         visitor:
-                colony.visitor === undefined ?
-                  undefined :
-                  game.getPlayerById(colony.visitor).color,
+          colony.visitor === undefined ?
+            undefined :
+            game.getPlayerById(colony.visitor).color,
       }),
     );
   }
+
   private static getMoonModel(game: Game): MoonModel | undefined {
     return MoonExpansion.ifElseMoon(game, (moonData) => {
       return {
