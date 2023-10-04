@@ -2,7 +2,8 @@ import {PostgreSQL} from './PostgreSQL';
 import {SQLite} from './SQLite';
 import {IDatabase} from './IDatabase';
 import {LocalFilesystem} from './LocalFilesystem';
-import {LocalStorage} from './LocalStorage';
+import { LocalStorage } from './LocalStorage';
+import { MsSQL } from './MsSQL';
 
 export class Database {
   private static instance: IDatabase;
@@ -20,6 +21,9 @@ export class Database {
       } else if (process.env.LOCAL_STORAGE_DB !== undefined) {
         console.log('Connecting to local storage database.');
         Database.instance = new LocalStorage();
+      } else if (process.env.MSSQL_USER !== undefined) {
+        console.log('Connecting to MSSQL database.');
+        Database.instance = new MsSQL();
       } else {
         console.log('Connecting to SQLite database.');
         Database.instance = new SQLite();
