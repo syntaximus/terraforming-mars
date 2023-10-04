@@ -3,6 +3,7 @@ export type Preferences = {
   enable_sounds: boolean,
   magnify_cards: boolean,
   show_alerts: boolean,
+  show_betrayal_points: boolean,
   hide_hand: boolean,
   hide_awards_and_milestones: boolean,
   show_milestone_details: boolean,
@@ -28,6 +29,7 @@ const defaults: Preferences = {
   enable_sounds: true,
   magnify_cards: true,
   show_alerts: true,
+  show_betrayal_points: false,
   lang: 'en',
 
   hide_hand: false,

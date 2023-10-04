@@ -36,7 +36,8 @@ import PlayerTagDiscount from '@/client/components/overview/PlayerTagDiscount.vu
 import PointsPerTag from '@/client/components/overview/PointsPerTag.vue';
 import {PartyName} from '@/common/turmoil/PartyName';
 import {getCard} from '@/client/cards/ClientCardManifest';
-import {vueRoot} from '@/client/components/vueRoot';
+import {Preferences, getPreferences} from '@/client/utils/PreferencesManager';
+import { vueRoot } from '@/client/components/vueRoot';
 import {CardName} from '@/common/cards/CardName';
 
 type InterfaceTagsType = Tag | SpecialTags | 'all' | 'separator';
@@ -69,14 +70,16 @@ const ORDER: Array<InterfaceTagsType> = [
   SpecialTags.INFLUENCE,
   SpecialTags.CITY_COUNT,
   SpecialTags.COLONY_COUNT,
+  SpecialTags.BETRAYAL_POINTS,
 ];
 
-const isInGame = (tag: InterfaceTagsType, game: GameModel): boolean => {
+const isInGame = (tag: InterfaceTagsType, game: GameModel, preferences: Readonly<Preferences>): boolean => {
   if (game.gameOptions.coloniesExtension === false && tag === SpecialTags.COLONY_COUNT) return false;
   if (game.turmoil === undefined && tag === SpecialTags.INFLUENCE) return false;
   if (game.gameOptions.venusNextExtension === false && tag === Tag.VENUS) return false;
   if (game.gameOptions.moonExpansion === false && tag === Tag.MOON) return false;
   if (game.gameOptions.pathfindersExpansion === false && tag === Tag.MARS) return false;
+  if (preferences.show_betrayal_points === false && tag === SpecialTags.BETRAYAL_POINTS) return false;
   return true;
 };
 
@@ -92,6 +95,9 @@ const getTagCount = (tagName: InterfaceTagsType, player: PublicPlayerModel): num
   }
   if (tagName === SpecialTags.NONE) {
     return player.noTagsCount || 0;
+  }
+  if (tagName === SpecialTags.BETRAYAL_POINTS) {
+    return player.betrayalPoints || 0;
   }
 
   return player.tags.find((tag) => tag.tag === tagName)?.count ?? 0;
@@ -194,10 +200,11 @@ export default Vue.extend({
       return 'tooltip tooltip-' + (this.isTopBar ? 'bottom' : 'top');
     },
     tags(): Array<TagDetail> {
+      const preferences = getPreferences();
       // In tests this one call to vueRoot uses `?.` because for some reason it this doesn't pass tests.
       const concise = vueRoot(this).componentsVisibility?.['tags_concise'] ?? this.conciseTagsViewDefaultValue;
       return this.tagsInOrder.filter((entry) => {
-        if (!isInGame(entry.name, this.playerView.game)) {
+        if (!isInGame(entry.name, this.playerView.game, preferences)) {
           return false;
         }
 

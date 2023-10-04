@@ -109,6 +109,13 @@ export default (Vue as WithRefs<Refs>).extend({
       </div>
       <div class="preferences_panel_item">
         <label class="form-switch">
+          <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.show_betrayal_points" data-test="show_betrayal_points">
+          <i class="form-icon"></i> 
+          <span v-i18n>Show betrayal points</span>
+        </label>
+      </div>
+      <div class="preferences_panel_item">
+        <label class="form-switch">
           <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.enable_sounds" data-test="enable_sounds">
           <i class="form-icon"></i> <span v-i18n>Enable sounds</span>
         </label>

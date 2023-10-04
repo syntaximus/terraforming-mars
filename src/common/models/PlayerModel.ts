@@ -49,6 +49,7 @@ export type PublicPlayerModel = {
   needsToDraft: boolean | undefined;
   needsToResearch: boolean | undefined;
   noTagsCount: number;
+  betrayalPoints: number;
   plants: number;
   plantProduction: number;
   protectedResources: Record<Resource, Protection>;

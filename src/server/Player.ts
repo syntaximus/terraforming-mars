@@ -32,6 +32,7 @@ import {RobotCard, SelfReplicatingRobots} from './cards/promo/SelfReplicatingRob
 import {SerializedCard} from './SerializedCard';
 import {SerializedPlayer} from './SerializedPlayer';
 import {StormCraftIncorporated} from './cards/colonies/StormCraftIncorporated';
+import {Warmonger} from './awards/terraCimmeria/Warmonger';
 import {Tag} from '../common/cards/Tag';
 import {Timer} from '../common/Timer';
 import {TurmoilHandler} from './turmoil/TurmoilHandler';
@@ -242,6 +243,10 @@ export class Player implements IPlayer {
 
   public get tableau(): Array<ICorporationCard | IProjectCard> {
     return [...this.corporations, ...this.playedCards];
+  }
+
+  public getBetrayalPoints(): number {
+    return new Warmonger().getScore(this);
   }
 
   public isCorporation(corporationName: CardName): boolean {

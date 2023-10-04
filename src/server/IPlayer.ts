@@ -143,6 +143,7 @@ export interface IPlayer {
   tableau: Array<ICorporationCard | IProjectCard>;
 
   isCorporation(corporationName: CardName): boolean;
+  getBetrayalPoints(): number;
   getCorporation(corporationName: CardName): ICorporationCard | undefined;
   getCeo(ceoName: CardName): ICeoCard | undefined;
   getCorporationOrThrow(corporationName: CardName): ICorporationCard;

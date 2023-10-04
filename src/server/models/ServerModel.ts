@@ -227,6 +227,7 @@ export class Server {
       needsToDraft: player.needsToDraft,
       needsToResearch: !game.hasResearched(player),
       noTagsCount: player.tags.numberOfCardsWithNoTags(),
+      betrayalPoints: player.getBetrayalPoints(),
       plants: player.plants,
       plantProduction: player.production.plants,
       protectedResources: Server.getResourceProtections(player),
