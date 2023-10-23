@@ -9,10 +9,10 @@ import {IPlayer} from '../../IPlayer';
 import {SelectPaymentDeferred} from '../../deferredActions/SelectPaymentDeferred';
 import {MAX_TEMPERATURE} from '../../../common/constants';
 import {CardName} from '../../../common/cards/CardName';
+import {TITLES} from '../../inputs/titles';
 
 export class Kelvinists extends Party implements IParty {
   readonly name = PartyName.KELVINISTS;
-  readonly description = 'Pushes for rapid terraforming, usually employing a heat-first strategy.';
   readonly bonuses = [KELVINISTS_BONUS_1, KELVINISTS_BONUS_2];
   readonly policies = [KELVINISTS_POLICY_1, KELVINISTS_POLICY_2, KELVINISTS_POLICY_3, KELVINISTS_POLICY_4];
 }
@@ -63,8 +63,8 @@ class KelvinistsPolicy01 implements Policy {
 
   action(player: IPlayer) {
     const game = player.game;
-    game.log('${0} used Turmoil Kelvinists action', (b) => b.player(player));
-    game.defer(new SelectPaymentDeferred(player, this.cost(player), {title: 'Select how to pay for Turmoil Kelvinists action'}))
+    game.log('${0} used Turmoil ${1} action', (b) => b.player(player).partyName(PartyName.KELVINISTS));
+    game.defer(new SelectPaymentDeferred(player, this.cost(player), {title: TITLES.payForPartyAction(PartyName.KELVINISTS)}))
       .andThen(() => {
         player.production.add(Resource.ENERGY, 1);
         player.production.add(Resource.HEAT, 1);
@@ -90,7 +90,7 @@ class KelvinistsPolicy03 implements Policy {
 
   action(player: IPlayer) {
     const game = player.game;
-    game.log('${0} used Turmoil Kelvinists action', (b) => b.player(player));
+    game.log('${0} used Turmoil ${1} action', (b) => b.player(player).partyName(PartyName.KELVINISTS));
     game.log('${0} spent 6 heat to raise temperature 1 step', (b) => b.player(player));
 
     return player.spendHeat(6, () => {

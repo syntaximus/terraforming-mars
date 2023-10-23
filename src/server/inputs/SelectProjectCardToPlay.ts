@@ -16,7 +16,7 @@ export type PlayCardMetadata = {
   details: CanPlayResponse | undefined;
 };
 
-export class SelectProjectCardToPlay extends BasePlayerInput {
+export class SelectProjectCardToPlay extends BasePlayerInput<IProjectCard> {
   public cards: Array<IProjectCard> = [];
   public extras: Map<CardName, PlayCardMetadata>;
 
@@ -25,7 +25,6 @@ export class SelectProjectCardToPlay extends BasePlayerInput {
     cards: Array<PlayableCard> = player.getPlayableCards(),
     public config?: {
       action?: CardAction,
-      cb?(cardToPlay: IProjectCard): void,
     }) {
     super('projectCard', 'Play project card');
     this.buttonLabel = 'Play card';
@@ -50,17 +49,17 @@ export class SelectProjectCardToPlay extends BasePlayerInput {
       buttonLabel: this.buttonLabel,
       type: 'projectCard',
       cards: cardsToModel(player, this.cards, {showCalculatedCost: true, extras: this.extras}),
-      microbes: player.getSpendableMicrobes(),
-      floaters: player.getSpendableFloaters(),
+      microbes: player.getSpendable('microbes'),
+      floaters: player.getSpendable('floaters'),
       paymentOptions: {
         heat: player.canUseHeatAsMegaCredits,
         lunaTradeFederationTitanium: player.canUseTitaniumAsMegacredits,
         plants: player.canUsePlantsAsMegacredits,
       },
-      lunaArchivesScience: player.getSpendableLunaArchiveScienceResources(),
-      seeds: player.getSpendableSeedResources(),
-      graphene: player.getSpendableGraphene(),
-      kuiperAsteroids: player.getSpendableKuiperAsteroids(),
+      lunaArchivesScience: player.getSpendable('lunaArchivesScience'),
+      seeds: player.getSpendable('seeds'),
+      graphene: player.getSpendable('graphene'),
+      kuiperAsteroids: player.getSpendable('kuiperAsteroids'),
     };
   }
 
@@ -107,11 +106,5 @@ export class SelectProjectCardToPlay extends BasePlayerInput {
       }
     }
     this.cb(card);
-  }
-
-  // To fullfil PlayerInput.
-  public cb(card: IProjectCard) {
-    this.config?.cb?.(card);
-    return undefined;
   }
 }

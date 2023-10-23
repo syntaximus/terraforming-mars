@@ -29,6 +29,7 @@ export enum Priority {
   LOSE_RESOURCE_OR_PRODUCTION,
   DECREASE_COLONY_TRACK_AFTER_TRADE,
   DISCARD_CARDS,
+  BACK_OF_THE_LINE,
 }
 
 export interface AndThen<T> {
@@ -62,7 +63,7 @@ export abstract class DeferredAction<T = undefined> implements AndThen<T> {
   }
 }
 
-export class SimpleDeferredAction extends DeferredAction {
+export class SimpleDeferredAction<T> extends DeferredAction<T> {
   constructor(
     player: IPlayer,
     public execute: () => PlayerInput | undefined,

@@ -48,7 +48,7 @@ describe('Executor', () => {
   let executor: Executor;
 
   beforeEach(() => {
-    [game, player, player2, player3] = testGame(3, {venusNextExtension: true});
+    [game, player, player2, player3] = testGame(3, {venusNextExtension: true, underworldExpansion: true});
 
     fake = fakeCard({});
     executor = new Executor();
@@ -496,7 +496,7 @@ describe('Executor', () => {
     const andOptions = cast(player.popWaitingFor(), AndOptions);
     andOptions.options[0].cb(0); // heat
     andOptions.options[1].cb(2); // floaters
-    andOptions.cb();
+    andOptions.cb(undefined);
 
     expect(stormcraft.resourceCount).eq(0);
   });
@@ -558,5 +558,11 @@ describe('Executor', () => {
     runAllActions(game);
     cast(player.popWaitingFor(), undefined);
     expect(player.megaCredits).eq(1);
+  });
+
+  it('underworld, corruption', () => {
+    player.underworldData.corruption = 0;
+    executor.execute({underworld: {corruption: 2}}, player, fake);
+    expect(player.underworldData.corruption).eq(2);
   });
 });

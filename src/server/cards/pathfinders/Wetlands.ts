@@ -10,6 +10,7 @@ import {Tag} from '../../../common/cards/Tag';
 import {CardRenderer} from '../render/CardRenderer';
 import {Board} from '../../boards/Board';
 import {Size} from '../../../common/cards/render/Size';
+import {message} from '../../logs/MessageBuilder';
 
 export class Wetlands extends Card implements IProjectCard {
   constructor() {
@@ -66,9 +67,9 @@ export class Wetlands extends Card implements IProjectCard {
     player.stock.deductUnits(this.reserveUnits);
 
     return new SelectSpace(
-      'Select space for Wetlands',
-      this.availableSpaces(player),
-      (space: Space) => {
+      message('Select space for ${0}', (b) => b.card(this)),
+      this.availableSpaces(player))
+      .andThen((space) => {
         const tile = {
           tileType: TileType.WETLANDS,
           card: this.name,
@@ -77,7 +78,6 @@ export class Wetlands extends Card implements IProjectCard {
         player.game.addTile(player, space, tile);
         player.game.increaseOxygenLevel(player, 1);
         return undefined;
-      },
-    );
+      });
   }
 }

@@ -45,7 +45,7 @@ export class Atmoscoop extends Card implements IProjectCard {
     const remainingVenusSteps = (constants.MAX_VENUS_SCALE - player.game.getVenusScaleLevel()) / 2;
     const stepsRaised = Math.min(remainingTemperatureSteps, remainingVenusSteps, 2);
 
-    if (PartyHooks.shouldApplyPolicy(player, PartyName.REDS)) {
+    if (PartyHooks.shouldApplyPolicy(player, PartyName.REDS, 'rp01')) {
       // TODO(kberg): this is not correct, because the titanium can't be used for the reds cost.
       return player.canAfford({
         cost: this.cost + constants.REDS_RULING_POLICY_COST * stepsRaised,
@@ -62,11 +62,11 @@ export class Atmoscoop extends Card implements IProjectCard {
       return undefined;
     }
 
-    const increaseTemp = new SelectOption('Raise temperature 2 steps', 'Raise temperature', () => {
+    const increaseTemp = new SelectOption('Raise temperature 2 steps', 'Raise temperature').andThen(() => {
       game.increaseTemperature(player, 2);
       return undefined;
     });
-    const increaseVenus = new SelectOption('Raise Venus 2 steps', 'Raise Venus', () => {
+    const increaseVenus = new SelectOption('Raise Venus 2 steps', 'Raise Venus').andThen(() => {
       game.increaseVenusScaleLevel(player, 2);
       return undefined;
     });

@@ -4,8 +4,8 @@ import {CardRenderer} from '../../render/CardRenderer';
 import {IPlayer} from '../../../IPlayer';
 import {MAX_OXYGEN_LEVEL} from '../../../../common/constants';
 import {SelectSpace} from '../../../inputs/SelectSpace';
-import {Space} from '../../../boards/Space';
 import {Units} from '../../../../common/Units';
+import {message} from '../../../logs/MessageBuilder';
 
 
 export class ConvertPlants extends StandardActionCard {
@@ -44,14 +44,13 @@ export class ConvertPlants extends StandardActionCard {
 
   public action(player: IPlayer) {
     return new SelectSpace(
-      `Convert ${player.plantsNeededForGreenery} plants into greenery`,
-      player.game.board.getAvailableSpacesForGreenery(player),
-      (space: Space) => {
+      message('Convert ${0} plants into greenery', (b) => b.number(player.plantsNeededForGreenery)),
+      player.game.board.getAvailableSpacesForGreenery(player))
+      .andThen((space) => {
         this.actionUsed(player);
         player.game.addGreenery(player, space);
         player.plants -= player.plantsNeededForGreenery;
         return undefined;
-      },
-    );
+      });
   }
 }

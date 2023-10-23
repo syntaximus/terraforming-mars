@@ -1,6 +1,5 @@
 import {CardType} from '../../common/cards/CardType';
 import {IPlayer} from '../IPlayer';
-import {IActionCard, ICard} from './ICard';
 import {TRSource} from '../../common/cards/TRSource';
 import {PlayerInput} from '../PlayerInput';
 import {ICardMetadata} from '../../common/cards/ICardMetadata';
@@ -9,6 +8,8 @@ import {SelectPaymentDeferred} from '../deferredActions/SelectPaymentDeferred';
 import {Card} from './Card';
 import {MoonExpansion} from '../moon/MoonExpansion';
 import {Units} from '../../common/Units';
+import {message} from '../logs/MessageBuilder';
+import {IStandardProjectCard} from './IStandardProjectCard';
 
 type StaticStandardProjectCardProperties = {
   name: CardName,
@@ -26,7 +27,7 @@ export type StandardProjectCanPayWith = {
   // tr?: TRSource,
 }
 
-export abstract class StandardProjectCard extends Card implements IActionCard, ICard {
+export abstract class StandardProjectCard extends Card implements IStandardProjectCard {
   constructor(properties: StaticStandardProjectCardProperties) {
     super({
       type: CardType.STANDARD_PROJECT,
@@ -75,10 +76,6 @@ export abstract class StandardProjectCard extends Card implements IActionCard, I
     this.onStandardProject(player);
   }
 
-  private suffixFreeCardName(cardName: CardName): string {
-    return cardName.split(':')[0];
-  }
-
   public action(player: IPlayer): PlayerInput | undefined {
     const canPayWith = this.canPayWith(player);
     player.game.defer(new SelectPaymentDeferred(
@@ -91,7 +88,7 @@ export abstract class StandardProjectCard extends Card implements IActionCard, I
         canUseAuroraiData: player.isCorporation(CardName.AURORAI),
         canUseSpireScience: player.isCorporation(CardName.SPIRE),
         canUseAsteroids: canPayWith.kuiperAsteroids && player.isCorporation(CardName.KUIPER_COOPERATIVE),
-        title: `Select how to pay for ${this.suffixFreeCardName(this.name)} standard project`,
+        title: message('Select how to pay for the ${0} standard project', (b) => b.cardName(this.name)),
       })).andThen(() => {
       this.projectPlayed(player);
       this.actionEssence(player);

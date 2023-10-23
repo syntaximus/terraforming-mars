@@ -8,10 +8,10 @@ import {Bonus} from '../Bonus';
 import {SelectPaymentDeferred} from '../../deferredActions/SelectPaymentDeferred';
 import {IPlayer} from '../../IPlayer';
 import {Policy} from '../Policy';
+import {TITLES} from '../../inputs/titles';
 
 export class Scientists extends Party implements IParty {
   readonly name = PartyName.SCIENTISTS as const;
-  readonly description = 'Tech is the door to the future, and Scientists will do anything to open it.' as const;
   readonly bonuses = [SCIENTISTS_BONUS_1, SCIENTISTS_BONUS_2];
   readonly policies = [SCIENTISTS_POLICY_1, SCIENTISTS_POLICY_2, SCIENTISTS_POLICY_3, SCIENTISTS_POLICY_4];
 }
@@ -56,10 +56,8 @@ class ScientistsPolicy01 implements Policy {
 
   action(player: IPlayer) {
     const game = player.game;
-    // TODO(kberg): use Message for "Turmoil {partyname}" action.
-    game.log('${0} used Turmoil Scientists action', (b) => b.player(player));
-    // TODO(kberg): use Message for "Turmoil {partyname}" action.
-    game.defer(new SelectPaymentDeferred(player, 10, {title: 'Select how to pay for Turmoil Scientists action'}))
+    game.log('${0} used Turmoil ${1} action', (b) => b.player(player).partyName(PartyName.SCIENTISTS));
+    game.defer(new SelectPaymentDeferred(player, 10, {title: TITLES.payForPartyAction(PartyName.SCIENTISTS)}))
       .andThen(() => {
         player.drawCard(3);
         player.turmoilPolicyActionUsed = true;

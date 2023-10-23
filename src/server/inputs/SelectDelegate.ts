@@ -1,16 +1,14 @@
 import {Message} from '../../common/logs/Message';
-import {BasePlayerInput, PlayerInput} from '../PlayerInput';
+import {BasePlayerInput} from '../PlayerInput';
 import {IPlayer} from '../IPlayer';
 import {NeutralPlayer} from '../turmoil/Turmoil';
 import {InputResponse, isSelectDelegateResponse} from '../../common/inputs/InputResponse';
 import {SelectDelegateModel} from '../../common/models/PlayerInputModel';
 
-export class SelectDelegate extends BasePlayerInput {
-  // TODO(kberg): is there any reason to not just accept IDs?
+export class SelectDelegate extends BasePlayerInput<IPlayer | NeutralPlayer> {
   constructor(
-    public players: Array<IPlayer | NeutralPlayer>,
-    title: string | Message,
-    public cb: (player: IPlayer | NeutralPlayer) => PlayerInput | undefined) {
+    public players: ReadonlyArray<IPlayer | NeutralPlayer>,
+    title: string | Message) {
     super('delegate', title);
   }
 
@@ -27,14 +25,18 @@ export class SelectDelegate extends BasePlayerInput {
     if (!isSelectDelegateResponse(input)) {
       throw new Error('Not a valid SelectDelegateResponse');
     }
-    const foundPlayer = this.players.find((player) =>
-      player === input.player ||
-      (typeof(player) === 'object' && (player.id === input.player || player.color === input.player)),
-    );
-    if (foundPlayer === undefined) {
-      throw new Error('Player not available');
+    for (const player of this.players) {
+      if (player === 'NEUTRAL') {
+        if (input.player !== 'NEUTRAL') {
+          continue;
+        }
+      } else {
+        if (input.player !== player.color) {
+          continue;
+        }
+      }
+      return this.cb(player);
     }
-
-    return this.cb(foundPlayer);
+    throw new Error('Player not available');
   }
 }

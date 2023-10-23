@@ -27,7 +27,7 @@ export class CoLeadership extends PreludeCard {
       game.ceoDeck.draw(game),
     ];
 
-    // TODO(): This is not being tested, but currently every CEO is always playable
+    // TODO(d-little): This is not being tested, but currently every CEO is always playable
     ceosDrawn = ceosDrawn.filter((ceo) => {
       if (ceo.canPlay?.(player) === false) {
         game.ceoDeck.discard(ceo);
@@ -42,13 +42,14 @@ export class CoLeadership extends PreludeCard {
       return undefined;
     }
 
-    return new SelectCard('Choose CEO card', 'Take', ceosDrawn, (([chosenCeo]) => {
+    return new SelectCard('Choose CEO card', 'Take', ceosDrawn)
+      .andThen(([chosenCeo]) => {
       // Discard unchosen CEOs
-      ceosDrawn.filter((c) => c !== chosenCeo).forEach((c) => game.ceoDeck.discard(c));
-      // Add chosen CEO to hand
-      player.ceoCardsInHand.push(chosenCeo);
-      return undefined;
-    }));
+        ceosDrawn.filter((c) => c !== chosenCeo).forEach((c) => game.ceoDeck.discard(c));
+        // Add chosen CEO to hand
+        player.ceoCardsInHand.push(chosenCeo);
+        return undefined;
+      });
   }
 }
 

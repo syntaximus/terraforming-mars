@@ -27,6 +27,9 @@ import {OrOptions} from '../inputs/OrOptions';
 import {SelectOption} from '../inputs/SelectOption';
 import {Payment} from '../../common/inputs/Payment';
 import {SelectResources} from '../inputs/SelectResources';
+import {TITLES} from '../inputs/titles';
+import {UnderworldExpansion} from '../underworld/UnderworldExpansion';
+import {message} from '../logs/MessageBuilder';
 
 export class Executor implements BehaviorExecutor {
   public canExecute(behavior: Behavior, player: IPlayer, card: ICard, canAffordOptions?: CanAffordOptions) {
@@ -200,15 +203,16 @@ export class Executor implements BehaviorExecutor {
       const options = behavior.or.behaviors
         .filter((behavior) => this.canExecute(behavior, player, card))
         .map((behavior) => {
-          return new SelectOption(behavior.title, undefined, () => {
-            this.execute(behavior, player, card);
-            return undefined;
-          });
+          return new SelectOption(behavior.title)
+            .andThen(() => {
+              this.execute(behavior, player, card);
+              return undefined;
+            });
         });
 
       // TODO(kberg): move this behavior to OrOptions?
       if (options.length === 1 && behavior.or.autoSelect === true) {
-        options[0].cb();
+        options[0].cb(undefined);
       } else {
         player.defer(new OrOptions(...options));
       }
@@ -218,7 +222,7 @@ export class Executor implements BehaviorExecutor {
       const spend = behavior.spend;
       if (spend.megacredits) {
         player.game.defer(new SelectPaymentDeferred(player, spend.megacredits, {
-          title: 'Select how to pay for action',
+          title: TITLES.payForCardAction(card.name),
         }))
           .andThen(() => {
             const copy = {...behavior};
@@ -392,7 +396,7 @@ export class Executor implements BehaviorExecutor {
           card: card.name,
         },
         on: tile.on,
-        title: tile.title,
+        title: tile.title ?? message('Select space for ${0} tile', (b) => b.cardName(card.name)),
         adjacencyBonus: tile.adjacencyBonus,
       }));
     }
@@ -445,14 +449,35 @@ export class Executor implements BehaviorExecutor {
         if (moon.tile.space !== undefined) {
           MoonExpansion.addTile(player, moon.tile.space, {tileType: moon.tile.type, card: card?.name});
         } else {
-          player.game.defer(new PlaceSpecialMoonTile(
-            player, {tileType: moon.tile.type, card: card?.name},
-            moon.tile.title));
+          player.game.defer(new PlaceSpecialMoonTile(player, {tileType: moon.tile.type, card: card?.name}));
         }
       }
       if (moon.habitatRate !== undefined) MoonExpansion.raiseHabitatRate(player, moon.habitatRate);
       if (moon.miningRate !== undefined) MoonExpansion.raiseMiningRate(player, moon.miningRate);
       if (moon.logisticsRate !== undefined) MoonExpansion.raiseLogisticRate(player, moon.logisticsRate);
+    }
+
+    if (behavior.underworld !== undefined) {
+      const underworld = behavior.underworld;
+      // if (underworld.identify !== undefined) {
+      //   player.game.defer(new IdentifySpacesDeferred(player, ctx.count(underworld.identify)));
+      // }
+      // if (underworld.excavate !== undefined) {
+      //   const excavate = underworld.excavate;
+      //   if (typeof(excavate) === 'number') {
+      //     player.game.defer(new ExcavateSpacesDeferred(player, excavate));
+      //   } else {
+      //     player.game.defer(new ExcavateSpacesDeferred(player, ctx.count(excavate.count), excavate.ignorePlacementRestrictions));
+      //   }
+      // }
+      if (underworld.corruption !== undefined) {
+        UnderworldExpansion.gainCorruption(player, ctx.count(underworld.corruption), {log: true});
+      }
+      // if (underworld.markThisGeneration !== undefined) {
+      //   if (isIProjectCard(card)) {
+      //     card.generationUsed = player.game.generation;
+      //   }
+      // }
     }
   }
 

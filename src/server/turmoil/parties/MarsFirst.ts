@@ -13,10 +13,10 @@ import {Phase} from '../../../common/Phase';
 import {SelectPaymentDeferred} from '../../deferredActions/SelectPaymentDeferred';
 import {IProjectCard} from '../../cards/IProjectCard';
 import {POLITICAL_AGENDAS_MAX_ACTION_USES} from '../../../common/constants';
+import {TITLES} from '../../inputs/titles';
 
 export class MarsFirst extends Party implements IParty {
   readonly name = PartyName.MARS;
-  readonly description = 'Focused on Martian development and independence.';
   readonly bonuses = [MARS_FIRST_BONUS_1, MARS_FIRST_BONUS_2];
   readonly policies = [MARS_FIRST_POLICY_1, MARS_FIRST_POLICY_2, MARS_FIRST_POLICY_3, MARS_FIRST_POLICY_4];
 }
@@ -102,7 +102,7 @@ class MarsFirstPolicy04 implements Policy {
     game.log('${0} used Turmoil Mars First action', (b) => b.player(player));
     player.politicalAgendasActionUsedCount += 1;
 
-    game.defer(new SelectPaymentDeferred(player, 4, {title: 'Select how to pay for Turmoil Mars First action'}))
+    game.defer(new SelectPaymentDeferred(player, 4, {title: TITLES.payForPartyAction(PartyName.MARS)}))
       .andThen(() => player.drawCard(1, {tag: Tag.BUILDING}));
     return undefined;
   }

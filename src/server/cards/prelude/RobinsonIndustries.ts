@@ -9,6 +9,7 @@ import {CardName} from '../../../common/cards/CardName';
 import {CardType} from '../../../common/cards/CardType';
 import {CardRenderer} from '../render/CardRenderer';
 import {SelectPaymentDeferred} from '../../deferredActions/SelectPaymentDeferred';
+import {TITLES} from '../../inputs/titles';
 
 export class RobinsonIndustries extends Card implements IActionCard, ICorporationCard {
   constructor() {
@@ -41,9 +42,8 @@ export class RobinsonIndustries extends Card implements IActionCard, ICorporatio
     let lowest: Array<SelectOption> = [];
 
     ALL_RESOURCES.forEach((resource) => {
-      const option = new SelectOption('Increase ' + resource + ' production 1 step', 'Select', () => {
-        // TODO(kberg): Reduce all the "Select how to pay for {card} action".
-        player.game.defer(new SelectPaymentDeferred(player, 4, {title: 'Select how to pay for Robinson Industries action.'}))
+      const option = new SelectOption('Increase ' + resource + ' production 1 step').andThen(() => {
+        player.game.defer(new SelectPaymentDeferred(player, 4, {title: TITLES.payForCardAction(this.name)}))
           // Add production after payment, to prevent Manutech from being in the way.
           .andThen(() => player.production.add(resource, 1, {log: true}));
         return undefined;
