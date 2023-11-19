@@ -4,6 +4,7 @@
             <li><div class="setup-item" v-i18n>Expansion:</div>
               <div v-if="gameOptions.venusNextExtension" class="create-game-expansion-icon expansion-icon-venus"></div>
               <div v-if="gameOptions.preludeExtension" class="create-game-expansion-icon expansion-icon-prelude"></div>
+              <div v-if="gameOptions.prelude2Expansion" class="create-game-expansion-icon expansion-icon-prelude2"></div>
               <div v-if="gameOptions.coloniesExtension" class="create-game-expansion-icon expansion-icon-colony"></div>
               <div v-if="gameOptions.turmoilExtension" class="create-game-expansion-icon expansion-icon-turmoil"></div>
               <div v-if="gameOptions.promoCardsOption" class="create-game-expansion-icon expansion-icon-promo"></div>
@@ -13,6 +14,8 @@
               <div v-if="gameOptions.communityCardsOption" class="create-game-expansion-icon expansion-icon-community"></div>
               <div v-if="isPoliticalAgendasOn" class="create-game-expansion-icon expansion-icon-agendas"></div>
               <div v-if="gameOptions.ceoExtension" class="create-game-expansion-icon expansion-icon-ceo"></div>
+              <div v-if="gameOptions.ceoExtension" class="create-game-expansion-icon expansion-icon-ceo"></div>
+              <div v-if="gameOptions.underworldExpansion" class="create-game-expansion-icon expansion-icon-underworld"></div>
             </li>
 
             <li><div class="setup-item" v-i18n>Board:</div>
@@ -107,6 +110,7 @@ export default Vue.extend({
     },
   },
   computed: {
+
     isPoliticalAgendasOn(): boolean {
       return (this.gameOptions.politicalAgendasExtension !== AgendaStyle.STANDARD);
     },
@@ -114,11 +118,12 @@ export default Vue.extend({
       return boardColorClass[this.gameOptions.boardName];
     },
     escapeVelocityDescription(): string {
-      const {escapeVelocityThreshold, escapeVelocityPenalty, escapeVelocityPeriod} = this.gameOptions ?? {};
-      if (escapeVelocityThreshold === undefined || escapeVelocityPenalty === undefined || escapeVelocityPeriod === undefined) {
+      const {escapeVelocityThreshold, escapeVelocityPenalty, escapeVelocityPeriod, escapeVelocityBonusSeconds} = this.gameOptions ?? {};
+
+      if (escapeVelocityThreshold === undefined || escapeVelocityPenalty === undefined || escapeVelocityPeriod === undefined || escapeVelocityBonusSeconds === undefined) {
         return '';
       }
-      return translateTextWithParams('After ${0} min, reduce ${1} VP every ${2} min.', [escapeVelocityThreshold.toString(), escapeVelocityPenalty.toString(), escapeVelocityPeriod.toString()]);
+      return translateTextWithParams('After ${0} min, reduce ${1} VP every ${2} min. (${3} bonus sec. per turn.)', [escapeVelocityThreshold.toString(), escapeVelocityPenalty.toString(), escapeVelocityPeriod.toString(), escapeVelocityBonusSeconds.toString()]);
     },
     RandomMAOptionType(): typeof RandomMAOptionType {
       return RandomMAOptionType;

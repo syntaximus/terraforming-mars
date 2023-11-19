@@ -4,7 +4,7 @@ import {ModuleManifest} from '../ModuleManifest';
 // import {AeronGenomics} from './AeronGenomics';
 import {AntiTrustCrackdown} from './AntiTrustCrackdown';
 // import {AnubisSecurities} from './AnubisSecurities';
-// import {ArboristCollective} from './ArboristCollective';
+import {ArboristCollective} from './ArboristCollective';
 // // import {AresMedia} from './AresMedia';
 import {ArtesianAquifer} from './ArtesianAquifer';
 // import {BatteryFactory} from './BatteryFactory';
@@ -21,9 +21,9 @@ import {CollusionStandardProject} from './CollusionStandardProject';
 // import {CorporateBlackmail} from './CorporateBlackmail';
 // // import {CorporateTheft} from './CorporateTheft';
 // import {CraterSurvey} from './CraterSurvey';
-// import {CutThroatBudgeting} from './CutThroatBudgeting';
+import {CutThroatBudgeting} from './CutThroatBudgeting';
 // import {Deepmining} from './Deepmining';
-// import {Deepnuking} from './Deepnuking';
+import {Deepnuking} from './Deepnuking';
 // import {DeepwaterDome} from './DeepwaterDome';
 // import {DemetronLabs} from './DemetronLabs';
 // import {EarthquakeMachine} from './EarthquakeMachine';
@@ -40,28 +40,28 @@ import {GanymedeTradingCompany} from './GanymedeTradingCompany';
 import {GeologicalExpertise} from './GeologicalExpertise';
 // import {GeologicalSurvey} from './GeologicalSurvey';
 import {GeologistTeam} from './GeologistTeam';
-// import {GeoscanSatellite} from './GeoscanSatellite';
-// import {GeothermalNetwork} from './GeothermalNetwork';
-// import {GlobalAudit} from './GlobalAudit';
+import {GeoscanSatellite} from './GeoscanSatellite';
+import {GeothermalNetwork} from './GeothermalNetwork';
+import {GlobalAudit} from './GlobalAudit';
 import {GreyMarketExploitation} from './GreyMarketExploitation';
 // // import {GuerillaEcologists} from './GuerillaEcologists';
 import {Hackers} from './Hackers';
-// import {Hadesphere} from './Hadesphere';
+import {Hadesphere} from './Hadesphere';
 // import {HectateSpeditions} from './HectateSpeditions';
-// import {HenkeiGenetics} from './HenkeiGenetics';
+import {HenkeiGenetics} from './HenkeiGenetics';
 import {HiredRaiders} from './HiredRaiders';
 // import {HyperspaceDrivePrototype} from './HyperspaceDrivePrototype';
-// import {ImportedHeavyMachinery} from './ImportedHeavyMachinery';
+import {ImportedHeavyMachinery} from './ImportedHeavyMachinery';
 // import {InducedTremor} from './InducedTremor';
 // import {InfrastructureOverload} from './InfrastructureOverload';
 import {InheritedFortune} from './InheritedFortune';
 // // import {IntellectualPropertyTheft} from './IntellectualPropertyTheft';
 // import {InvestigativeJournalism} from './InvestigativeJournalism';
 import {InvestorPlaza} from './InvestorPlaza';
-// import {JensonBoyleCo} from './JensonBoyleCo';
+import {JensonBoyleCo} from './JensonBoyleCo';
 // import {Keplertec} from './Keplertec';
 // // import {Keplertec} from './Keplertec';
-// import {KingdomofTauraro} from './KingdomofTauraro';
+import {KingdomofTauraro} from './KingdomofTauraro';
 // import {LaborTrafficking} from './LaborTrafficking';
 import {Landfill} from './Landfill';
 import {LobbyingNetwork} from './LobbyingNetwork';
@@ -83,7 +83,7 @@ import {OldWorldMafia} from './OldWorldMafia';
 import {OrbitalLaserDrill} from './OrbitalLaserDrill';
 // import {PatentManipulation} from './PatentManipulation';
 import {PersonalSpacecruiser} from './PersonalSpacecruiser';
-// import {PlanetaryRightsBuyout} from './PlanetaryRightsBuyout';
+import {PlanetaryRightsBuyout} from './PlanetaryRightsBuyout';
 // import {PlantTax} from './PlantTax';
 import {PriceWars} from './PriceWars';
 import {PrivateInvestigator} from './PrivateInvestigator';
@@ -103,7 +103,7 @@ import {SoilExport} from './SoilExport';
 // import {SpacePrivateers} from './SpacePrivateers';
 import {SpaceWargames} from './SpaceWargames';
 // import {StagedProtests} from './StagedProtests';
-import {StandardTechnology} from './StandardTechnology';
+// import {StandardTechnology} from './StandardTechnology';
 // import {StarVegas} from './StarVegas';
 import {StemFieldSubsidies} from './StemFieldSubsidies';
 // import {SubnauticPirates} from './SubnauticPirates';
@@ -120,7 +120,7 @@ import {UndergroundRailway} from './UndergroundRailway';
 import {UndergroundSettlement} from './UndergroundSettlement';
 // import {UndergroundShelters} from './UndergroundShelters';
 // import {UndergroundSmugglingRing} from './UndergroundSmugglingRing';
-// import {Voltagon} from './Voltagon';
+import {Voltagon} from './Voltagon';
 // import {VoltaicMetallurgy} from './VoltaicMetallurgy';
 // import {VolunteerMiningInititive} from './VolunteerMiningInititive';
 // // import {Whales} from './Whales';
@@ -130,14 +130,14 @@ export const UNDERWORLD_CARD_MANIFEST = new ModuleManifest({
   projectCards: {
     // // 1-9
     [CardName.GEOLOGIST_TEAM]: {Factory: GeologistTeam},
-    // [CardName.GEOSCAN_SATELLITE]: {Factory: GeoscanSatellite},
+    [CardName.GEOSCAN_SATELLITE]: {Factory: GeoscanSatellite},
     [CardName.TUNNEL_BORING_MACHINE]: {Factory: TunnelBoringMachine},
     [CardName.UNDERGROUND_RAILWAY]: {Factory: UndergroundRailway},
     // // [CardName.GAIA_CITY]: {Factory: GaiaCity},
-    // [CardName.DEEPNUKING]: {Factory: Deepnuking},
+    [CardName.DEEPNUKING]: {Factory: Deepnuking},
     [CardName.OLD_WORLD_MAFIA]: {Factory: OldWorldMafia},
     [CardName.NIGHTCLUBS]: {Factory: Nightclubs},
-    // [CardName.RECKLESS_DETONATION]: {Factory: RecklessDetonation},
+    // // [CardName.RECKLESS_DETONATION]: {Factory: RecklessDetonation},
     // // 10-18
     [CardName.OFF_WORLD_TAX_HAVEN]: {Factory: OffWorldTaxHaven},
     // [CardName.SUBNAUTIC_PIRATES]: {Factory: SubnauticPirates},
@@ -151,11 +151,11 @@ export const UNDERWORLD_CARD_MANIFEST = new ModuleManifest({
     // // 19-27
     [CardName.UNDERGROUND_AMUSEMENT_PARK]: {Factory: UndergroundAmusementPark},
     [CardName.CASINO]: {Factory: Casino},
-    // [CardName.IMPORTED_HEAVY_MACHINERY]: {Factory: ImportedHeavyMachinery},
+    [CardName.IMPORTED_HEAVY_MACHINERY]: {Factory: ImportedHeavyMachinery},
     // [CardName.MICROPROBING_TECHNOLOGY]: {Factory: MicroprobingTechnology},
     [CardName.SEARCH_FOR_LIFE_UNDERGROUND]: {Factory: SearchforLifeUnderground},
-    // [CardName.GEOTHERMAL_NETWORK]: {Factory: GeothermalNetwork},
-    // [CardName.GLOBAL_AUDIT]: {Factory: GlobalAudit},
+    [CardName.GEOTHERMAL_NETWORK]: {Factory: GeothermalNetwork},
+    [CardName.GLOBAL_AUDIT]: {Factory: GlobalAudit},
     // [CardName.PATENT_MANIPULATION]: {Factory: PatentManipulation},
     [CardName.CAVE_CITY]: {Factory: CaveCity},
     // // 28-36
@@ -216,13 +216,13 @@ export const UNDERWORLD_CARD_MANIFEST = new ModuleManifest({
     // [CardName.PUBLIC_SPACELINE]: {Factory: PublicSpaceline},
     // [CardName.MARTIAN_EXPRESS]: {Factory: MartianExpress},
     // [CardName.EXPEDITION_VEHICLES]: {Factory: ExpeditionVehicles},
-    // [CardName.CUT_THROAT_BUDGETING]: {Factory: CutThroatBudgeting},
+    [CardName.CUT_THROAT_BUDGETING]: {Factory: CutThroatBudgeting},
     // [CardName.GEOLOGICAL_SURVEY_UNDERWORLD]: {Factory: GeologicalSurvey},
     // // 82-90
     // [CardName.CLASS_ACTION_LAWSUIT]: {Factory: ClassActionLawsuit},
     // // [CardName.MERCENARY_ASSAULT]: {Factory: MercenaryAssault}, // Blocking rules.
     // [CardName.RESEARCH_DEVELOPMENT_HUB]: {Factory: ResearchDevelopmentHub},
-    // [CardName.PLANETARY_RIGHTS_BUYOUT]: {Factory: PlanetaryRightsBuyout},
+    [CardName.PLANETARY_RIGHTS_BUYOUT]: {Factory: PlanetaryRightsBuyout},
     // // [CardName.MEDIA_FRENZY]: {Factory: MediaFrenzy}, // Scoops is not quite clear yet.
     // [CardName.INVESTIGATIVE_JOURNALISM]: {Factory: InvestigativeJournalism},
     // // [CardName.WHALES]: {Factory: Whales}, // This is gonna be tricky.
@@ -230,27 +230,27 @@ export const UNDERWORLD_CARD_MANIFEST = new ModuleManifest({
     // // [CardName.THIOLAVA_VENTS]: {Factory: ThiolavaVents}, // Uncomment when tests are more manageable. See Production.ts
 
     // // Replacements
-    [CardName.STANDARD_TECHNOLOGY_UNDERWORLD]: {Factory: StandardTechnology},
+    // [CardName.STANDARD_TECHNOLOGY_UNDERWORLD]: {Factory: StandardTechnology},
     [CardName.HACKERS_UNDERWORLD]: {Factory: Hackers},
     [CardName.HIRED_RAIDERS_UNDERWORLD]: {Factory: HiredRaiders},
   },
 
   cardsToRemove: [
-    CardName.STANDARD_TECHNOLOGY,
+    // CardName.STANDARD_TECHNOLOGY,
     CardName.HACKERS,
     CardName.HIRED_RAIDERS,
   ],
 
   corporationCards: {
-    // [CardName.HADESPHERE]: {Factory: Hadesphere},
+    [CardName.HADESPHERE]: {Factory: Hadesphere},
     // [CardName.DEMETRON_LABS]: {Factory: DemetronLabs},
-    // [CardName.JENSON_BOYLE_CO]: {Factory: JensonBoyleCo},
-    // [CardName.HENKEI_GENETICS]: {Factory: HenkeiGenetics},
-    // [CardName.ARBORIST_COLLECTIVE]: {Factory: ArboristCollective},
-    // [CardName.KINGDOM_OF_TAURARO]: {Factory: KingdomofTauraro},
+    [CardName.JENSON_BOYLE_CO]: {Factory: JensonBoyleCo},
+    [CardName.HENKEI_GENETICS]: {Factory: HenkeiGenetics},
+    [CardName.ARBORIST_COLLECTIVE]: {Factory: ArboristCollective},
+    [CardName.KINGDOM_OF_TAURARO]: {Factory: KingdomofTauraro},
     // [CardName.AERON_GENOMICS]: {Factory: AeronGenomics},
     // [CardName.KEPLERTEC]: {Factory: Keplertec},
-    // [CardName.VOLTAGON]: {Factory: Voltagon, compatibility: 'venus'},
+    [CardName.VOLTAGON]: {Factory: Voltagon, compatibility: 'venus'},
     // // [CardName.ARES_MEDIA]: {Factory: AresMedia}, // Not another events are up card.
     // [CardName.ANUBIS_SECURITIES]: {Factory: AnubisSecurities},
     // [CardName.HECTATE_SPEDITIONS]: {Factory: HectateSpeditions, compatibility: 'colonies'},
