@@ -8,7 +8,7 @@ import {AntiTrustCrackdown} from './AntiTrustCrackdown';
 import {ArboristCollective} from './ArboristCollective';
 // // import {AresMedia} from './AresMedia';
 import {ArtesianAquifer} from './ArtesianAquifer';
-// import {BatteryFactory} from './BatteryFactory';
+import {BatteryFactory} from './BatteryFactory';
 import {BatteryShipment} from './BatteryShipment';
 import {BehemothExcavator} from './BehemothExcavator';
 import {Casino} from './Casino';
@@ -31,7 +31,7 @@ import {EarthquakeMachine} from './EarthquakeMachine';
 import {ElectionSponsorship} from './ElectionSponsorship';
 import {ExcavateStandardProject} from './ExcavateStandardProject';
 import {ExcavatorLeasing} from './ExcavatorLeasing';
-// import {ExpeditionVehicles} from './ExpeditionVehicles';
+import {ExpeditionVehicles} from './ExpeditionVehicles';
 import {FairTradeComplaint} from './FairTradeComplaint';
 import {FabricatedScandal} from './FabricatedScandal';
 import {ForestTunnels} from './ForestTunnels';
@@ -40,7 +40,7 @@ import {FreeTradePort} from './FreeTradePort';
 // // import {GaiaCity} from './GaiaCity';
 import {GanymedeTradingCompany} from './GanymedeTradingCompany';
 import {GeologicalExpertise} from './GeologicalExpertise';
-// import {GeologicalSurvey} from './GeologicalSurvey';
+import {GeologicalSurvey} from './GeologicalSurvey';
 import {GeologistTeam} from './GeologistTeam';
 import {GeoscanSatellite} from './GeoscanSatellite';
 import {GeothermalNetwork} from './GeothermalNetwork';
@@ -69,7 +69,7 @@ import {LaggingRegulation} from './LaggingRegulation';
 import {Landfill} from './Landfill';
 import {LobbyingNetwork} from './LobbyingNetwork';
 import {ManMadeVolcano} from './ManMadeVolcano';
-// import {MartianExpress} from './MartianExpress';
+import {MartianExpress} from './MartianExpress';
 // // import {MediaFrenzy} from './MediaFrenzy';
 import {MediaStir} from './MediaStir';
 // // import {MercenaryAssault} from './MercenaryAssault';
@@ -79,7 +79,7 @@ import {MicroprobingTechnology} from './MicroprobingTechnology';
 import {MigrationUnderground} from './MigrationUnderground';
 import {MiningMarketInsider} from './MiningMarketInsider';
 // import {Monopoly} from './Monopoly';
-// import {Nanofoundry} from './Nanofoundry';
+import {Nanofoundry} from './Nanofoundry';
 import {NarrativeSpin} from './NarrativeSpin';
 // // import {Neutrinograph} from './Neutrinograph';
 import {Nightclubs} from './Nightclubs';
@@ -95,14 +95,14 @@ import {PrivateInvestigator} from './PrivateInvestigator';
 import {PrivateMilitaryContractor} from './PrivateMilitaryContractor';
 import {PrivateResorts} from './PrivateResorts';
 // import {Prospecting} from './Prospecting';
-// import {PublicSpaceline} from './PublicSpaceline';
+import {PublicSpaceline} from './PublicSpaceline';
 // import {RecklessDetonation} from './RecklessDetonation';
 // import {ResearchDevelopmentHub} from './ResearchDevelopmentHub';
 import {RobotMoles} from './RobotMoles';
 import {Scapegoat} from './Scapegoat';
 import {SearchforLifeUnderground} from './SearchforLifeUnderground';
 import {SecretResearch} from './SecretResearch';
-// import {SeismicPredictions} from './SeismicPredictions';
+import {SeismicPredictions} from './SeismicPredictions';
 // import {ServerSabotage} from './ServerSabotage';
 // // import {SocialEngineering} from './SocialEngineering';
 import {SoilExport} from './SoilExport';
@@ -127,8 +127,8 @@ import {UndergroundSettlement} from './UndergroundSettlement';
 import {UndergroundShelters} from './UndergroundShelters';
 import {UndergroundSmugglingRing} from './UndergroundSmugglingRing';
 import {Voltagon} from './Voltagon';
-// import {VoltaicMetallurgy} from './VoltaicMetallurgy';
-// import {VolunteerMiningInititive} from './VolunteerMiningInititive';
+import {VoltaicMetallurgy} from './VoltaicMetallurgy';
+import {VolunteerMiningInitiative} from './VolunteerMiningInitiative';
 // // import {Whales} from './Whales';
 
 export const UNDERWORLD_CARD_MANIFEST = new ModuleManifest({
@@ -215,15 +215,15 @@ export const UNDERWORLD_CARD_MANIFEST = new ModuleManifest({
     [CardName.UNDERGROUND_HABITAT]: {Factory: UndergroundHabitat},
     [CardName.UNDERGROUND_SHELTERS]: {Factory: UndergroundShelters},
     // // 73-81
-    // [CardName.VOLUNTEER_MINING_INITITIVE]: {Factory: VolunteerMiningInititive},
-    // [CardName.NANOFOUNDRY]: {Factory: Nanofoundry},
-    // [CardName.BATTERY_FACTORY]: {Factory: BatteryFactory},
-    // [CardName.VOLTAIC_METALLURGY]: {Factory: VoltaicMetallurgy},
-    // [CardName.PUBLIC_SPACELINE]: {Factory: PublicSpaceline},
-    // [CardName.MARTIAN_EXPRESS]: {Factory: MartianExpress},
-    // [CardName.EXPEDITION_VEHICLES]: {Factory: ExpeditionVehicles},
+    [CardName.VOLUNTEER_MINING_INITIATIVE]: {Factory: VolunteerMiningInitiative},
+    [CardName.NANOFOUNDRY]: {Factory: Nanofoundry},
+    [CardName.BATTERY_FACTORY]: {Factory: BatteryFactory},
+    [CardName.VOLTAIC_METALLURGY]: {Factory: VoltaicMetallurgy},
+    [CardName.PUBLIC_SPACELINE]: {Factory: PublicSpaceline},
+    [CardName.MARTIAN_EXPRESS]: {Factory: MartianExpress},
+    [CardName.EXPEDITION_VEHICLES]: {Factory: ExpeditionVehicles},
     [CardName.CUT_THROAT_BUDGETING]: {Factory: CutThroatBudgeting},
-    // [CardName.GEOLOGICAL_SURVEY_UNDERWORLD]: {Factory: GeologicalSurvey},
+    [CardName.GEOLOGICAL_SURVEY_UNDERWORLD]: {Factory: GeologicalSurvey},
     // // 82-90
     // [CardName.CLASS_ACTION_LAWSUIT]: {Factory: ClassActionLawsuit},
     // // [CardName.MERCENARY_ASSAULT]: {Factory: MercenaryAssault}, // Blocking rules.
@@ -289,8 +289,7 @@ export const UNDERWORLD_CARD_MANIFEST = new ModuleManifest({
     [GlobalEventName.LAGGING_REGULATION]: {Factory: LaggingRegulation},
     [GlobalEventName.MIGRATION_UNDERGROUND]: {Factory: MigrationUnderground},
     [GlobalEventName.FAIR_TRADE_COMPLAINT]: {Factory: FairTradeComplaint, negative: true},
-    // [GlobalEventName.SEISMIC_PREDICTIONS]: {Factory: SeismicPredictions, negative: true},
+    [GlobalEventName.SEISMIC_PREDICTIONS]: {Factory: SeismicPredictions, negative: true},
     [GlobalEventName.MEDIA_STIR]: {Factory: MediaStir, negative: true},
   },
 });
-
