@@ -78,7 +78,7 @@ const ORDER: Array<InterfaceTagsType> = [
 const isInGame = (tag: InterfaceTagsType, game: GameModel, preferences: Readonly<Preferences>): boolean => {
   const gameOptions = game.gameOptions;
   if (game.turmoil === undefined && tag === SpecialTags.INFLUENCE) return false;
-  if (gameOptions.pathfindersExpansion === false && tag === Tag.MARS) return false;
+
   if (preferences.show_betrayal_points === false && tag === SpecialTags.BETRAYAL_POINTS) return false;
   switch (tag) {
   case SpecialTags.COLONY_COUNT:
@@ -179,7 +179,7 @@ export default Vue.extend({
     }
 
     // Put them in order.
-    const tagsInOrder: Array<TagDetail> = [];
+    const tagsInOrder = [];
     for (const tag of ORDER) {
       const entry = details[tag];
       tagsInOrder.push(entry);

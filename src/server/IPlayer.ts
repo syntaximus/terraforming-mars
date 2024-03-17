@@ -86,6 +86,8 @@ export interface IPlayer {
   canUseTitaniumAsMegacredits: boolean;
   // Martian Lumber Corp
   canUsePlantsAsMegacredits: boolean;
+  // Friends in High Places
+  canUseCorruptionAsMegacredits: boolean;
 
   // This generation / this round
   actionsTakenThisRound: number;
@@ -178,11 +180,11 @@ export interface IPlayer {
   plantsAreProtected(): boolean;
   alloysAreProtected(): boolean;
   /**
+   * Returns true when this player can lose |minQuantity| units of production.
    *
-   * @param resource
-   * @param minQuantity
+   * This typically means they have the required units of production, and that production
+   * isn't protected.
    */
-  canReduceAnyProduction(resource: Resource, minQuantity?: number): boolean;
   canHaveProductionReduced(resource: Resource, minQuantity: number, attacker: IPlayer): boolean;
   maybeBlockAttack(perpetrator: IPlayer, cb: (proceed: boolean) => PlayerInput | undefined): void;
 
@@ -283,7 +285,7 @@ export interface IPlayer {
   availableHeat(): number;
   spendHeat(amount: number, cb?: () => (undefined | PlayerInput)) : PlayerInput | undefined;
 
-  playCard(selectedCard: IProjectCard, payment?: Payment, cardAction?: CardAction): undefined;
+  playCard(selectedCard: IProjectCard, payment?: Payment, cardAction?: CardAction): void;
   onCardPlayed(card: IProjectCard): void;
   playAdditionalCorporationCard(corporationCard: ICorporationCard): void;
   playCorporationCard(corporationCard: ICorporationCard): void;
@@ -308,6 +310,7 @@ export interface IPlayer {
   canAfford(options: number | CanAffordOptions): boolean;
   getStandardProjectOption(): SelectCard<IStandardProjectCard>;
   takeAction(saveBeforeTakingAction?: boolean): void;
+  getOpponents(): ReadonlyArray<IPlayer>;
   /** Add `corp`'s initial action to the deferred action queue, if it has one. */
   deferInitialAction(corp: ICorporationCard): void;
   getActions(): OrOptions;

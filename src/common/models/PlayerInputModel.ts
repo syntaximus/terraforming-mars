@@ -14,6 +14,7 @@ export type BaseInputModel = {
   title: string | Message;
   buttonLabel: string;
 }
+
 export type AndOptionsModel = BaseInputModel & {
   type: 'and';
   options: Array<PlayerInputModel>;
@@ -22,6 +23,9 @@ export type AndOptionsModel = BaseInputModel & {
 export type OrOptionsModel = BaseInputModel & {
   type: 'or';
   options: Array<PlayerInputModel>;
+  // When set, initialIdx represents the option within `options` that should be
+  // shows as the default selection.
+  initialIdx?: number;
 }
 
 export type SelectInitialCardsModel = BaseInputModel & {
@@ -44,6 +48,7 @@ export type SelectProjectCardToPlayModel = BaseInputModel & {
   seeds: number;
   graphene: number;
   kuiperAsteroids: number;
+  corruption: number;
 }
 
 export type SelectCardModel = BaseInputModel & {

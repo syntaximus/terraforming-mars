@@ -10,12 +10,17 @@ export class OrOptions extends OptionsInput<undefined> {
   }
 
   public toModel(player: IPlayer): OrOptionsModel {
-    return {
+    const initialIdx = this.options.findIndex((option) => option.eligibleForDefault !== false);
+    const model: OrOptionsModel = {
       title: this.title,
       buttonLabel: this.buttonLabel,
       type: 'or',
       options: this.options.map((option) => option.toModel(player)),
     };
+    if (initialIdx > -1) {
+      model.initialIdx = initialIdx;
+    }
+    return model;
   }
 
   public process(input: InputResponse, player: IPlayer) {
@@ -27,5 +32,15 @@ export class OrOptions extends OptionsInput<undefined> {
     }
     player.runInput(input.response, this.options[input.index]);
     return this.cb(undefined);
+  }
+
+  public reduce(): PlayerInput | undefined {
+    if (this.options.length === 0) {
+      return undefined;
+    }
+    if (this.options.length === 1) {
+      return this.options[0].cb();
+    }
+    return this;
   }
 }

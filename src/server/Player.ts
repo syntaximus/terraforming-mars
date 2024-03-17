@@ -154,6 +154,8 @@ export class Player implements IPlayer {
   public canUsePlantsAsMegacredits: boolean = false;
   // Luna Trade Federation
   public canUseTitaniumAsMegacredits: boolean = false;
+  // Friends in High Places
+  public canUseCorruptionAsMegacredits: boolean = false;
 
   // This generation / this round
   public actionsTakenThisRound: number = 0;
@@ -417,19 +419,9 @@ export class Player implements IPlayer {
     return this.cardIsInEffect(CardName.LUNAR_SECURITY_STATIONS);
   }
 
-  public canReduceAnyProduction(resource: Resource, minQuantity: number = 1): boolean {
-    // in soloMode you don't have to decrease resources
-    const game = this.game;
-    if (game.isSoloMode()) return true;
-    return game.getPlayers().some((p) => p.canHaveProductionReduced(resource, minQuantity, this));
-  }
-
   public canHaveProductionReduced(resource: Resource, minQuantity: number, attacker: IPlayer) {
-    if (resource === Resource.MEGACREDITS) {
-      if ((this.production[resource] + 5) < minQuantity) return false;
-    } else {
-      if (this.production[resource] < minQuantity) return false;
-    }
+    const reducable = this.production[resource] + (resource === Resource.MEGACREDITS ? 5 : 0);
+    if (reducable < minQuantity) return false;
 
     if (resource === Resource.STEEL || resource === Resource.TITANIUM) {
       if (this.alloysAreProtected()) return false;
@@ -718,9 +710,7 @@ export class Player implements IPlayer {
   }
 
   public dealForDraft(quantity: number, cards: Array<IProjectCard>): void {
-    for (let i = 0; i < quantity; i++) {
-      cards.push(this.game.projectDeck.drawLegacy(this.game, 'bottom'));
-    }
+    cards.push(...this.game.projectDeck.drawN(this.game, quantity, 'bottom'));
   }
 
   /**
@@ -852,6 +842,7 @@ export class Player implements IPlayer {
       auroraiData: card.type === CardType.STANDARD_PROJECT,
       graphene: card.tags.includes(Tag.CITY) || card.tags.includes(Tag.SPACE),
       kuiperAsteroids: card.name === CardName.AQUIFER_STANDARD_PROJECT || card.name === CardName.ASTEROID_STANDARD_PROJECT,
+      corruption: card.tags.includes(Tag.EARTH) && this.cardIsInEffect(CardName.FRIENDS_IN_HIGH_PLACES),
     };
   }
 
@@ -869,6 +860,15 @@ export class Player implements IPlayer {
         const cardsWithFloater = this.getCardsWithResources(CardResource.FLOATER);
         if (cardsWithFloater.length === 1) {
           throw new Error('Cannot spend all floaters to play Stratospheric Birds');
+        }
+      }
+    }
+
+    if (payment.microbes > 0) {
+      if (selectedCard.name === CardName.SOIL_ENRICHMENT && payment.microbes === this.getSpendable('microbes')) {
+        const cardsWithMicrobe = this.getCardsWithResources(CardResource.MICROBE);
+        if (cardsWithMicrobe.length === 1) {
+          throw new Error('Cannot spend all microbes to play Soil Enrichment');
         }
       }
     }
@@ -924,13 +924,16 @@ export class Player implements IPlayer {
     removeResourcesOnCard(CardName.SOYLENT_SEEDLING_SYSTEMS, payment.seeds);
     removeResourcesOnCard(CardName.AURORAI, payment.auroraiData);
     removeResourcesOnCard(CardName.KUIPER_COOPERATIVE, payment.kuiperAsteroids);
+    if (payment.corruption > 0) {
+      UnderworldExpansion.loseCorruption(this, payment.corruption);
+    }
 
     if (payment.megaCredits > 0 || payment.steel > 0 || payment.titanium > 0) {
       PathfindersExpansion.addToSolBank(this);
     }
   }
 
-  public playCard(selectedCard: IProjectCard, payment?: Payment, cardAction: CardAction = 'add'): undefined {
+  public playCard(selectedCard: IProjectCard, payment?: Payment, cardAction: CardAction = 'add'): void {
     if (payment !== undefined) {
       this.pay(payment);
     }
@@ -971,7 +974,7 @@ export class Player implements IPlayer {
 
     switch (cardAction) {
     case 'add':
-      if (selectedCard.name !== CardName.LAW_SUIT) {
+      if (selectedCard.name !== CardName.LAW_SUIT && selectedCard.name !== CardName.PRIVATE_INVESTIGATOR) {
         this.playedCards.push(selectedCard);
       }
       break;
@@ -1100,13 +1103,13 @@ export class Player implements IPlayer {
       const diff = this.cardsInHand.length * this.cardCost;
       this.stock.deduct(Resource.MEGACREDITS, diff);
     }
+    this.game.log('${0} played ${1}', (b) => b.player(this).card(corporationCard));
     // Calculating this before playing the corporation card, which might change the player's hand size.
     const numberOfCardInHand = this.cardsInHand.length;
     corporationCard.play(this);
     if (corporationCard.initialAction !== undefined || corporationCard.firstAction !== undefined) {
       this.pendingInitialActions.push(corporationCard);
     }
-    this.game.log('${0} played ${1}', (b) => b.player(this).card(corporationCard));
     if (additionalCorp === false) {
       this.game.log('${0} kept ${1} project cards', (b) => b.player(this).number(numberOfCardInHand));
     }
@@ -1315,6 +1318,7 @@ export class Player implements IPlayer {
 
     const playableCards: Array<PlayableCard> = [];
     for (const card of candidateCards) {
+      card.warnings.clear();
       const canPlay = this.canPlay(card);
       if (canPlay !== false) {
         playableCards.push({
@@ -1342,10 +1346,22 @@ export class Player implements IPlayer {
 
   public canPlay(card: IProjectCard): boolean | YesAnd {
     const options = this.affordOptionsForCard(card);
-    if (!this.canAfford(options)) {
+    const canAfford = this.newCanAfford(options);
+    if (!canAfford.canAfford) {
       return false;
     }
-    return this.simpleCanPlay(card, options);
+    const canPlay = this.simpleCanPlay(card, options);
+    if (canPlay === false) {
+      return false;
+    }
+    if (canAfford.redsCost > 0) {
+      if (typeof canPlay === 'boolean') {
+        return {redsCost: canAfford.redsCost};
+      } else {
+        return {...canPlay, redsCost: canAfford.redsCost};
+      }
+    }
+    return canPlay;
   }
 
   /**
@@ -1372,6 +1388,7 @@ export class Player implements IPlayer {
       auroraiData: this.getSpendable('auroraiData'),
       graphene: this.getSpendable('graphene'),
       kuiperAsteroids: this.getSpendable('kuiperAsteroids'),
+      corruption: this.underworldData.corruption,
     };
   }
 
@@ -1413,6 +1430,7 @@ export class Player implements IPlayer {
       auroraiData: options?.auroraiData ?? false,
       graphene: options?.graphene ?? false,
       kuiperAsteroids: options?.kuiperAsteroids ?? false,
+      corruption: options?.corruption ?? false,
     };
 
     // HOOK: Luna Trade Federation
@@ -1429,11 +1447,12 @@ export class Player implements IPlayer {
     return totalToPay;
   }
 
+  private static CANNOT_AFFORD = {canAfford: false, redsCost: 0} as const;
+
   /**
-   * Returns `true` if the player can afford to pay `options.cost` mc (possibly replaceable with steel, titanium etc.)
-   * and additionally pay the reserveUnits (no replaces here)
+   * Returns information about whether a player can afford to spend money with other costs and ways to pay taken into account.
    */
-  public canAfford(o: number | CanAffordOptions): boolean {
+  public newCanAfford(o: number | CanAffordOptions): {redsCost: number, canAfford: boolean} {
     const options: CanAffordOptions = typeof(o) === 'number' ? {cost: o} : {...o};
 
     // TODO(kberg): These are set both here and in SelectPayment. Consolidate, perhaps.
@@ -1445,14 +1464,14 @@ export class Player implements IPlayer {
       // Special-case heat
       const unitsWithoutHeat = {...reserveUnits, heat: 0};
       if (!this.stock.has(unitsWithoutHeat)) {
-        return false;
+        return Player.CANNOT_AFFORD;
       }
       if (this.availableHeat() < reserveUnits.heat) {
-        return false;
+        return Player.CANNOT_AFFORD;
       }
     } else {
       if (!this.stock.has(reserveUnits)) {
-        return false;
+        return Player.CANNOT_AFFORD;
       }
     }
 
@@ -1461,13 +1480,22 @@ export class Player implements IPlayer {
     if (redsCost > 0) {
       const usableForRedsCost = this.payingAmount(maxPayable, {});
       if (usableForRedsCost < redsCost) {
-        return false;
+        return Player.CANNOT_AFFORD;
       }
     }
 
     const usable = this.payingAmount(maxPayable, options);
 
-    return options.cost + redsCost <= usable;
+    const canAfford = options.cost + redsCost <= usable;
+    return {canAfford, redsCost};
+  }
+
+  /**
+   * Returns `true` if the player can afford to pay `options.cost` mc (possibly replaceable with steel, titanium etc.)
+   * and additionally pay the reserveUnits (no replaces here)
+   */
+  public canAfford(o: number | CanAffordOptions): boolean {
+    return this.newCanAfford(o).canAfford;
   }
 
   private getStandardProjects(): Array<IStandardProjectCard> {
@@ -1606,6 +1634,8 @@ export class Player implements IPlayer {
           message('Take first action of ${0} corporation', (b) => b.card(corp)),
           corp.initialActionText)
           .andThen(() => {
+            game.log('${0} took the first action of ${1} corporation', (b) => b.player(this).card(corp)),
+
             this.deferInitialAction(corp);
             this.pendingInitialActions.splice(this.pendingInitialActions.indexOf(corp), 1);
             return undefined;
@@ -1683,6 +1713,9 @@ export class Player implements IPlayer {
       });
       if (convertHeat.warnings.size > 0) {
         option.warnings = Array.from(convertHeat.warnings);
+        if (convertHeat.warnings.has('maxtemp')) {
+          option.eligibleForDefault = false;
+        }
       }
       action.options.push(option);
     }
@@ -1855,6 +1888,8 @@ export class Player implements IPlayer {
       // Luna Trade Federation
       canUseTitaniumAsMegacredits: this.canUseTitaniumAsMegacredits,
       // This generation / this round
+      canUseCorruptionAsMegacredits: this.canUseCorruptionAsMegacredits,
+      // This generation / this round
       actionsTakenThisRound: this.actionsTakenThisRound,
       actionsThisGeneration: Array.from(this.actionsThisGeneration),
       pendingInitialActions: this.pendingInitialActions.map((c) => c.name),
@@ -2004,6 +2039,10 @@ export class Player implements IPlayer {
     }
 
     return player;
+  }
+
+  public getOpponents(): Array<IPlayer> {
+    return this.game.getPlayers().filter((p) => p !== this);
   }
 
   /* Shorthand for deferring things */

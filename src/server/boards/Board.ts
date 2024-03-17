@@ -10,7 +10,6 @@ import {Units} from '../../common/Units';
 import {HazardSeverity, hazardSeverity} from '../../common/AresTileType';
 import {TRSource} from '../../common/cards/TRSource';
 import {sum} from '../../common/utils/utils';
-import {SpaceBonus} from '../../common/boards/SpaceBonus';
 
 export type SpaceCosts = {
   stock: Units,
@@ -52,6 +51,7 @@ export abstract class Board {
   }
 
   /* Returns the space given a Space ID. */
+  // TODO(kberg): rename to getSpaceOrThrow
   public getSpace(id: SpaceId): Space {
     const space = this.map.get(id);
     if (space === undefined) {
@@ -210,6 +210,7 @@ export abstract class Board {
   }
 
   public getAvailableSpacesOnLand(player: IPlayer, canAffordOptions?: CanAffordOptions): ReadonlyArray<Space> {
+    // Does this also apply to cove spaces?
     const landSpaces = this.getSpaces(SpaceType.LAND, player).filter((space) => {
       // A space is available if it doesn't have a player marker on it, or it belongs to |player|
       if (space.player !== undefined && space.player !== player) {
@@ -328,12 +329,6 @@ export abstract class Board {
       x: serialized.x,
       y: serialized.y,
     };
-
-    // TODO(kberg): Delete this block after 2023-12-01
-    if (space.bonus.length > 0 && space.bonus[0] === SpaceBonus._RESTRICTED) {
-      space.bonus = [];
-      space.spaceType = SpaceType.RESTRICTED;
-    }
 
     if (serialized.tile !== undefined) {
       space.tile = serialized.tile;
