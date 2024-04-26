@@ -12,7 +12,12 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 const zlib = require('zlib');
 
+const Dotenv = require('dotenv-webpack');
+
 const plugins = [
+  new Dotenv({
+    systemvars: true
+  }),
   new ForkTsCheckerWebpackPlugin({
     typescript: {
       configOverwrite: {
