@@ -29,7 +29,7 @@ import {SelectPaymentDeferred} from './deferredActions/SelectPaymentDeferred';
 import {SelectProjectCardToPlay} from './inputs/SelectProjectCardToPlay';
 import {SelectOption} from './inputs/SelectOption';
 import {SelectSpace} from './inputs/SelectSpace';
-import {RobotCard, SelfReplicatingRobots} from './cards/promo/SelfReplicatingRobots';
+import {SelfReplicatingRobots} from './cards/promo/SelfReplicatingRobots';
 import {SerializedCard} from './SerializedCard';
 import {SerializedPlayer} from './SerializedPlayer';
 import {StormCraftIncorporated} from './cards/colonies/StormCraftIncorporated';
@@ -78,7 +78,7 @@ import {UnderworldExpansion} from './underworld/UnderworldExpansion';
 import {Counter} from './behavior/Counter';
 import {TRSource} from '../common/cards/TRSource';
 
-const THROW_WAITING_FOR = Boolean(process.env.THROW_WAITING_FOR);
+const THROW_STATE_ERRORS = Boolean(process.env.THROW_STATE_ERRORS);
 
 export class Player implements IPlayer {
   public readonly id: PlayerId;
@@ -288,8 +288,12 @@ export class Player implements IPlayer {
     }
   }
 
-  public getSelfReplicatingRobotsTargetCards(): Array<RobotCard> {
-    return (<SelfReplicatingRobots> this.playedCards.find((card) => card instanceof SelfReplicatingRobots))?.targetCards ?? [];
+  public getSelfReplicatingRobotsTargetCards(): Array<IProjectCard> {
+    const selfReplicatingRobots = this.playedCards.find((card) => card instanceof SelfReplicatingRobots);
+    if (selfReplicatingRobots instanceof SelfReplicatingRobots) {
+      return selfReplicatingRobots.targetCards;
+    }
+    return [];
   }
 
   public getSteelValue(): number {
@@ -962,15 +966,9 @@ export class Player implements IPlayer {
         this.preludeCardsInHand.splice(preludeCardIndex, 1);
       }
 
-      // Remove card from Self Replicating Robots
       const card = this.playedCards.find((card) => card.name === CardName.SELF_REPLICATING_ROBOTS);
       if (card instanceof SelfReplicatingRobots) {
-        for (const targetCard of card.targetCards) {
-          if (targetCard.card.name === selectedCard.name) {
-            const index = card.targetCards.indexOf(targetCard);
-            card.targetCards.splice(index, 1);
-          }
-        }
+        inplaceRemove(card.targetCards, selectedCard);
       }
     }
 
@@ -1157,7 +1155,7 @@ export class Player implements IPlayer {
   }
 
   public availableHeat(): number {
-    const floaters = this.getCorporation(CardName.STORMCRAFT_INCORPORATED)?.resourceCount ?? 0;
+    const floaters = this.resourcesOnCard(CardName.STORMCRAFT_INCORPORATED);
     return this.heat + (floaters * 2);
   }
 
@@ -1313,9 +1311,7 @@ export class Player implements IPlayer {
     // Self Replicating robots check
     const card = this.playedCards.find((card) => card.name === CardName.SELF_REPLICATING_ROBOTS);
     if (card instanceof SelfReplicatingRobots) {
-      for (const targetCard of card.targetCards) {
-        candidateCards.push(targetCard.card);
-      }
+      candidateCards.push(...card.targetCards);
     }
 
     const playableCards: Array<PlayableCard> = [];
@@ -1821,7 +1817,7 @@ export class Player implements IPlayer {
   public setWaitingFor(input: PlayerInput, cb: () => void = () => {}): void {
     if (this.waitingFor !== undefined) {
       const message = 'Overwriting a waitingFor: ' + this.waitingFor.type;
-      if (THROW_WAITING_FOR) {
+      if (THROW_STATE_ERRORS) {
         throw new Error(message);
       } else {
         console.warn(message);

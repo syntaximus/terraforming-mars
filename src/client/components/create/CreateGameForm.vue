@@ -196,7 +196,7 @@
 
                             <input type="checkbox" v-model="solarPhaseOption" id="WGT-checkbox">
                             <label for="WGT-checkbox">
-                                <span v-i18n>World Government Terraforming</span>&nbsp;<a href="https://github.com/terraforming-mars/terraforming-mars/wiki/Variants#solar-phase" class="tooltip" target="_blank">&#9432;</a>
+                                <span v-i18n>World Government Terraforming</span>&nbsp;<a href="https://github.com/terraforming-mars/terraforming-mars/wiki/Variants#world-government-terraforming" class="tooltip" target="_blank">&#9432;</a>
                             </label>
 
                             <template v-if="playersCount === 1">
@@ -587,6 +587,7 @@ export default (Vue as WithRefs<Refs>).extend({
         RandomBoardOption.OFFICIAL,
         BoardName.UTOPIA_PLANITIA,
         BoardName.VASTITAS_BOREALIS_NOVUS,
+        BoardName.TERRA_CIMMERIA_NOVUS,
         BoardName.ARABIA_TERRA,
         BoardName.AMAZONIS,
         BoardName.TERRA_CIMMERIA,
@@ -919,6 +920,7 @@ export default (Vue as WithRefs<Refs>).extend({
         [BoardName.VASTITAS_BOREALIS]: 'vastitas-borealis',
         [BoardName.AMAZONIS]: 'amazonis-planatia',
         [BoardName.TERRA_CIMMERIA]: 'terra-cimmeria',
+        [BoardName.TERRA_CIMMERIA_NOVUS]: 'terra-cimmeria-novus',
         [RandomBoardOption.OFFICIAL]: '',
         [RandomBoardOption.ALL]: '',
       };

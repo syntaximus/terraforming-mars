@@ -12,7 +12,7 @@ import {OneOrArray} from '../../common/utils/types';
 
 export type CountingMode =
   'raw' | // Count face-up tags literally, including Leavitt Station.
-  'default' | // Like raw, but include the wild tags. Typical when performing an action.
+  'default' | // Like raw, but include the wild tags and other deafult substitutions. Typical when performing an action.
   'milestone' | // Like raw with special conditions for milestones (Chimera)
   'award' | // Like raw with special conditions for awards (Chimera)
   'raw-pf'; // Like raw, but includes Mars Tags when tag is Science (Habitat Marte)
@@ -163,22 +163,24 @@ export class Tags {
   }
 
   /**
-   * Return the total number of tags assocaited with these types.
+   * Return the total number of tags associated with these types.
    * Tag substitutions are included, and not counted repeatedly.
     */
   public multipleCount(tags: Array<Tag>, mode: MultipleCountMode = 'default'): number {
+    const includeEvents = this.player.isCorporation(CardName.ODYSSEY);
+
     let tagCount = 0;
     tags.forEach((tag) => {
-      tagCount += this.rawCount(tag, false);
+      tagCount += this.rawCount(tag, includeEvents);
     });
 
     // This is repeated behavior from getTagCount, sigh, OK.
     if (tags.includes(Tag.EARTH) && !tags.includes(Tag.MOON) && this.player.cardIsInEffect(CardName.EARTH_EMBASSY)) {
-      tagCount += this.rawCount(Tag.MOON, false);
+      tagCount += this.rawCount(Tag.MOON, includeEvents);
     }
 
     if (mode !== 'award') {
-      tagCount += this.rawCount(Tag.WILD, false);
+      tagCount += this.rawCount(Tag.WILD, includeEvents);
       // Chimera has 2 wild tags but should only count as one for milestones.
       if (this.player.isCorporation(CardName.CHIMERA) && mode === 'milestone') tagCount--;
     } else {
