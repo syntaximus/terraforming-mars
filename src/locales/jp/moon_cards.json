@@ -160,7 +160,7 @@
   "Spend 2 titanium. Place a mine tile on The Moon and raise the mining rate 1 step. Increase your steel, titanium, and heat production 1 step each. Increase your energy production 2 steps.": "2チタン支払う. 月に鉱山タイルを配置し、採掘レート+1段階. 建材産出+1. チタン産出+1. 発熱産出+1. 電力産出+2.",
 
   "Lunar Mine Urbanization": "ルナ・都市化鉱山",
-  "Requires you have 1 mine tile. Increase your M€ production 1 step. Remove 1 of your mine tiles (does not affect the mining rate.) Place a this special tile there, regardless of placement rules. Gain placement bonuses as usual.  Raise the habitat rate 1 step. This tile counts both as a habitat and a mine tile.": "条件：鉱山タイル1枚以上所持. MC産出+1. 所有している鉱山タイル1枚を特殊タイルに置き換える. このタイルは生息地・鉱山タイルとして数える. 居住地レート+1段階.",
+  "Requires you have 1 mine tile. Increase your M€ production 1 step. Remove 1 of your mine tiles (does not affect the mining rate.) Place this special tile there, regardless of placement rules. Gain placement bonuses as usual.  Raise the habitat rate 1 step. This tile counts both as a habitat and a mine tile.": "条件：鉱山タイル1枚以上所持. MC産出+1. 所有している鉱山タイル1枚を特殊タイルに置き換える. このタイルは生息地・鉱山タイルとして数える. 居住地レート+1段階.",
 
   "Lunar Observation Post": "ルナ・観測部門",
   "Action: Add 1 data resource to ANY card": "アクション：1データ獲得.",
@@ -209,7 +209,7 @@
   "Mooncrate Convoys To Mars": "月護送船団火星へ",
   "Requires that Mars First are ruling or that you have 2 delegates there. Raise the logistic rate 1 step. All players may sell their steel resources for 3M€ each.": "条件：火星第一の党が与党か、そこに2議席ある. 物流レート+1段階. 全プレイヤーは建材を3MCで売却してもよい.",
 
-  "New Colony Planning Initiaitives": "新生息計画への取り組み",
+  "New Colony Planning Initiatives": "新生息計画への取り組み",
   "Requires the habitat rate to be 2 or higher. Raise the habitat rate 1 step.": "条件：居住地レート2以上. 居住地レート+1段階.",
 
   "Off-World City Living": "オフ・ワールド都市での生活",
@@ -243,7 +243,7 @@
   "1 VP per 3 microbes here.": "このカード上の3微生物毎に1VP",
   "Action: Spend 1 steel to add 2 microbes here.": "アクション：1建材支払い、このカード上に2微生物追加.",
 
-  "Sinus Iridium Road Network": "虹の入江・ロード",
+  "Sinus Irdium Road Network": "虹の入江・ロード",
   "Decrease your energy production 1 step and increase your M€ production 3 steps. Spend 1 steel. Place a road tile on The Moon and raise the Logistics Rate 1 step.": "電力産出-1. MC産出+3. 月に道路タイルを配置し、物流レート+1段階.",
 
   "Small Duty Rovers": "小型ローバー",
