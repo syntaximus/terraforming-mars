@@ -714,7 +714,7 @@ export class Player implements IPlayer {
     });
   }
 
-  public dealForDraft(quantity: number, cards: Array<IProjectCard>): void {
+  private dealForDraft(quantity: number, cards: Array<IProjectCard>): void {
     cards.push(...this.game.projectDeck.drawN(this.game, quantity, 'bottom'));
   }
 
@@ -1942,6 +1942,7 @@ export class Player implements IPlayer {
     player.canUseHeatAsMegaCredits = d.canUseHeatAsMegaCredits;
     player.canUsePlantsAsMegacredits = d.canUsePlantsAsMegaCredits;
     player.canUseTitaniumAsMegacredits = d.canUseTitaniumAsMegacredits;
+    player.canUseCorruptionAsMegacredits = d.canUseCorruptionAsMegacredits;
     player.cardCost = d.cardCost;
     player.colonies.cardDiscount = d.cardDiscount;
     player.colonies.tradeDiscount = d.colonyTradeDiscount;
