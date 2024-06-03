@@ -180,6 +180,7 @@ export class Player implements IPlayer {
   public needsToDraft?: boolean;
 
   public timer: Timer = Timer.newInstance();
+  public autopass = false;
 
   // Turmoil
   public turmoilPolicyActionUsed: boolean = false;
@@ -1193,6 +1194,7 @@ export class Player implements IPlayer {
   public pass(): void {
     this.game.playerHasPassed(this);
     this.lastCardPlayed = undefined;
+    this.autopass = false;
     this.game.log('${0} passed', (b) => b.player(this));
   }
 
@@ -1517,6 +1519,9 @@ export class Player implements IPlayer {
     if (this.actionsTakenThisRound === 0 || game.gameOptions.undoOption) game.save();
     // if (saveBeforeTakingAction) game.save();
 
+    if (this.autopass) {
+      this.passOption().cb();
+    }
     const headStartIsInEffect = this.headStartIsInEffect();
 
     if (!headStartIsInEffect) {
@@ -1885,6 +1890,7 @@ export class Player implements IPlayer {
       totalDelegatesPlaced: this.totalDelegatesPlaced,
       underworldData: this.underworldData,
       draftHand: this.draftHand.map((c) => c.name),
+      autoPass: this.autopass,
     };
 
     if (this.lastCardPlayed !== undefined) {
@@ -1978,6 +1984,7 @@ export class Player implements IPlayer {
     player.ceoCardsInHand = ceosFromJSON(d.ceoCardsInHand);
     player.playedCards = d.playedCards.map((element: SerializedCard) => deserializeProjectCard(element));
     player.draftedCards = cardsFromJSON(d.draftedCards);
+    player.autopass = d.autoPass ?? false;
 
     player.timer = Timer.deserialize(d.timer);
 
