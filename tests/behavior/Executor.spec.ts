@@ -455,9 +455,7 @@ describe('Executor', () => {
     runAllActions(game);
 
     const selectResources = cast(player.popWaitingFor(), SelectResources);
-    selectResources.options[2].cb(2);
-    selectResources.options[3].cb(1);
-    selectResources.cb(undefined);
+    selectResources.cb(Units.of({titanium: 2, plants: 1}));
 
     expect(player.stock.asUnits()).deep.eq(Units.of({titanium: 2, plants: 1}));
   });
