@@ -5,17 +5,20 @@ import {AtmosphericEnhancers} from './AtmosphericEnhancers';
 import {BoardOfDirectors} from './BoardOfDirectors';
 import {CeresTechMarket} from './CeresTechMarket';
 import {CloudTourism} from './CloudTourism';
+import {ColonialEnvoys} from './ColonialEnvoys';
 import {ColonialRepresentation} from './ColonialRepresentation';
 import {ColonyTradeHub} from './ColonyTradeHub';
 import {CorridorsOfPower} from './CorridorsOfPower';
 import {EarlyColonization} from './EarlyColonization';
 import {Ecotec} from './Ecotec';
 import {EnvoysFromVenus} from './EnvoysFromVenus';
+import {FloatingRefinery} from './FloatingRefinery';
 import {FloatingTradeHub} from './FloatingTradeHub';
 import {FocusedOrganization} from './FocusedOrganization';
 import {FrontierTown} from './FrontierTown';
 import {GhgShipment} from './GhgShipment';
 import {HighCircles} from './HighCircles';
+import {IndustrialComplex} from './IndustrialComplex';
 import {IshtarExpedition} from './IshtarExpedition';
 import {JovianEnvoys} from './JovianEnvoys';
 import {L1TradeTerminal} from './L1TradeTerminal';
@@ -27,6 +30,7 @@ import {OldMiningColony} from './OldMiningColony';
 import {PalladinShipping} from './PalladinShipping';
 import {PlanetaryAlliance} from './PlanetaryAlliance';
 import {PreservationProgram} from './PreservationProgram';
+import {ProjectEden} from './ProjectEden';
 import {Recession} from './Recession';
 import {RedAppeasement} from './RedAppeasement';
 import {RiseToPower} from './RiseToPower';
@@ -49,6 +53,7 @@ import {VenusOrbitalSurvey} from './VenusOrbitalSurvey';
 import {VenusShuttles} from './VenusShuttles';
 import {VenusTradeHub} from './VenusTradeHub';
 import {WGProject} from './WGProject';
+import {WorldGovernmentAdvisor} from './WorldGovernmentAdvisor';
 
 export const PRELUDE2_CARD_MANIFEST = new ModuleManifest({
   module: 'prelude2',
@@ -63,9 +68,9 @@ export const PRELUDE2_CARD_MANIFEST = new ModuleManifest({
     [CardName.SPONSORING_NATION]: {Factory: SponsoringNation, compatibility: 'turmoil'},
     [CardName.COLONIAL_REPRESENTATION]: {Factory: ColonialRepresentation, compatibility: ['colonies', 'turmoil']},
     [CardName.ENVOYS_FROM_VENUS]: {Factory: EnvoysFromVenus, compatibility: ['turmoil', 'venus']},
-    // [CardName.COLONIAL_ENVOYS]: {Factory: ColonialEnvoys, compatibility: ['colonies', 'turmoil']},
+    [CardName.COLONIAL_ENVOYS]: {Factory: ColonialEnvoys, compatibility: ['colonies', 'turmoil']},
     [CardName.SPECIAL_PERMIT]: {Factory: SpecialPermit, compatibility: 'turmoil'},
-    // [CardName.FLOATING_REFINERY]: {Factory: FloatingRefinery, compatibility: 'venus'},
+    [CardName.FLOATING_REFINERY]: {Factory: FloatingRefinery, compatibility: 'venus'},
     [CardName.FRONTIER_TOWN]: {Factory: FrontierTown, compatibility: 'turmoil'},
     [CardName.JOVIAN_ENVOYS]: {Factory: JovianEnvoys, compatibility: 'turmoil'},
     [CardName.MICROGRAVITY_NUTRITION]: {Factory: MicrogravityNutrition, compatibility: 'colonies'},
@@ -89,13 +94,13 @@ export const PRELUDE2_CARD_MANIFEST = new ModuleManifest({
     [CardName.FLOATING_TRADE_HUB]: {Factory: FloatingTradeHub, compatibility: 'venus'},
     [CardName.FOCUSED_ORGANIZATION]: {Factory: FocusedOrganization},
     [CardName.HIGH_CIRCLES]: {Factory: HighCircles, compatibility: 'turmoil'},
-    // [CardName.INDUSTRIAL_COMPLEX]: {Factory: IndustrialComplex},
+    [CardName.INDUSTRIAL_COMPLEX]: {Factory: IndustrialComplex},
     [CardName.MAIN_BELT_ASTEROIDS]: {Factory: MainBeltAsteroids},
     [CardName.NOBEL_PRIZE]: {Factory: NobelPrize},
     [CardName.OLD_MINING_COLONY]: {Factory: OldMiningColony, compatibility: 'colonies'},
     [CardName.PLANETARY_ALLIANCE]: {Factory: PlanetaryAlliance, compatibility: 'venus'},
     [CardName.PRESERVATION_PROGRAM]: {Factory: PreservationProgram},
-    // [CardName.PROJECT_EDEN]: {Factory: ProjectEden}, // Just difficult, requires ordering.
+    [CardName.PROJECT_EDEN]: {Factory: ProjectEden},
     [CardName.RECESSION]: {Factory: Recession},
     [CardName.RISE_TO_POWER]: {Factory: RiseToPower, compatibility: 'turmoil'},
     [CardName.SOIL_BACTERIA]: {Factory: SoilBacteria},
@@ -104,7 +109,7 @@ export const PRELUDE2_CARD_MANIFEST = new ModuleManifest({
     [CardName.TERRAFORMING_DEAL]: {Factory: TerraformingDeal},
     [CardName.VENUS_CONTRACT]: {Factory: VenusContract, compatibility: 'venus'},
     [CardName.VENUS_L1_SHADE]: {Factory: VenusL1Shade, compatibility: 'venus'},
-    // [CardName.WORLD_GOVERNMENT_ADVISOR]: {Factory: WorldGovernmentAdvisor},
+    [CardName.WORLD_GOVERNMENT_ADVISOR]: {Factory: WorldGovernmentAdvisor},
   },
 
   corporationCards: {
