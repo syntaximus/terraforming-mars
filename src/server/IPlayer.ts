@@ -50,7 +50,7 @@ export type CanAffordOptions = Partial<PaymentOptions> & {
  *   only play the card (used for replaying a card)
  *   or do nothing.
  */
-export type CardAction = 'add' | 'discard' | 'nothing' | 'action-only';
+export type CardAction = 'add' | 'discard' | 'nothing' | 'double-down';
 
 export interface IPlayer {
   readonly id: PlayerId;
@@ -102,7 +102,7 @@ export interface IPlayer {
   dealtCeoCards: Array<ICeoCard>;
   dealtProjectCards: Array<IProjectCard>;
   cardsInHand: Array<IProjectCard>;
-  preludeCardsInHand: Array<IProjectCard>;
+  preludeCardsInHand: Array<IPreludeCard>;
   ceoCardsInHand: Array<IProjectCard>;
   playedCards: Array<IProjectCard>;
   cardCost: number;
@@ -135,6 +135,12 @@ export interface IPlayer {
   // removedFromPlayCards is a bit of a misname: it's a temporary storage for
   // cards that provide 'next card' discounts. This will clear between turns.
   removedFromPlayCards: Array<IProjectCard>;
+  /**
+   * When true, Preservation Program is in effect, and the player has not triggered a TR gain this generation.
+   *
+   * False when the player does not have Preservation Program, or after the first TR in the action phase.
+   */
+  preservationProgram: boolean;
 
   // The number of actions a player can take this round.
   // It's almost always 2, but certain cards can change this value.
@@ -166,6 +172,10 @@ export interface IPlayer {
    * Return the corporation card this player has played by the given name, or throw an Error.
    */
   getCorporationOrThrow(corporationName: CardName): ICorporationCard;
+  /**
+   * Return the card this player has played by the given name, or `undefined`.
+   */
+  getPlayedCard(cardName: CardName): ICard | undefined;
   getTitaniumValue(): number;
   increaseTitaniumValue(): void;
   decreaseTitaniumValue(): void;
@@ -182,6 +192,7 @@ export interface IPlayer {
   getActionsThisGeneration(): Set<CardName>;
   addActionThisGeneration(cardName: CardName): void;
   getVictoryPoints(): IVictoryPointsBreakdown;
+  /* A card is in effect if it is played. This does not apply to corporations. It could. */
   cardIsInEffect(cardName: CardName): boolean;
   hasProtectedHabitats(): boolean;
   plantsAreProtected(): boolean;
@@ -195,12 +206,6 @@ export interface IPlayer {
   canHaveProductionReduced(resource: Resource, minQuantity: number, attacker: IPlayer): boolean;
   maybeBlockAttack(perpetrator: IPlayer, cb: (proceed: boolean) => PlayerInput | undefined): void;
 
-  /**
-   * Return true if this player cannot have their production reduced.
-   *
-   * It can if this player is attacking themselves, or if this player has played Private Security.
-   */
-  productionIsProtected(attacker: IPlayer): boolean;
   /**
    * In the multiplayer game, after an attack, the attacked player makes a claim
    * for insurance. If Mons Insurance is in the game, the claimant will receive
@@ -267,7 +272,6 @@ export interface IPlayer {
   getUsableOPGCeoCards(): Array<ICeoCard>;
   runProductionPhase(): void;
   finishProductionPhase(): void;
-  worldGovernmentTerraforming(): void;
 
   runResearchPhase(): void;
   getCardCost(card: IProjectCard): number;

@@ -97,9 +97,7 @@
                           <td class="game-end-mc">
                             <div>{{ p.megaCredits }}</div>
                           </td>
-                          <td>
-                            <div v-if="game.gameOptions.showTimers" class="game-end-timer">{{ getTimer(p) }}</div>
-                          </td>
+                          <td v-if="game.gameOptions.showTimers"><div class="game-end-timer">{{ getTimer(p) }}</div></td>
                           <td><div class="game-end-timer">{{ p.actionsTakenThisGame }}</div></td>
                       </tr>
                   </tbody>
@@ -321,8 +319,8 @@ export default Vue.extend({
     VictoryPointChart,
   },
   methods: {
-    getEndGamePlayerRowColorClass(color: string): string {
-      return playerColorClass(color.toLowerCase(), 'bg_transparent');
+    getEndGamePlayerRowColorClass(color: Color): string {
+      return playerColorClass(color, 'bg_transparent');
     },
     getTimer(p: PublicPlayerModel): string {
       return Timer.toString(p.timer);

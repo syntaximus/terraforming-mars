@@ -63,6 +63,15 @@ export default Vue.extend({
     pathfindersExpansion: {
       type: Boolean,
     },
+    ceoExtension: {
+      type: Boolean,
+    },
+    underworldExpansion: {
+      type: Boolean,
+    },
+    prelude2Expansion: {
+      type: Boolean,
+    },
   },
   data() {
     // Start by giving every entry a default value
@@ -86,6 +95,9 @@ export default Vue.extend({
         ...this.communityCardsOption ? preludeCardNames('community') : [],
         ...this.moonExpansion ? preludeCardNames('moon') : [],
         ...this.pathfindersExpansion ? preludeCardNames('pathfinders') : [],
+        ...this.ceoExtension ? preludeCardNames('ceo') : [],
+        ...this.underworldExpansion ? preludeCardNames('underworld') : [],
+        ...this.prelude2Expansion ? preludeCardNames('prelude2') : [],
       ],
       GAME_MODULES: GAME_MODULES,
     };
@@ -161,6 +173,9 @@ export default Vue.extend({
       case 'community': return 'Community';
       case 'moon': return 'The Moon';
       case 'pathfinders': return 'Pathfinders';
+      case 'ceo': return 'CEOs';
+      case 'underworld': return 'Underworld';
+      case 'prelude2': return 'Prelude 2';
       }
       return '';
     },
@@ -190,6 +205,15 @@ export default Vue.extend({
     },
     pathfindersExpansion(enabled) {
       this.watchSelect('pathfinders', enabled);
+    },
+    ceoExtension(enabled) {
+      this.watchSelect('ceo', enabled);
+    },
+    underworldExpansion(enabled) {
+      this.watchSelect('underworld', enabled);
+    },
+    prelude2Expansion(enabled) {
+      this.watchSelect('prelude2', enabled);
     },
   },
 });

@@ -168,7 +168,9 @@ export class Executor implements BehaviorExecutor {
     }
 
     if (behavior.greenery !== undefined) {
-      if (game.board.getAvailableSpacesForType(player, behavior.greenery.on ?? 'greenery', canAffordOptions).length === 0) {
+      const spaces = game.board.getAvailableSpacesForType(player, behavior.greenery.on ?? 'greenery', canAffordOptions);
+      const filtered = game.board.filterSpacesAroundRedCity(spaces);
+      if (filtered.length === 0) {
         return false;
       }
     }
@@ -215,8 +217,10 @@ export class Executor implements BehaviorExecutor {
     // }
 
     if (behavior.turmoil) {
+      const turmoil = Turmoil.getTurmoil(game);
       if (behavior.turmoil.sendDelegates) {
-        if (Turmoil.getTurmoil(game).getAvailableDelegateCount(player) < behavior.turmoil.sendDelegates.count) {
+        const count = ctx.count(behavior.turmoil.sendDelegates.count);
+        if (turmoil.getAvailableDelegateCount(player) < count) {
           return false;
         }
       }
@@ -428,11 +432,15 @@ export class Executor implements BehaviorExecutor {
     }
     const addResources = behavior.addResources;
     if (addResources !== undefined) {
-      const count = ctx.count(addResources);
-      player.defer(() => {
-        player.addResourceTo(card, {qty: count, log: true});
-        return undefined;
-      });
+      if (player.game.inDoubleDown) {
+        player.game.log('Resources from ${1} cannot be added to ${2}', (b) => b.card(card).cardName(CardName.DOUBLE_DOWN));
+      } else {
+        const count = ctx.count(addResources);
+        player.defer(() => {
+          player.addResourceTo(card, {qty: count, log: true});
+          return undefined;
+        });
+      }
     }
 
     if (behavior.addResourcesToAnyCard) {
@@ -525,12 +533,13 @@ export class Executor implements BehaviorExecutor {
 
       if (behavior.turmoil.sendDelegates) {
         const sendDelegates = behavior.turmoil.sendDelegates;
+        const count = ctx.count(sendDelegates.count);
         if (sendDelegates.manyParties) {
-          for (let i = 0; i < sendDelegates.count; i++) {
+          for (let i = 0; i < count; i++) {
             player.game.defer(new SendDelegateToArea(player, 'Select where to send delegate'));
           }
         } else {
-          player.game.defer(new SendDelegateToArea(player, `Select where to send ${sendDelegates.count} delegates`, {count: sendDelegates.count}));
+          player.game.defer(new SendDelegateToArea(player, `Select where to send ${sendDelegates.count} delegates`, {count: count}));
         }
       }
     }
@@ -645,6 +654,8 @@ export class Executor implements BehaviorExecutor {
         tr = ctx.count(behavior.tr);
       }
     }
+
+    // TODO(kberg): Use undefined instead of 0.
     const trSource: TRSource = {
       tr: tr,
       temperature: behavior.global?.temperature,
