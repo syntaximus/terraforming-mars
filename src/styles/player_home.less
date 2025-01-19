@@ -606,11 +606,13 @@
 
           lunar-magnate, lunarchitect, full-moon, one-giant-step,
 
-          economizer, pioneer, land-specialist, martian, businessperson,
-          cosmic-settler, botanist, coordinator, zoologist, a-manufacturer,
+          economizer, pioneer, land-specialist, martian,
+          cosmic-settler, botanist, promoter, zoologist, a-manufacturer,
 
           v-electrician, smith, tradesman, irrigator, capitalist,
-          adapter, edgedancer, hoarder, naturalist, voyager,
+          forecaster, edgedancer, visionary, naturalist, voyager,
+
+          rugged, purifier,
           ;
         each(@ma-name, {
           .ma-name--@{value} {
@@ -620,7 +622,7 @@
 
         /* TODO(kberg): move these files up a level. */
         @ma-name-fanmade:
-          colonizer, farmer, minimalist, terran, tropicalist,
+          colonizer, minimalist, terran, tropicalist,
           curator, tourist, engineer, a-zoologist,
 
           t-collector, firestarter, terra-pioneer, spacefarer, gambler,
@@ -629,6 +631,19 @@
         each(@ma-name-fanmade, {
           .ma-name--@{value} {
             background-image: url("assets/ma/fanmade/@{value}.png");
+          }
+        })
+
+        @ma-name-modular:
+          administrator, constructor, founder, highlander, hydrologist, investor,
+          landscaper, metropolist, mogul, thawer, traveller,
+
+          collector, electrician, fundraiser, geologist, landshaper, lobbyist, philantropist,
+          planetologist, producer, researcher, sponsor, forester
+        ;
+        each(@ma-name-modular, {
+          .ma-name--@{value} {
+            background-image: url("assets/ma/modular/@{value}.png");
           }
         })
 

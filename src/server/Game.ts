@@ -20,8 +20,8 @@ import {Tile} from './Tile';
 import {LogMessageBuilder} from './logs/LogMessageBuilder';
 import {LogHelper} from './LogHelper';
 import {LogMessage} from '../common/logs/LogMessage';
-import {ALL_MILESTONES} from './milestones/Milestones';
-import {ALL_AWARDS} from './awards/Awards';
+import {getMilestoneByName} from './milestones/Milestones';
+import {getAwardByName} from './awards/Awards';
 import {PartyHooks} from './turmoil/parties/PartyHooks';
 import {Phase} from '../common/Phase';
 import {IPlayer} from './IPlayer';
@@ -82,6 +82,9 @@ import {SelectOption} from './inputs/SelectOption';
 import {SelectSpace} from './inputs/SelectSpace';
 import {maybeRenamedMilestone} from '../common/ma/MilestoneName';
 import {maybeRenamedAward} from '../common/ma/AwardName';
+import {Eris} from './cards/community/Eris';
+import {AresHazards} from './ares/AresHazards';
+import {hazardSeverity} from '../common/AresTileType';
 
 // Can be overridden by tests
 
@@ -555,6 +558,12 @@ export class Game implements IGame, Logger {
       return false;
     }
 
+    // Ares Extreme: Solo player must remove all unprotected hazards to win
+    if (this.gameOptions.aresExtension && this.gameOptions.aresExtremeVariant) {
+      const unprotectedHazardsRemaining = Eris.getAllUnprotectedHazardSpaces(this);
+      if (unprotectedHazardsRemaining.length > 0) return false;
+    }
+
     // This last conditional doesn't make much sense to me. It's only ever really used
     // on the client at components/GameEnd.ts. Which is probably why it doesn't make
     // obvious sense why when this generation is earlier than the last generation
@@ -717,6 +726,15 @@ export class Game implements IGame, Logger {
 
     // solar Phase Option
     this.phase = Phase.SOLAR;
+
+    // Maybe spawn a new hazard on Mars every 3 generations
+    if (this.gameOptions.aresExtension && this.gameOptions.aresExtremeVariant && this.generation % 3 === 0) {
+      const direction = Math.floor(this.rng.nextInt(2)) === 0 ? 1 : -1;
+      const tileType = this.board.getOceanSpaces().length >= 3 ? TileType.EROSION_MILD : TileType.DUST_STORM_MILD;
+
+      AresHazards.randomlyPlaceHazard(this, tileType, direction);
+    }
+
     if (this.gameOptions.solarPhaseOption && ! this.marsIsTerraformed()) {
       this.gotoWorldGovernmentTerraforming();
       return;
@@ -851,6 +869,23 @@ export class Game implements IGame, Logger {
           return undefined;
         }),
       );
+    }
+
+    if (this.gameOptions.aresExtension && this.gameOptions.aresExtremeVariant && this.isSoloMode()) {
+      // TODO(kberg): move the eris method elsewhere
+      const unprotectedHazardSpaces = Eris.getAllUnprotectedHazardSpaces(this);
+
+      if (unprotectedHazardSpaces.length > 0) {
+        orOptions.options.push(
+          new SelectSpace(
+            'Remove an unprotected hazard',
+            unprotectedHazardSpaces).andThen((space) => {
+            space.tile = undefined;
+            this.log('${0} acted as World Government and removed a hazard tile', (b) => b.player(player));
+            return undefined;
+          }),
+        );
+      }
     }
 
     MoonExpansion.ifMoon(this, (moonData) => {
@@ -1062,6 +1097,7 @@ export class Game implements IGame, Logger {
 
     if (this.phase !== Phase.SOLAR) {
       TurmoilHandler.onGlobalParameterIncrease(player, GlobalParameter.OXYGEN, steps);
+      player.onGlobalParameterIncrease(GlobalParameter.OXYGEN, steps);
       player.increaseTerraformRating(steps);
     }
     if (this.oxygenLevel < constants.OXYGEN_LEVEL_FOR_TEMPERATURE_BONUS &&
@@ -1117,6 +1153,7 @@ export class Game implements IGame, Logger {
       }
       player.playedCards.forEach((card) => card.onGlobalParameterIncrease?.(player, GlobalParameter.VENUS, steps));
       TurmoilHandler.onGlobalParameterIncrease(player, GlobalParameter.VENUS, steps);
+      player.onGlobalParameterIncrease(GlobalParameter.VENUS, steps);
       player.increaseTerraformRating(steps);
     }
 
@@ -1160,6 +1197,7 @@ export class Game implements IGame, Logger {
       }
 
       player.playedCards.forEach((card) => card.onGlobalParameterIncrease?.(player, GlobalParameter.TEMPERATURE, steps));
+      player.onGlobalParameterIncrease(GlobalParameter.TEMPERATURE, steps);
       TurmoilHandler.onGlobalParameterIncrease(player, GlobalParameter.TEMPERATURE, steps);
       player.increaseTerraformRating(steps);
     }
@@ -1231,7 +1269,7 @@ export class Game implements IGame, Logger {
     TurmoilHandler.resolveTilePlacementCosts(player);
 
     // Part 3. Setup for bonuses
-    const initialTileTypeForAres = space.tile?.tileType;
+    const initialTileType = space.tile?.tileType;
     const coveringExistingTile = space.tile !== undefined;
     const arcadianCommunityBonus = space.player === player && player.isCorporation(CardName.ARCADIAN_COMMUNITIES);
 
@@ -1243,7 +1281,7 @@ export class Game implements IGame, Logger {
       this.grantPlacementBonuses(player, space, coveringExistingTile, arcadianCommunityBonus);
 
       AresHandler.ifAres(this, (aresData) => {
-        AresHandler.maybeIncrementMilestones(aresData, player, space);
+        AresHandler.maybeIncrementMilestones(aresData, player, space, hazardSeverity(initialTileType));
       });
     } else {
       space.player = undefined;
@@ -1255,9 +1293,11 @@ export class Game implements IGame, Logger {
       });
     });
 
-    AresHandler.ifAres(this, () => {
-      AresHandler.grantBonusForRemovingHazard(player, initialTileTypeForAres);
-    });
+    if (initialTileType !== undefined) {
+      AresHandler.ifAres(this, () => {
+        AresHandler.grantBonusForRemovingHazard(player, initialTileType);
+      });
+    }
 
     if (this.gameOptions.underworldExpansion) {
       if (space.spaceType !== SpaceType.COLONY && space.player === player) {
@@ -1419,6 +1459,7 @@ export class Game implements IGame, Logger {
     });
     if (this.phase !== Phase.SOLAR) {
       TurmoilHandler.onGlobalParameterIncrease(player, GlobalParameter.OCEANS);
+      player.onGlobalParameterIncrease(GlobalParameter.OCEANS, 1);
       player.increaseTerraformRating();
     }
     AresHandler.ifAres(this, (aresData) => {
@@ -1579,9 +1620,9 @@ export class Game implements IGame, Logger {
     const milestones: Array<IMilestone> = [];
     d.milestones.forEach((milestoneName) => {
       milestoneName = maybeRenamedMilestone(milestoneName);
-      const foundMilestone = ALL_MILESTONES.find((milestone) => milestone.name === milestoneName);
-      if (foundMilestone !== undefined) {
-        milestones.push(foundMilestone);
+      const milestone = getMilestoneByName(milestoneName);
+      if (milestone !== undefined) {
+        milestones.push(milestone);
       }
     });
 
@@ -1591,9 +1632,9 @@ export class Game implements IGame, Logger {
     const awards: Array<IAward> = [];
     d.awards.forEach((awardName) => {
       awardName = maybeRenamedAward(awardName);
-      const foundAward = ALL_AWARDS.find((award) => award.name === awardName);
-      if (foundAward !== undefined) {
-        awards.push(foundAward);
+      const award = getAwardByName(awardName);
+      if (award !== undefined) {
+        awards.push(award);
       }
     });
 

@@ -27,10 +27,10 @@ export type GameOptions = {
   communityCardsOption: boolean;
   aresExtension: boolean;
   aresHazards: boolean;
+  aresExtremeVariant: boolean;
   politicalAgendasExtension: AgendaStyle;
   solarPhaseOption: boolean;
   removeNegativeGlobalEventsOption: boolean;
-  includeVenusMA: boolean;
   moonExpansion: boolean;
   pathfindersExpansion: boolean;
   ceoExtension: boolean;
@@ -46,6 +46,7 @@ export type GameOptions = {
   shuffleMapOption: boolean;
   randomMA: RandomMAOptionType;
   includeFanMA: boolean;
+  modularMA: boolean;
   soloTR: boolean; // Solo victory by getting TR 63 by game end
   customCorporationsList: Array<CardName>;
   bannedCards: Array<CardName>;
@@ -77,6 +78,7 @@ export const DEFAULT_GAME_OPTIONS: GameOptions = {
   altVenusBoard: false,
   aresExtension: false,
   aresHazards: true,
+  aresExtremeVariant: false,
   boardName: BoardName.THARSIS,
   bannedCards: [],
   includedCards: [],
@@ -96,9 +98,9 @@ export const DEFAULT_GAME_OPTIONS: GameOptions = {
   escapeVelocityPeriod: constants.DEFAULT_ESCAPE_VELOCITY_PERIOD, // VP a player loses for every `escapeVelocityPenalty` minutes after `escapeVelocityThreshold`.
   escapeVelocityPenalty: constants.DEFAULT_ESCAPE_VELOCITY_PENALTY,
   fastModeOption: false,
-  includeVenusMA: true,
   includeFanMA: false,
   initialDraftVariant: false,
+  modularMA: false,
   moonExpansion: false,
   moonStandardProjectVariant: false,
   moonStandardProjectVariant1: false,

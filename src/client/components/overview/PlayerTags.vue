@@ -82,24 +82,26 @@ const isInGame = (tag: InterfaceTagsType, game: GameModel, preferences: Readonly
   if (preferences.show_betrayal_points === false && tag === SpecialTags.BETRAYAL_POINTS) return false;
   switch (tag) {
   case SpecialTags.COLONY_COUNT:
-    return gameOptions.coloniesExtension !== false;
+    return gameOptions.expansions.colonies !== false;
   case SpecialTags.INFLUENCE:
     return game.turmoil !== undefined;
   case SpecialTags.EXCAVATIONS:
   case SpecialTags.CORRUPTION:
-    return gameOptions.underworldExpansion !== false;
+    return gameOptions.expansions.underworld !== false;
   case Tag.VENUS:
-    return game.gameOptions.venusNextExtension !== false;
+    return game.gameOptions.expansions.venus !== false;
   case Tag.MOON:
-    return game.gameOptions.moonExpansion !== false;
+    return game.gameOptions.expansions.moon !== false;
   case Tag.MARS:
-    return (gameOptions.pathfindersExpansion || gameOptions.underworldExpansion);
+    return (gameOptions.expansions.pathfinders || gameOptions.expansions.underworld);
   }
   return true;
 };
 
 const getTagCount = (tagName: InterfaceTagsType, player: PublicPlayerModel): number => {
   switch (tagName) {
+  case SpecialTags.BETRAYAL_POINTS:
+    return player.betrayalPoints || 0;
   case SpecialTags.COLONY_COUNT:
     return player.coloniesCount || 0;
   case SpecialTags.INFLUENCE:
@@ -112,11 +114,12 @@ const getTagCount = (tagName: InterfaceTagsType, player: PublicPlayerModel): num
     return player.excavations;
   case SpecialTags.CORRUPTION:
     return player.corruption;
+  case 'all':
+  case 'separator':
+    return -1;
+  default:
+    return player.tags[tagName];
   }
-  if (tagName === SpecialTags.BETRAYAL_POINTS) {
-    return player.betrayalPoints || 0;
-  }
-  return player.tags.find((tag) => tag.tag === tagName)?.count ?? 0;
 };
 
 export default Vue.extend({
