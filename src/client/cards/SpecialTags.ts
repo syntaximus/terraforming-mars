@@ -4,6 +4,7 @@ export enum SpecialTags {
     CITY_COUNT = 'city-count',
     COLONY_COUNT = 'colony-count',
     BETRAYAL_POINTS = 'betrayal-points',
-    EXCAVATIONS = 'excavation-count',
+    UNDERGROUND_TOKEN_COUNT = 'underground-token-count',
     CORRUPTION = 'corruption-count',
+    NEGATIVE_VP = 'negative-vp',
 }

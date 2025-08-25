@@ -20,8 +20,8 @@ describe('ArboristCollective', () => {
     player.playCorporationCard(card);
     runAllActions(game);
 
-    expect(player.stock.plants).eq(3);
-    expect(player.production.plants).eq(1);
+    expect(player.stock.plants).eq(2);
+    expect(player.production.plants).eq(2);
   });
 
   it('canAct', () => {
@@ -49,14 +49,14 @@ describe('ArboristCollective', () => {
     expect(card.resourceCount).eq(0);
 
     // Card is too expensive
-    card.onCardPlayed(player, fakeCard({type: CardType.EVENT, cost: 15}));
+    card.onCardPlayedForCorps(player, fakeCard({type: CardType.EVENT, cost: 15}));
     expect(card.resourceCount).eq(0);
 
     // Card is not an event
-    card.onCardPlayed(player, fakeCard({type: CardType.ACTIVE, cost: 14}));
+    card.onCardPlayedForCorps(player, fakeCard({type: CardType.ACTIVE, cost: 14}));
     expect(card.resourceCount).eq(0);
 
-    card.onCardPlayed(player, fakeCard({type: CardType.EVENT, cost: 14}));
+    card.onCardPlayedForCorps(player, fakeCard({type: CardType.EVENT, cost: 14}));
     expect(card.resourceCount).eq(1);
   });
 });

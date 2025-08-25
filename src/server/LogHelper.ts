@@ -6,6 +6,7 @@ import {Space} from './boards/Space';
 import {TileType, tileTypeToString} from '../common/TileType';
 import {IColony} from './colonies/IColony';
 import {Logger} from './logs/Logger';
+import {CardResource} from '../common/CardResource';
 
 export class LogHelper {
   static logAddResource(player: IPlayer, card: ICard, qty: number = 1): void {
@@ -112,5 +113,9 @@ export class LogHelper {
 
   static logStealFromNeutralPlayer(player: IPlayer, resource: Resource, amount: number) {
     player.game.log('${0} stole ${1} ${2} from the neutral player', (b) => b.player(player).number(amount).string(resource));
+  }
+
+  public static logMoveResource(player: IPlayer, resource: CardResource, from: ICard, to: ICard) {
+    player.game.log('${0} moved 1 ${1} from ${2} to ${3}.', (b) => b.player(player).string(resource).card(from).card(to));
   }
 }

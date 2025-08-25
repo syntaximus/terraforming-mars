@@ -3,9 +3,11 @@ import { IGame, Score } from '../IGame';
 import { GameOptions } from '../game/GameOptions';
 import { GameId, ParticipantId } from '../../common/Types';
 import { SerializedGame } from '../SerializedGame';
+import { Session, SessionId } from '../auth/Session';
 import { GameIdLedger } from './IDatabase';
 import { MultiMap } from 'mnemonist';
 import { ConnectionPool, config } from 'mssql';
+import {toID} from '../../common/utils/utils';
 
 type StoredSerializedGame = Omit<SerializedGame, 'gameOptions' | 'gameLog'> & {logLength: number};
 
@@ -164,6 +166,21 @@ export class MsSQL implements IDatabase {
                     throw err;
                 }
             });
+
+            this.client.query(`
+                IF OBJECT_ID('dbo.session', 'U') IS NULL
+                BEGIN
+                    CREATE TABLE dbo.session (
+                        session_id nvarchar(450) NOT NULL,
+                        data nvarchar(max) NOT NULL,
+                        expiration_time datetime NOT NULL,
+                        PRIMARY KEY (session_id))
+                END`,
+                (err) => {
+                    if (err) {
+                        throw err;
+                    }
+                });
     }
 
     public async getPlayerCount(game_id: GameId): Promise<number> {
@@ -315,26 +332,115 @@ export class MsSQL implements IDatabase {
     }
 
     async purgeUnfinishedGames(_: string | undefined = process.env.MAX_GAME_DAYS): Promise<Array<GameId>> {
-        // Purge unfinished games older than MAX_GAME_DAYS days. If this .env variable is not present, unfinished games will not be purged.
-        
-        // const envDays = parseInt(maxGameDays || '');
-        // const days = Number.isInteger(envDays) ? envDays : 9999;
-        // await this.client
-        //     .request()
-        //     .input('days', days)
-        //     .query<any>('DELETE FROM games WHERE created_time < DATEADD(DAY, -1 * @days, GETDATE())', function (err: Error | undefined, res) {
-        //         if (res) {
-        //             console.log(`Purged ${res?.rowsAffected[0]} rows`);
-        //         }
-        //         if (err) {
-        //             return console.warn(err.message);
-        //         }
-        //     });
-        return Promise.resolve([]);
+        // Purge unfinished games older than MAX_GAME_DAYS days. If this .env variable is not present, do nothing.
+        if (_ === undefined) {
+            return [];
+        }
+        const days = parseInt(_ || '', 10);
+        if (!Number.isInteger(days) || days <= 0) {
+            return [];
+        }
+
+        // Find game ids older than days
+        const resSelect = await this.client
+            .request()
+            .input('days', days)
+            .query<any>(`SELECT DISTINCT game_id FROM games WHERE created_time < DATEADD(DAY, -1 * @days, GETDATE())`);
+
+        let gameIds: Array<GameId> = [];
+        if (resSelect?.recordsets && resSelect.recordsets[0]) {
+            gameIds = resSelect.recordsets[0].map((r: any) => r.game_id);
+        }
+
+        if (gameIds.length === 0) {
+            return [];
+        }
+
+        if (gameIds.length > 1000) {
+            gameIds = gameIds.slice(0, 1000);
+        }
+
+        // Build a parameterized IN-list
+        const params = gameIds.map((_, i) => `@id${i}`).join(',');
+        const request = this.client.request();
+        gameIds.forEach((id, i) => request.input(`id${i}`, id));
+
+        await request.query<any>(`DELETE FROM games WHERE game_id IN (${params})`);
+        await request.query<any>(`DELETE FROM participants WHERE game_id IN (${params})`);
+
+        return gameIds;
     }
 
     async compressCompletedGames(_: string | undefined = process.env.COMPRESS_COMPLETED_GAMES_DAYS): Promise<void> {
-        return;
+        if (_ === undefined) {
+            return;
+        }
+        const days = parseInt(_ || '', 10);
+        if (!Number.isInteger(days) || days < 0) {
+            return;
+        }
+
+        const resSelect = await this.client
+            .request()
+            .input('days', days)
+            .query<any>(`SELECT DISTINCT game_id FROM completed_game WHERE completed_time < DATEADD(DAY, -1 * @days, GETDATE())`);
+
+        let gameIds: Array<GameId> = [];
+        if (resSelect?.recordsets && resSelect.recordsets[0]) {
+            gameIds = resSelect.recordsets[0].map((r: any) => r.game_id).slice(0, 1000);
+        }
+
+        for (const gameId of gameIds) {
+            // Keep max save and delete intermediate saves
+            const maxRes = await this.client
+                .request()
+                .input('game_id', gameId)
+                .query<any>(`SELECT MAX(save_id) as save_id FROM games WHERE game_id = @game_id`);
+            const maxSaveId = maxRes?.recordsets[0][0].save_id;
+            if (maxSaveId !== undefined && maxSaveId !== null) {
+                await this.client
+                    .request()
+                    .input('game_id', gameId)
+                    .input('save_id', maxSaveId)
+                    .query<any>(`DELETE FROM games WHERE game_id = @game_id AND save_id < @save_id AND save_id > 0`);
+            }
+            await this.client
+                .request()
+                .input('game_id', gameId)
+                .query<any>(`DELETE FROM completed_game WHERE game_id = @game_id`);
+        }
+    }
+
+    public async createSession(session: Session): Promise<void> {
+        await this.client
+            .request()
+            .input('session_id', session.id)
+            .input('data', JSON.stringify(session.data))
+            .input('expiration_time', new Date(session.expirationTimeMillis))
+            .query<any>(`INSERT INTO session (session_id, data, expiration_time) VALUES (@session_id, @data, @expiration_time)`);
+    }
+
+    public async deleteSession(sessionId: SessionId): Promise<void> {
+        await this.client
+            .request()
+            .input('session_id', sessionId)
+            .query<any>(`DELETE FROM session WHERE session_id = @session_id`);
+    }
+
+    async getSessions(): Promise<Array<Session>> {
+        const now = new Date();
+        const res = await this.client
+            .request()
+            .input('now', now)
+            .query<any>(`SELECT session_id, data, expiration_time FROM session WHERE expiration_time > @now`);
+
+        const result: Array<Session> = [];
+        if (res?.recordsets && res.recordsets[0]) {
+            res.recordsets[0].forEach((row: any) => {
+                result.push({ id: row.session_id, data: JSON.parse(row.data), expirationTimeMillis: new Date(row.expiration_time).getTime() });
+            });
+        }
+        return result;
     }
 
     async saveGame(game: IGame): Promise<void> {
@@ -351,31 +457,32 @@ export class MsSQL implements IDatabase {
         if (game.gameOptions.undoOption) logForUndo(game.id, 'start save', game.lastSaveId);
 
         try {
-            // Holding onto a value avoids certain race conditions where saveGame is called twice in a row.
-            const thisSaveId = game.lastSaveId;
-            const res = await this.client
-                .request()
-                .input('game_id', game.id)
-                .input('save_id', game.lastSaveId)
-                .input('game', gameJSON)
-                .input('players', game.getPlayers().length)
-                .query<any>(`
-                        MERGE games AS g
-                        USING (
-                          SELECT
-                            @game_id AS game_id,
-                            @save_id AS save_id,
-                            @game AS game,
-                            @players AS players
-                         ) AS source
-                        ON g.game_id = source.game_id AND g.save_id = source.save_id
-                        WHEN NOT MATCHED THEN
-                          INSERT(game_id, save_id, game, players)
-                          VALUES(source.game_id, source.save_id, source.game, source.players)
-                        WHEN MATCHED THEN
-                          UPDATE SET
-                            g.game = source.game
-                        OUTPUT inserted.*;`);
+                        // Holding onto a value avoids certain race conditions where saveGame is called twice in a row.
+                        const thisSaveId = game.lastSaveId;
+                                    const res = await this.client
+                                            .request()
+                                            .input('game_id', game.id)
+                                            .input('save_id', game.lastSaveId)
+                                            .input('game', gameJSON)
+                                            .input('players', game.players.length)
+                                            .query<any>(`
+                                                            DECLARE @inserted INT = 0;
+                                                            BEGIN TRY
+                                                                INSERT INTO games(game_id, save_id, game, players) VALUES(@game_id, @save_id, @game, @players);
+                                                                SET @inserted = 1;
+                                                            END TRY
+                                                            BEGIN CATCH
+                                                                IF ERROR_NUMBER() = 2627
+                                                                BEGIN
+                                                                    -- Primary key violation: another transaction inserted the same save concurrently. Do an update instead.
+                                                                    UPDATE games SET game = @game WHERE game_id = @game_id AND save_id = @save_id;
+                                                                END
+                                                                ELSE
+                                                                BEGIN
+                                                                    THROW;
+                                                                END
+                                                            END CATCH
+                                                            SELECT @inserted as inserted;`);
             
             await this.client
                 .request()
@@ -418,7 +525,7 @@ export class MsSQL implements IDatabase {
             // when the database operation was an insert. (We should figure out why multiple saves occur and
             // try to stop them. But that's for another day.)
             if (inserted === true && thisSaveId === 0) {
-                const participantIds: Array<ParticipantId> = game.getPlayers().map((p) => p.id);
+                const participantIds: Array<ParticipantId> = game.players.map(toID);
                 if (game.spectatorId) participantIds.push(game.spectatorId);
                 await this.storeParticipants({ gameId: game.id, participantIds: participantIds });
             }
@@ -544,15 +651,15 @@ export class MsSQL implements IDatabase {
             .request()
             .input('db_name', this.databaseName)
             .query<any>(
-                `
-                    SELECT
-                      s.Name AS [schema_name],
-                      t.Name AS [table_name],
-                      p.rows AS [row_counts],
-                      1024 * 1024 * CAST(ROUND((SUM(a.used_pages) / 128.00), 2) AS NUMERIC(36, 2)) AS [used_bytes],
-                      1024 * 1024 * CAST(ROUND((SUM(a.total_pages) - SUM(a.used_pages)) / 128.00, 2) AS NUMERIC(36, 2)) AS [unused_bytes],
-                      1024 * 1024 * CAST(ROUND((SUM(a.total_pages) / 128.00), 2) AS NUMERIC(36, 2)) AS [total_bytes]
-                    FROM sys.tables t
+                                `
+                                        SELECT
+                                            s.Name AS [schema_name],
+                                            t.Name AS [table_name],
+                                            p.rows AS [row_counts],
+                                            COALESCE(SUM(a.used_pages), 0) AS [used_pages_sum],
+                                            COALESCE(SUM(a.total_pages) - SUM(a.used_pages), 0) AS [unused_pages_sum],
+                                            COALESCE(SUM(a.total_pages), 0) AS [total_pages_sum]
+                                        FROM sys.tables t
                       INNER JOIN sys.indexes i ON t.OBJECT_ID = i.object_id
                       INNER JOIN sys.partitions p ON i.object_id = p.OBJECT_ID AND i.index_id = p.index_id
                       INNER JOIN sys.allocation_units a ON p.partition_id = a.container_id
@@ -560,18 +667,27 @@ export class MsSQL implements IDatabase {
                     GROUP BY t.Name, s.Name, p.Rows
                     ORDER BY s.Name, t.Name;
 
-                    SELECT
-                      DB_NAME(database_id) AS [database_name],
-                      1024 * SUM(CASE WHEN type_desc = 'LOG' THEN size END) * 8 AS [log_size_bytes],
-                      1024 * SUM(CASE WHEN type_desc = 'ROWS' THEN size END) * 8 AS [row_size_bytes],
-                      1024 * SUM(size) * 8 AS [total_size_bytes]
-                    FROM sys.master_files WITH(NOWAIT)
-                    WHERE database_id = DB_ID('terraforming') -- for current db
-                    GROUP BY database_id
+                                        SELECT
+                                            DB_NAME(database_id) AS [database_name],
+                                            COALESCE(SUM(CASE WHEN type_desc = 'LOG' THEN size END), 0) AS [log_size_pages],
+                                            COALESCE(SUM(CASE WHEN type_desc = 'ROWS' THEN size END), 0) AS [row_size_pages],
+                                            COALESCE(SUM(size), 0) AS [total_size_pages]
+                                        FROM sys.master_files WITH(NOWAIT)
+                                        WHERE database_id = DB_ID(@db_name) -- for current db
+                                        GROUP BY database_id
                 `);
-        map['size-bytes-games'] = res?.recordsets[0][0].used_bytes;
-        map['size-bytes-game-results'] = res?.recordsets[0][1].used_bytes;
-        map['size-bytes-database'] = res?.recordsets[1][0].total_size_bytes;
+        // convert pages to bytes in JS to avoid SQL-side arithmetic overflow
+        const pagesToBytes = (pages: number) => BigInt(pages) * 8192n; // 8192 = 1024*1024/128
+        if (res?.recordsets && res.recordsets[0] && res.recordsets[0][0]) {
+            map['size-bytes-games'] = pagesToBytes(Number(res.recordsets[0][0].used_pages_sum)).toString();
+            // If there's a second row for game-results table it will be at index 1; defend against missing
+            if (res.recordsets[0][1]) {
+                map['size-bytes-game-results'] = pagesToBytes(Number(res.recordsets[0][1].used_pages_sum)).toString();
+            }
+        }
+        if (res?.recordsets && res.recordsets[1] && res.recordsets[1][0]) {
+            map['size-bytes-database'] = (BigInt(Number(res.recordsets[1][0].total_size_pages)) * 8n * 1024n).toString();
+        }
         return map;
     }
 }

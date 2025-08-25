@@ -68,11 +68,11 @@ export abstract class SurveyCard extends Card implements IProjectCard {
       switch (resource) {
       case Resource.STEEL:
         grant = space.spaceType !== SpaceType.COLONY &&
-            PartyHooks.shouldApplyPolicy(cardOwner, PartyName.MARS, 'mfp01');
+            PartyHooks.shouldApplyPolicy(cardOwner, PartyName.MARS, 'mp01');
         break;
       case Resource.PLANTS:
         grant = Board.isUncoveredOceanSpace(space) &&
-          cardOwner.cardIsInEffect(CardName.ARCTIC_ALGAE);
+          cardOwner.tableau.has(CardName.ARCTIC_ALGAE);
       }
     }
     if (grant) {

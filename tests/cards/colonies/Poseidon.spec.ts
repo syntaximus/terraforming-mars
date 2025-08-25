@@ -6,8 +6,8 @@ import {cast, runAllActions} from '../../TestingUtils';
 import {SelectColony} from '../../../src/server/inputs/SelectColony';
 import {Units} from '../../../src/common/Units';
 
-describe('Poseidon', function() {
-  it('Should play', function() {
+describe('Poseidon', () => {
+  it('Should play', () => {
     const card = new Poseidon();
     const [/* game */, player, player2] = testGame(2);
 
@@ -30,7 +30,7 @@ describe('Poseidon', function() {
     const card = new Poseidon();
     const [game, player/* , player2 */] = testGame(2, {coloniesExtension: true});
 
-    player.deferInitialAction(card);
+    player.defer(card.initialAction(player));
     runAllActions(game);
 
     const selectColony = cast(player.popWaitingFor(), SelectColony);

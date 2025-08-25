@@ -10,8 +10,14 @@ export type Warning =
  'removeOwnPlants' |
  'buildOnLuna' |
  'preludeFizzle' |
- 'underworldMustExcavateEnergy' |
  'deckTooSmall' |
  'cannotAffordBoardOfDirectors' |
  'marsIsTerraformed' |
- 'ineffectiveDoubleDown';
+ 'ineffectiveDoubleDown' |
+ 'noMatchingCards' |
+ 'unusableEventsForAstraMechanica' |
+ 'noEffect' |
+ 'selfTarget' |
+ 'pharmacyUnion' |
+ 'kaguyaTech' |
+ 'underworldtokendiscard';

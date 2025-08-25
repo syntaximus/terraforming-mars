@@ -20,7 +20,7 @@ describe('KingdomofTauraro', () => {
     const card = new KingdomofTauraro();
     const [game, player] = testGame(2);
 
-    player.deferInitialAction(card);
+    player.defer(card.initialAction(player));
     runAllActions(game);
     assertPlaceCity(player, player.popWaitingFor());
   });
@@ -36,6 +36,19 @@ describe('KingdomofTauraro', () => {
     const availableSpacesForCity = board.getAvailableSpacesForCity(player);
     const spacesNextToCity = board.getAdjacentSpaces(space);
     expect(availableSpacesForCity).includes(spacesNextToCity[0]);
+  });
+
+  it('May place next to own excavation tokens', () => {
+    const card = new KingdomofTauraro();
+    const [game, player] = testGame(2, {underworldExpansion: true});
+    player.corporations.push(card);
+
+    const board = game.board;
+    const space = board.getSpaceOrThrow('35');
+    space.excavator = player;
+    const availableSpacesForCity = board.getAvailableSpacesForCity(player);
+    const spacesNextToExcavationToken = board.getAdjacentSpaces(space);
+    expect(availableSpacesForCity).includes(spacesNextToExcavationToken[0]);
   });
 
   it('Must place next to own tiles', () => {

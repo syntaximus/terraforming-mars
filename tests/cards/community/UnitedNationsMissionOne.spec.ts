@@ -8,7 +8,7 @@ import {UNMIContractor} from '../../../src/server/cards/prelude/UNMIContractor';
 import {IGame} from '../../../src/server/IGame';
 import {Election} from '../../../src/server/turmoil/globalEvents/Election';
 
-describe('UnitedNationsMissionOne', function() {
+describe('UnitedNationsMissionOne', () => {
   let card: UnitedNationsMissionOne;
   let player: TestPlayer;
   let player2: TestPlayer;
@@ -19,17 +19,17 @@ describe('UnitedNationsMissionOne', function() {
     [game, player, player2] = testGame(3, {turmoilExtension: true});
   });
 
-  it('Initializes correctly', function() {
-    expect(player.getTerraformRating()).eq(20);
+  it('Initializes correctly', () => {
+    expect(player.terraformRating).eq(20);
     expect(player.megaCredits).eq(0);
 
     player.playCorporationCard(card);
 
-    expect(player.getTerraformRating()).eq(21);
+    expect(player.terraformRating).eq(21);
     expect(player.megaCredits).eq(40);
   });
 
-  it('Gains 1 MC whenever any player raises TR during action phase', function() {
+  it('Gains 1 MC whenever any player raises TR during action phase', () => {
     player.corporations.push(card);
     game.phase = Phase.ACTION;
 
@@ -43,7 +43,7 @@ describe('UnitedNationsMissionOne', function() {
     expect(player.megaCredits).eq(5);
   });
 
-  it('Gives MC during initial preludes phase', function() {
+  it('Gives MC during initial preludes phase', () => {
     player.corporations.push(card);
     game.phase = Phase.PRELUDES;
 
@@ -52,7 +52,7 @@ describe('UnitedNationsMissionOne', function() {
     expect(player.megaCredits).eq(3);
   });
 
-  it('Does not give MC during turmoil phase', function() {
+  it('Does not give MC during turmoil phase', () => {
     player.corporations.push(card);
     game.phase = Phase.PRODUCTION;
 
@@ -62,7 +62,7 @@ describe('UnitedNationsMissionOne', function() {
 
     const election = new Election();
     election.resolve(game, turmoil);
-    expect(player2.getTerraformRating()).eq(22);
+    expect(player2.terraformRating).eq(22);
     expect(player.megaCredits).eq(0); // no increase
   });
 });

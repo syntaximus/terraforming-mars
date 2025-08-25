@@ -9,7 +9,20 @@
   </label>
 
   <section v-trim-whitespace>
-    <div v-if="selectedCardHasWarning()" class="card-warning">{{ $t(card.warning) }}</div>
+    <template v-if="card.additionalProjectCosts">
+      <div v-if="card.additionalProjectCosts.aeronGenomicsResources" class="card-warning"
+        v-i18n="[$t(card.name), card.additionalProjectCosts.thinkTankResources, 'animals', $t(CardName.AERON_GENOMICS)]"
+      >
+        Playing ${0} consumes ${1} ${2} from ${3}
+      </div>
+      <div v-if="card.additionalProjectCosts.thinkTankResources" class="card-warning"
+        v-i18n="[$t(card.name), card.additionalProjectCosts.thinkTankResources, 'data', $t(CardName.THINK_TANK)]">
+        Playing ${0} consumes ${1} ${2} from ${3}
+      </div>
+      <div v-if="card.additionalProjectCosts.redsCost" class="card-warning" v-i18n="[$t(card.name), card.additionalProjectCosts.redsCost, $t('Reds')]">
+        Playing ${0} will cost ${1} M€ more because ${2} are in power
+      </div>
+    </template>
     <warnings-component :warnings="card.warnings"></warnings-component>
 
     <h3 class="payments_title" v-i18n>How to pay?</h3>
@@ -99,8 +112,10 @@ export default Vue.extend({
         'seeds',
         'graphene',
         'megaCredits',
-        'corruption',
       ];
+    },
+    CardName(): typeof CardName {
+      return CardName;
     },
   },
   data(): SelectProjectCardToPlayDataModel {
@@ -222,7 +237,7 @@ export default Vue.extend({
 
       // console.log('balance', megacreditBalance);
 
-      for (const unit of ['microbes', 'floaters', 'corruption'] as const) {
+      for (const unit of ['microbes', 'floaters'] as const) {
         if (megacreditBalance > 0 && this.canUse(unit)) {
           this.payment[unit] = deductUnits(this.getAvailableUnits(unit), this.getResourceRate(unit));
         }
@@ -264,7 +279,6 @@ export default Vue.extend({
           'seeds',
           'graphene',
           'lunaArchivesScience',
-          'corruption',
           'megaCredits'] as const) {
           this.payment[key] -= saveOverspendingUnits(this.payment[key], this.getResourceRate(key));
         }
@@ -302,8 +316,6 @@ export default Vue.extend({
       case 'graphene':
         return this.tags.includes(Tag.SPACE) ||
             this.tags.includes(Tag.CITY);
-      case 'corruption':
-        return this.tags.includes(Tag.EARTH) && this.playerinput.paymentOptions.corruption === true;
       default:
         throw new Error('Unknown unit ' + unit);
       }
@@ -337,9 +349,6 @@ export default Vue.extend({
     },
     hasWarning(): boolean {
       return this.warning !== undefined;
-    },
-    selectedCardHasWarning(): boolean {
-      return this.card !== undefined && this.card.warning !== undefined;
     },
     showReserveWarning(unit: SpendableResource): boolean {
       switch (unit) {
