@@ -1125,10 +1125,12 @@ export class Player implements IPlayer {
   }
 
   private passOption(): PlayerInput {
-    return new SelectOption('Pass for this generation', 'Pass').andThen(() => {
+    const option = new SelectOption('Pass for this generation', 'Pass').andThen(() => {
       this.pass();
       return undefined;
     });
+    option.warnings = ['pass'];
+    return option;
   }
 
   public takeActionForFinalGreenery(): void {
