@@ -18,7 +18,6 @@ import {SelectOption} from '../inputs/SelectOption';
 import {message} from '../logs/MessageBuilder';
 import {SelectPaymentDeferred} from '../deferredActions/SelectPaymentDeferred';
 import {Units} from '../../common/Units';
-import {LogHelper} from '../LogHelper';
 import {Message} from '../../common/logs/Message';
 import {GlobalParameter} from '../../common/GlobalParameter';
 import {Tag} from '../../common/cards/Tag';
@@ -122,21 +121,22 @@ export class UnderworldExpansion {
 
   /**
    * Return the spaces that have not yet been identified.
+   *
+   * This doesn't take into account that there may not be available tokens in the supply.
+   * But canIdentifyN supports that.
    */
   public static identifiableSpaces(player: IPlayer): ReadonlyArray<Space> {
-    const spaces = player.game.board.spaces.filter(UnderworldExpansion.canIdentify);
-    return spaces;
+    return player.game.board.spaces.filter(UnderworldExpansion.canIdentify);
   }
 
   public static canIdentifyN(player: IPlayer, count: number): boolean {
     const tokens = player.game.underworldData.tokens.length;
-    // Optimization
     if (tokens >= count) {
       return true;
     }
 
     const spaces = this.identifiableSpaces(player).length;
-    return tokens + spaces >= count;
+    return spaces >= count;
   }
 
   /**
@@ -263,9 +263,8 @@ export class UnderworldExpansion {
       throw new Error('No available identification tokens');
     }
 
-    const {row, position} = LogHelper.loggingCoordintes(space);
-    player.game.log('${0} excavated ${1} on row ${2} position ${3}', (b) =>
-      b.player(player).undergroundToken(undergroundResource).number(row).number(position));
+    player.game.log('${0} excavated ${1} at ${2}', (b) =>
+      b.player(player).undergroundToken(undergroundResource).space(space));
 
     space.excavator = player;
     space.undergroundResources = undefined;
@@ -306,9 +305,8 @@ export class UnderworldExpansion {
 
   public static claimToken(player: IPlayer, token: UndergroundResourceToken, isExcavate: boolean, space: Space | undefined) {
     if (space) {
-      const {row, position} = LogHelper.loggingCoordintes(space);
-      player.game.log('${0} claimed ${1} on row ${2} position ${3}', (b) =>
-        b.player(player).undergroundToken(token).number(row).number(position));
+      player.game.log('${0} claimed ${1} at ${2}', (b) =>
+        b.player(player).undergroundToken(token).space(space));
     } else {
       player.game.log('${0} claimed ${1}', (b) => b.player(player).undergroundToken(token));
     }

@@ -184,7 +184,7 @@ export default Vue.extend({
             details[vps.tag].points += ((vps.each ?? 1) / (vps.per ?? 1));
           }
           if (vps.cities !== undefined) {
-            details['city'].points += ((vps.each ?? 1) / (vps.per ?? 1));
+            details['city-count'].points += ((vps.each ?? 1) / (vps.per ?? 1));
           }
         }
       }
@@ -226,7 +226,7 @@ export default Vue.extend({
       return !this.playerView.game.gameOptions.showOtherPlayersVP && !this.isThisPlayer;
     },
     isEscapeVelocityOn(): boolean {
-      return this.playerView.game.gameOptions.escapeVelocityMode;
+      return this.playerView.game.gameOptions.escapeVelocity !== undefined;
     },
     escapeVelocityPenalty(): number {
       return this.player.victoryPointsBreakdown.escapeVelocity;

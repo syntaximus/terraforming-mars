@@ -21,7 +21,6 @@ import {SpectatorModel} from '../../common/models/SpectatorModel';
 import {GameModel} from '../../common/models/GameModel';
 import {Turmoil} from '../turmoil/Turmoil';
 import {createPathfindersModel} from './PathfindersModel';
-import {MoonExpansion} from '../moon/MoonExpansion';
 import {MoonModel} from '../../common/models/MoonModel';
 import {CardName} from '../../common/cards/CardName';
 import {AwardScorer} from '../awards/AwardScorer';
@@ -252,7 +251,7 @@ export class Server {
       titanium: player.titanium,
       titaniumProduction: player.production.titanium,
       titaniumValue: player.getTitaniumValue(),
-      tradesThisGeneration: player.colonies.tradesThisGeneration,
+      tradesThisGeneration: player.colonies.usedTradeFleets,
       underworldData: player.underworldData,
       victoryPointsBreakdown: {
         terraformRating: 0,
@@ -410,11 +409,7 @@ export class Server {
       boardName: options.boardName,
       bannedCards: options.bannedCards,
       draftVariant: options.draftVariant,
-      escapeVelocityMode: options.escapeVelocityMode,
-      escapeVelocityThreshold: options.escapeVelocityThreshold,
-      escapeVelocityBonusSeconds: options.escapeVelocityBonusSeconds,
-      escapeVelocityPeriod: options.escapeVelocityPeriod,
-      escapeVelocityPenalty: options.escapeVelocityPenalty,
+      escapeVelocity: options.escapeVelocity,
       expansions: {
         corpera: options.corporateEra,
         promo: options.promoCardsOption,
@@ -453,13 +448,15 @@ export class Server {
   }
 
   private static getMoonModel(game: IGame): MoonModel | undefined {
-    return MoonExpansion.ifElseMoon(game, (moonData) => {
+    const moonData = game.moonData;
+    if (moonData) {
       return {
         logisticsRate: moonData.logisticRate,
         miningRate: moonData.miningRate,
         habitatRate: moonData.habitatRate,
         spaces: this.getSpaces(moonData.moon),
       };
-    }, () => undefined);
+    }
+    return undefined;
   }
 }

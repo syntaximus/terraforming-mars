@@ -70,7 +70,7 @@ import {UnderworldExpansion} from './underworld/UnderworldExpansion';
 import {SendDelegateToArea} from './deferredActions/SendDelegateToArea';
 import {BuildColony} from './deferredActions/BuildColony';
 import {newInitialDraft, newPreludeDraft, newCEOsDraft, newStandardDraft} from './Draft';
-import {sum, toID, toName} from '../common/utils/utils';
+import {partition, sum, toID, toName} from '../common/utils/utils';
 import {OrOptions} from './inputs/OrOptions';
 import {SelectOption} from './inputs/SelectOption';
 import {SelectSpace} from './inputs/SelectSpace';
@@ -79,6 +79,8 @@ import {maybeRenamedAward} from '../common/ma/AwardName';
 import {AresHazards} from './ares/AresHazards';
 import {hazardSeverity} from '../common/AresTileType';
 import {IStandardProjectCard} from './cards/IStandardProjectCard';
+import {BoardName} from '../common/boards/BoardName';
+import {SpaceType} from '../common/boards/SpaceType';
 
 // Can be overridden by tests
 
@@ -231,7 +233,9 @@ export class Game implements IGame, Logger {
   }
 
   private setFirstPlayer(first: IPlayer) {
-    this.log('First player this generation is ${0}', (b) => b.player(first));
+    if (!this.isSoloMode()) {
+      this.log('First player this generation is ${0}', (b) => b.player(first));
+    }
     this.first = first;
     const e = [...this.players, ...this.players];
     const idx = e.findIndex((p) => p.id === this.first.id);
@@ -1344,6 +1348,12 @@ export class Game implements IGame, Logger {
       AresHandler.ifAres(this, (aresData) => {
         AresHandler.maybeIncrementMilestones(aresData, player, space, hazardSeverity(initialTileType));
       });
+
+      if (this.gameOptions.boardName === BoardName.HOLLANDIA) {
+        const spaces = this.board.spaces.filter(Board.ownedBy(player));
+        const part = partition(spaces, ((space) => space.spaceType === SpaceType.DEFLECTION_ZONE));
+        player.withinDeflectionZone = part[0].length > 0 && part[1].length === 0;
+      }
     } else {
       space.player = undefined;
     }
