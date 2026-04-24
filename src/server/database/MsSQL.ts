@@ -457,32 +457,31 @@ export class MsSQL implements IDatabase {
         if (game.gameOptions.undoOption) logForUndo(game.id, 'start save', game.lastSaveId);
 
         try {
-                        // Holding onto a value avoids certain race conditions where saveGame is called twice in a row.
-                        const thisSaveId = game.lastSaveId;
-                                    const res = await this.client
-                                            .request()
-                                            .input('game_id', game.id)
-                                            .input('save_id', game.lastSaveId)
-                                            .input('game', gameJSON)
-                                            .input('players', game.players.length)
-                                            .query<any>(`
-                                                            DECLARE @inserted INT = 0;
-                                                            BEGIN TRY
-                                                                INSERT INTO games(game_id, save_id, game, players) VALUES(@game_id, @save_id, @game, @players);
-                                                                SET @inserted = 1;
-                                                            END TRY
-                                                            BEGIN CATCH
-                                                                IF ERROR_NUMBER() = 2627
-                                                                BEGIN
-                                                                    -- Primary key violation: another transaction inserted the same save concurrently. Do an update instead.
-                                                                    UPDATE games SET game = @game WHERE game_id = @game_id AND save_id = @save_id;
-                                                                END
-                                                                ELSE
-                                                                BEGIN
-                                                                    THROW;
-                                                                END
-                                                            END CATCH
-                                                            SELECT @inserted as inserted;`);
+            // Holding onto a value avoids certain race conditions where saveGame is called twice in a row.
+            const thisSaveId = game.lastSaveId;
+            const res = await this.client
+                .request()
+                .input('game_id', game.id)
+                .input('save_id', game.lastSaveId)
+                .input('game', gameJSON)
+                .input('players', game.players.length)
+                .query<any>(`
+                        MERGE games AS g
+                        USING (
+                          SELECT
+                            @game_id AS game_id,
+                            @save_id AS save_id,
+                            @game AS game,
+                            @players AS players
+                         ) AS source
+                        ON g.game_id = source.game_id AND g.save_id = source.save_id
+                        WHEN NOT MATCHED THEN
+                          INSERT(game_id, save_id, game, players)
+                          VALUES(source.game_id, source.save_id, source.game, source.players)
+                        WHEN MATCHED THEN
+                          UPDATE SET
+                            g.game = source.game
+                        OUTPUT inserted.*;`);
             
             await this.client
                 .request()
