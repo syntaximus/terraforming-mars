@@ -231,8 +231,8 @@ export class Server {
       influence: Turmoil.ifTurmoilElse(game, (turmoil) => turmoil.getInfluence(player), () => 0),
       isActive: player.id === game.activePlayer.id,
       lastCardPlayed: player.lastCardPlayed,
-      megaCredits: player.megaCredits,
-      megaCreditProduction: player.production.megacredits,
+      megacredits: player.megaCredits,
+      megacreditProduction: player.production.megacredits,
       name: player.name,
       needsToDraft: player.needsToDraft,
       needsToResearch: !game.hasResearched(player),
@@ -275,12 +275,14 @@ export class Server {
         negativeVP: 0,
       },
       victoryPointsByGeneration: [],
+      globalParameterSteps: {},
     };
 
     if (game.phase === Phase.END || game.isSoloMode() ||
         game.gameOptions.showOtherPlayersVP === true || modelIsForThisPlayer) {
       model.victoryPointsBreakdown = player.getVictoryPoints();
       model.victoryPointsByGeneration = player.victoryPointsByGeneration;
+      model.globalParameterSteps = player.globalParameterSteps;
     }
 
     return model;
@@ -349,12 +351,11 @@ export class Server {
     gagarin: ReadonlyArray<SpaceId> = [],
     cathedrals: ReadonlyArray<SpaceId> = [],
     nomads: SpaceId | undefined = undefined): Array<SpaceModel> {
-    const volcanicSpaceIds = board.volcanicSpaceIds;
     const noctisCitySpaceId = board.noctisCitySpaceId;
 
     return board.spaces.map((space) => {
       let highlight: SpaceHighlight = undefined;
-      if (volcanicSpaceIds.includes(space.id)) {
+      if (space.volcanic) {
         highlight = 'volcanic';
       } else if (noctisCitySpaceId === space.id) {
         highlight = 'noctis';

@@ -1,18 +1,19 @@
+import {defineAsyncComponent, defineComponent} from 'vue';
 import * as constants from '@/common/constants';
-import * as raw_settings from '@/genfiles/settings.json';
-import AdminHome from '@/client/components/admin/AdminHome.vue';
-import CardList from '@/client/components/cardlist/CardList.vue';
-import CreateGameForm from '@/client/components/create/CreateGameForm.vue';
-import GameEnd from '@/client/components/GameEnd.vue';
-import GameHome from '@/client/components/GameHome.vue';
-import GamesOverview from '@/client/components/GamesOverview.vue';
-import Help from '@/client/components/help/Help.vue';
-import LoginHome from '@/client/components/auth/LoginHome.vue';
-import LoadGameForm from '@/client/components/LoadGameForm.vue';
-import PlayerHome from '@/client/components/PlayerHome.vue';
-import PlayerInputFactory from '@/client/components/PlayerInputFactory.vue';
-import SpectatorHome from '@/client/components/SpectatorHome.vue';
-import StartScreen from '@/client/components/StartScreen.vue';
+import raw_settings from '@/genfiles/settings.json';
+
+const AdminHome = defineAsyncComponent(() => import(/* webpackChunkName: "admin" */ '@/client/components/admin/AdminHome.vue'));
+const CardList = defineAsyncComponent(() => import(/* webpackChunkName: "card-list" */ '@/client/components/cardlist/CardList.vue'));
+const CreateGameForm = defineAsyncComponent(() => import(/* webpackChunkName: "create-game" */ '@/client/components/create/CreateGameForm.vue'));
+const GameEnd = defineAsyncComponent(() => import(/* webpackChunkName: "game-end" */ '@/client/components/GameEnd.vue'));
+const GameHome = defineAsyncComponent(() => import(/* webpackChunkName: "game-home" */ '@/client/components/GameHome.vue'));
+const GamesOverview = defineAsyncComponent(() => import(/* webpackChunkName: "games-overview" */ '@/client/components/GamesOverview.vue'));
+const Help = defineAsyncComponent(() => import(/* webpackChunkName: "help" */ '@/client/components/help/Help.vue'));
+const LoginHome = defineAsyncComponent(() => import(/* webpackChunkName: "login" */ '@/client/components/auth/LoginHome.vue'));
+const LoadGameForm = defineAsyncComponent(() => import(/* webpackChunkName: "load-game" */ '@/client/components/LoadGameForm.vue'));
+const PlayerHome = defineAsyncComponent(() => import(/* webpackChunkName: "player-home" */ '@/client/components/PlayerHome.vue'));
+const SpectatorHome = defineAsyncComponent(() => import(/* webpackChunkName: "spectator-home" */ '@/client/components/SpectatorHome.vue'));
+const StartScreen = defineAsyncComponent(() => import(/* webpackChunkName: "start-screen" */ '@/client/components/StartScreen.vue'));
 import {$t, setTranslationContext} from '@/client/directives/i18n';
 import {paths} from '@/common/app/paths';
 import {PlayerViewModel, ViewModel} from '@/common/models/PlayerModel';
@@ -21,7 +22,7 @@ import {SpectatorModel} from '@/common/models/SpectatorModel';
 import {isPlayerId, isSpectatorId} from '@/common/Types';
 import {hasShowModal, showModal, windowHasHTMLDialogElement} from './HTMLDialogElementCompatibility';
 
-const dialogPolyfill = require('dialog-polyfill');
+import dialogPolyfill from 'dialog-polyfill';
 
 type Screen = 'admin' |
             'create-game-form' |
@@ -57,34 +58,40 @@ export interface MainAppData {
     login: string | undefined;
 }
 
-const data: MainAppData = {
-  screen: 'empty',
-  playerkey: 0,
-  settings: raw_settings,
-  isServerSideRequestInProgress: false,
-  componentsVisibility: {
-    'milestones': true,
-    'awards_list': true,
-    'tags_concise': false,
-    'pinned_player_0': false,
-    'pinned_player_1': false,
-    'pinned_player_2': false,
-    'pinned_player_3': false,
-    'pinned_player_4': false,
-    'turmoil_parties': false,
-  } as {[x: string]: boolean},
-  game: undefined as SimpleGameModel | undefined,
-  playerView: undefined,
-  spectator: undefined,
-  login: undefined,
-};
+// NOTE: this simplistic truncation to the last segment might cause issues if
+// this page starts supporting paths more than one level deep.
+function getLastPathSegment() {
+  // Leave only the last part of /path
+  return window.location.pathname.replace(/.*\//g, '');
+}
 
-export const mainAppSettings = {
-  'el': '#app',
-  'data': data,
-  'components': {
+export default defineComponent({
+  name: 'App',
+  data(): MainAppData {
+    return {
+      screen: 'empty',
+      playerkey: 0,
+      settings: raw_settings,
+      isServerSideRequestInProgress: false,
+      componentsVisibility: {
+        'milestones': true,
+        'awards_list': true,
+        'tags_concise': false,
+        'pinned_player_0': false,
+        'pinned_player_1': false,
+        'pinned_player_2': false,
+        'pinned_player_3': false,
+        'pinned_player_4': false,
+        'turmoil_parties': false,
+      } as {[x: string]: boolean},
+      game: undefined as SimpleGameModel | undefined,
+      playerView: undefined,
+      spectator: undefined,
+      login: undefined,
+    };
+  },
+  components: {
     // These component keys match the screen values, and their entries in index.html.
-    'player-input-factory': PlayerInputFactory,
     'start-screen': StartScreen,
     'create-game-form': CreateGameForm,
     'load-game-form': LoadGameForm,
@@ -98,7 +105,7 @@ export const mainAppSettings = {
     'admin-home': AdminHome,
     'login-home': LoginHome,
   },
-  'methods': {
+  methods: {
     showAlert(title: string, message: string, cb: () => void = () => {}): void {
       const dialogElement: HTMLElement | null = document.getElementById('alert-dialog');
       const buttonElement: HTMLElement | null = document.getElementById('alert-dialog-button');
@@ -181,17 +188,17 @@ export const mainAppSettings = {
     updatePlayer() {
       this.update(paths.PLAYER);
     },
-    updateSpectator: function() {
+    updateSpectator() {
       this.update(paths.SPECTATOR);
     },
   },
   mounted() {
     document.title = constants.APP_NAME;
     if (!windowHasHTMLDialogElement()) {
-      dialogPolyfill.default.registerDialog(document.getElementById('alert-dialog'));
+      dialogPolyfill.registerDialog(document.getElementById('alert-dialog') as HTMLDialogElement);
     }
     const currentPathname = getLastPathSegment();
-    const app = this as unknown as (MainAppData) & (typeof mainAppSettings.methods);
+    const app = this as unknown as MainAppData & {updatePlayer(): void; updateSpectator(): void};
     if (currentPathname === paths.PLAYER) {
       app.updatePlayer();
     } else if (currentPathname === paths.THE_END) {
@@ -246,11 +253,4 @@ export const mainAppSettings = {
       app.screen = 'start-screen';
     }
   },
-};
-
-// NOTE: this simplistic truncation to the last segment might cause issues if
-// this page starts supporting paths more than one level deep.
-function getLastPathSegment() {
-  // Leave only the last part of /path
-  return window.location.pathname.replace(/.*\//g, '');
-}
+});

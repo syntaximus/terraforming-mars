@@ -33,7 +33,7 @@ import {SelectPaymentDeferred} from './deferredActions/SelectPaymentDeferred';
 import {SelectInitialCards} from './inputs/SelectInitialCards';
 import {PlaceOceanTile} from './deferredActions/PlaceOceanTile';
 import {RemoveColonyFromGame} from './deferredActions/RemoveColonyFromGame';
-import {GainResources} from './deferredActions/GainResources';
+import {GainResourcesDeferred} from './deferredActions/GainResourcesDeferred';
 import {SerializedGame} from './SerializedGame';
 import {SpaceBonus} from '../common/boards/SpaceBonus';
 import {TileType} from '../common/TileType';
@@ -41,7 +41,7 @@ import {Turmoil} from './turmoil/Turmoil';
 import {RandomMAOptionType} from '../common/ma/RandomMAOptionType';
 import {AresHandler} from './ares/AresHandler';
 import {AresData} from '../common/ares/AresData';
-import {GameSetup} from './GameSetup';
+import {GameSetup, normalizeBoardName} from './GameSetup';
 import {GameCards} from './GameCards';
 import {GlobalParameter} from '../common/GlobalParameter';
 import {AresSetup} from './ares/AresSetup';
@@ -81,6 +81,7 @@ import {hazardSeverity} from '../common/AresTileType';
 import {IStandardProjectCard} from './cards/IStandardProjectCard';
 import {BoardName} from '../common/boards/BoardName';
 import {SpaceType} from '../common/boards/SpaceType';
+import {ICard} from './cards/ICard';
 
 // Can be overridden by tests
 
@@ -172,6 +173,8 @@ export class Game implements IGame, Logger {
   public beholdTheEmperor: boolean = false;
   // Double Down
   public inDoubleDown: boolean = false;
+  public doubleDownPrelude: CardName | undefined = undefined;
+
   // Vermin
   public verminInEffect: boolean = false;
   public exploitationOfVenusInEffect: boolean = false;
@@ -1113,6 +1116,7 @@ export class Game implements IGame, Logger {
 
       if (this.canPlaceGreenery(player)) {
         this.activePlayer = player;
+        this.save();
         player.takeActionForFinalGreenery();
         return;
       } else if (player.getWaitingFor() !== undefined) {
@@ -1300,26 +1304,12 @@ export class Game implements IGame, Logger {
     tile: Tile): void {
     // Part 1, basic validation checks.
 
-    if (space.tile !== undefined) {
-      let allow = false;
-      if (tile.tileType === TileType.NEW_HOLLAND) {
-        allow = true;
-      } else if (this.gameOptions.aresExtension) {
-        allow = true;
-      } else if (this.gameOptions.pathfindersExpansion) {
-        allow = true;
-      }
-      if (!allow) {
-        throw new Error('Selected space is occupied');
-      }
-    }
-
     // Land claim a player can claim land for themselves
     if (space.player !== undefined && space.player !== player) {
       throw new Error('This space is land claimed by ' + space.player.name);
     }
 
-    if (!AresHandler.canCover(space, tile)) {
+    if (!MarsBoard.canCover(space, tile)) {
       throw new Error('Selected space is occupied: ' + space.id);
     }
 
@@ -1356,8 +1346,8 @@ export class Game implements IGame, Logger {
 
       if (this.gameOptions.boardName === BoardName.HOLLANDIA) {
         const spaces = this.board.spaces.filter(Board.ownedBy(player));
-        const part = partition(spaces, ((space) => space.spaceType === SpaceType.DEFLECTION_ZONE));
-        player.withinDeflectionZone = part[0].length > 0 && part[1].length === 0;
+        const [inside, outside] = partition(spaces, ((space) => space.spaceType === SpaceType.DEFLECTION_ZONE));
+        player.withinDeflectionZone = inside.length > 0 && outside.length === 0;
       }
     } else {
       space.player = undefined;
@@ -1366,16 +1356,20 @@ export class Game implements IGame, Logger {
     // Clear out underworld components.
     UnderworldExpansion.onTilePlaced(this, space);
 
-    for (const p of this.players) {
-      for (const playedCard of p.tableau) {
-        playedCard.onTilePlaced?.(p, player, space, BoardType.MARS);
-      }
-    }
+    this.triggerForAllCards((p, c) => c.onTilePlaced?.(p, player, space, BoardType.MARS));
 
     if (initialTileType !== undefined) {
       AresHandler.ifAres(this, () => {
         AresHandler.grantBonusForRemovingHazard(player, initialTileType);
       });
+    }
+  }
+
+  public triggerForAllCards(f: (cardOwner: IPlayer, card: ICard) => void) {
+    for (const p of this.playersInGenerationOrder) {
+      for (const playedCard of p.tableau) {
+        f(p, playedCard);
+      }
     }
   }
 
@@ -1400,11 +1394,11 @@ export class Game implements IGame, Logger {
       TurmoilHandler.resolveTilePlacementBonuses(player, space.spaceType);
 
       if (arcadianCommunityBonus) {
-        this.defer(new GainResources(player, Resource.MEGACREDITS, {count: 3}));
+        this.defer(new GainResourcesDeferred(player, Resource.MEGACREDITS, {count: 3}));
       }
 
       if (space.undergroundResources === 'place6mc') {
-        this.defer(new GainResources(player, Resource.MEGACREDITS, {count: 6}));
+        this.defer(new GainResourcesDeferred(player, Resource.MEGACREDITS, {count: 6}));
       }
     }
   }
@@ -1470,7 +1464,7 @@ export class Game implements IGame, Logger {
     case SpaceBonus.TEMPERATURE:
     case SpaceBonus.TEMPERATURE_4MC:
       if (this.getTemperature() < constants.MAX_TEMPERATURE) {
-        const cost = spaceBonus === SpaceBonus.TEMPERATURE ? constants.VASTITAS_BOREALIS_BONUS_TEMPERATURE_COST : constants.VASTITAS_BOREALIS_NOVUS_BONUS_TEMPERATURE_COST;
+        const cost = spaceBonus === SpaceBonus.TEMPERATURE ? constants.VASTITAS_BOREALIS_BONUS_TEMPERATURE_COST : constants.VASTITAS_BOREALIS_NOVA_BONUS_TEMPERATURE_COST;
         this.defer(new SelectPaymentDeferred(
           player,
           cost,
@@ -1656,7 +1650,7 @@ export class Game implements IGame, Logger {
 
   public static deserialize(d: SerializedGame): Game {
     const gameOptions = d.gameOptions;
-
+    gameOptions.boardName = normalizeBoardName(gameOptions.boardName);
     const players = d.players.map((element) => Player.deserialize(element));
     const first = players.find((player) => player.id === d.first);
     if (first === undefined) {
@@ -1681,6 +1675,10 @@ export class Game implements IGame, Logger {
     const milestones: Array<IMilestone> = [];
     d.milestones.forEach((milestoneName) => {
       milestoneName = maybeRenamedMilestone(milestoneName);
+      // TODO(kberg): Tycoon10 had the wrong name. Remove this by 2026-04-15
+      if (milestoneName === 'Tycoon' && gameOptions.modularMA) {
+        milestoneName = 'Tycoon10';
+      }
       const milestone = milestoneManifest.create(milestoneName);
       if (milestone !== undefined) {
         milestones.push(milestone);
@@ -1780,6 +1778,10 @@ export class Game implements IGame, Logger {
       newStandardDraft(game).restoreDraft();
     } else if (game.phase === Phase.RESEARCH) {
       game.gotoResearchPhase();
+    } else if (game.phase === Phase.PRODUCTION) {
+      if (game.gameIsOver() && game.isDoneWithFinalProduction()) {
+        game.takeNextFinalGreeneryAction();
+      }
     } else if (game.phase === Phase.END) {
       // There's nowhere that we need to go for end game.
     } else {

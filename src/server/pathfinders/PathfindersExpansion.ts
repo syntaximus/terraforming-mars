@@ -21,7 +21,6 @@ import {VictoryPointsBreakdownBuilder} from '../game/VictoryPointsBreakdownBuild
 import {GlobalEventName} from '../../common/turmoil/globalEvents/GlobalEventName';
 import {Priority} from '../deferredActions/Priority';
 import {message} from '../logs/MessageBuilder';
-import {Units} from '../../common/Units';
 
 export const TRACKS = PlanetaryTracks.initialize();
 
@@ -50,6 +49,26 @@ export class PathfindersExpansion {
         PathfindersExpansion.raiseTrack(tag, player);
       }
     });
+  }
+
+  public static willGainEnergyProductionOnNextMarsTag(player: IPlayer, count: 1 | 2 = 1): boolean {
+    const data = player.game.pathfindersData;
+    if (data === undefined) {
+      return false;
+    }
+    const idx = data[Tag.MARS] + count;
+    const rewards = TRACKS[Tag.MARS].spaces[idx].risingPlayer;
+
+    if (rewards === undefined) {
+      return false;
+    }
+    if (rewards.includes('energy_production')) {
+      return true;
+    }
+    if (count === 2) {
+      return this.willGainEnergyProductionOnNextMarsTag(player, 1);
+    }
+    return false;
   }
 
   public static raiseTrack(tag: PlanetaryTag, player: IPlayer, steps: number = 1): void {
@@ -205,7 +224,7 @@ export class PathfindersExpansion {
     case 'resource':
       player.defer(new SelectResource(message('Gain ${0} units of a standard resource', (b) => b.number(1)))
         .andThen((unit) => {
-          player.stock.add(Units.ResourceMap[unit], 1, {log: true});
+          player.stock.add(unit, 1, {log: true});
           return undefined;
         }));
       break;
