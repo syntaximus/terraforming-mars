@@ -77,6 +77,7 @@ import {DiscordId} from './server/auth/discord';
 import {AlliedParty} from '../common/turmoil/Types';
 import {PlayedCards} from './cards/PlayedCards';
 import {From} from './logs/From';
+import {SelectStandardProjectToPlay} from './inputs/SelectStandardProjectToPlay';
 
 const THROW_STATE_ERRORS = Boolean(process.env.THROW_STATE_ERRORS);
 const DEFAULT_GLOBAL_PARAMETER_STEPS = {
@@ -642,9 +643,11 @@ export class Player implements IPlayer {
       this.draftedCards = newStandardDraft(this.game).draw(this);
     }
 
+    // If there are 4 cards to choose from, choose 4. If there are 5 because of Mars maths or Luna Project Office,
+    // choose 4. If there are fewer cards because of an exhausted draw pile, draw whatever is available.
     let selectable = this.draftedCards.length;
     if (this.playedCards.has(CardName.MARS_MATHS) && !this.playedCards.has(CardName.LUNA_PROJECT_OFFICE)) {
-      selectable--;
+      selectable = Math.min(selectable, 4);
     }
 
     const cards = copyAndClear(this.draftedCards);
@@ -800,6 +803,7 @@ export class Player implements IPlayer {
       if (card === undefined) {
         throw new Error('Card ' + name + ' not found');
       }
+      // TODO(kberg): I suggest not logging this. Or do something fuller.
       this.removeResourceFrom(card, count, {log: true});
     };
 
@@ -1386,15 +1390,17 @@ export class Player implements IPlayer {
     return this.canAffordInternal(options).canAfford;
   }
 
-  public getStandardProjectOption(): SelectCard<IStandardProjectCard> {
+  public getStandardProjectOption(): SelectStandardProjectToPlay {
     const standardProjects: Array<IStandardProjectCard> = this.game.getStandardProjects();
 
-    return new SelectCard(
-      'Standard projects',
-      'Confirm',
+    return new SelectStandardProjectToPlay(
+      this,
       standardProjects,
-      {enabled: standardProjects.map((card) => card.canAct(this))})
-      .andThen(([card]) => card.action(this));
+      {
+        enabled: standardProjects.map((card) => card.canAct(this)),
+        title: 'Standard projects',
+        buttonLabel: 'Confirm',
+      });
   }
 
   private headStartIsInEffect() {
